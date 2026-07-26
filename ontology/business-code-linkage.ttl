@@ -1,0 +1,354 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix biz:  <https://example.org/code-ontology/business#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/code-ontology/business>
+    a owl:Ontology ;
+    owl:imports <https://example.org/code-ontology> ;
+    rdfs:label "Business semantic and code linkage ontology"@en ;
+    rdfs:label "业务语义与代码图关联本体"@zh .
+
+#################################################################
+# Business classes
+#################################################################
+
+biz:BusinessEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+biz:BusinessDomain a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:BusinessCapability a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:Actor a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:UseCase a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:BusinessProcess a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:BusinessProcessStep a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:BusinessObject a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:BusinessAttribute a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:BusinessRule a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:ValidationRule a owl:Class ;
+    rdfs:subClassOf biz:BusinessRule .
+
+biz:AuthorizationRule a owl:Class ;
+    rdfs:subClassOf biz:BusinessRule .
+
+biz:StateTransitionRule a owl:Class ;
+    rdfs:subClassOf biz:BusinessRule .
+
+biz:ConsistencyRule a owl:Class ;
+    rdfs:subClassOf biz:BusinessRule .
+
+biz:RoutingRule a owl:Class ;
+    rdfs:subClassOf biz:BusinessRule .
+
+biz:CompensationRule a owl:Class ;
+    rdfs:subClassOf biz:BusinessRule .
+
+biz:BusinessEvent a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:BusinessState a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:StateTransition a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:AcceptanceCriterion a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:ServiceLevelObjective a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity .
+
+biz:ImplementationSlice a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+biz:BusinessMapping a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+biz:CandidateMapping a owl:Class ;
+    rdfs:subClassOf biz:BusinessMapping .
+
+biz:ConfirmedMapping a owl:Class ;
+    rdfs:subClassOf biz:BusinessMapping .
+
+biz:BrokenMapping a owl:Class ;
+    rdfs:subClassOf biz:BusinessMapping .
+
+#################################################################
+# Business structure relations
+#################################################################
+
+biz:containsCapability a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessDomain ;
+    rdfs:range biz:BusinessCapability ;
+    owl:inverseOf biz:belongsToDomain .
+
+biz:belongsToDomain a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessCapability ;
+    rdfs:range biz:BusinessDomain .
+
+biz:containsUseCase a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessCapability ;
+    rdfs:range biz:UseCase ;
+    owl:inverseOf biz:belongsToCapability .
+
+biz:belongsToCapability a owl:ObjectProperty ;
+    rdfs:range biz:BusinessCapability .
+
+biz:performsUseCase a owl:ObjectProperty ;
+    rdfs:domain biz:Actor ;
+    rdfs:range biz:UseCase .
+
+biz:includesProcess a owl:ObjectProperty ;
+    rdfs:domain biz:UseCase ;
+    rdfs:range biz:BusinessProcess ;
+    owl:inverseOf biz:belongsToUseCase .
+
+biz:belongsToUseCase a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcess ;
+    rdfs:range biz:UseCase .
+
+biz:containsStep a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcess ;
+    rdfs:range biz:BusinessProcessStep ;
+    owl:inverseOf biz:belongsToProcess .
+
+biz:belongsToProcess a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:BusinessProcess .
+
+biz:hasEntryStep a owl:ObjectProperty ;
+    rdfs:subPropertyOf biz:containsStep ;
+    rdfs:domain biz:BusinessProcess ;
+    rdfs:range biz:BusinessProcessStep .
+
+biz:hasExitStep a owl:ObjectProperty ;
+    rdfs:subPropertyOf biz:containsStep ;
+    rdfs:domain biz:BusinessProcess ;
+    rdfs:range biz:BusinessProcessStep .
+
+biz:precedes a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:BusinessProcessStep ;
+    owl:inverseOf biz:follows .
+
+biz:follows a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:BusinessProcessStep .
+
+biz:branchesTo a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:BusinessProcessStep .
+
+biz:compensatedBy a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:BusinessProcessStep .
+
+#################################################################
+# Objects, rules, events and states
+#################################################################
+
+biz:hasBusinessAttribute a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessObject ;
+    rdfs:range biz:BusinessAttribute ;
+    owl:inverseOf biz:attributeOfBusinessObject .
+
+biz:attributeOfBusinessObject a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessAttribute ;
+    rdfs:range biz:BusinessObject .
+
+biz:hasBusinessInput a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:BusinessObject .
+
+biz:hasBusinessOutput a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:BusinessObject .
+
+biz:governedBy a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:BusinessRule ;
+    owl:inverseOf biz:governsStep .
+
+biz:governsStep a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessRule ;
+    rdfs:range biz:BusinessProcessStep .
+
+biz:constrainsBusinessObject a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessRule ;
+    rdfs:range biz:BusinessObject .
+
+biz:constrainsBusinessAttribute a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessRule ;
+    rdfs:range biz:BusinessAttribute .
+
+biz:producesBusinessEvent a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:BusinessEvent .
+
+biz:triggeredByBusinessEvent a owl:ObjectProperty ;
+    rdfs:range biz:BusinessEvent .
+
+biz:fromState a owl:ObjectProperty ;
+    rdfs:domain biz:StateTransition ;
+    rdfs:range biz:BusinessState .
+
+biz:toState a owl:ObjectProperty ;
+    rdfs:domain biz:StateTransition ;
+    rdfs:range biz:BusinessState .
+
+biz:performedByStep a owl:ObjectProperty ;
+    rdfs:domain biz:StateTransition ;
+    rdfs:range biz:BusinessProcessStep .
+
+biz:guardedBy a owl:ObjectProperty ;
+    rdfs:domain biz:StateTransition ;
+    rdfs:range biz:BusinessRule .
+
+biz:transitionsState a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:StateTransition .
+
+biz:hasAcceptanceCriterion a owl:ObjectProperty ;
+    rdfs:domain code:Requirement ;
+    rdfs:range biz:AcceptanceCriterion .
+
+biz:satisfiesAcceptanceCriterion a owl:ObjectProperty ;
+    rdfs:range biz:AcceptanceCriterion .
+
+#################################################################
+# Business-to-code bridge relations
+#################################################################
+
+biz:realizesUseCase a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAnalysisEntity ;
+    rdfs:range biz:UseCase ;
+    owl:inverseOf biz:isRealizedBy .
+
+biz:isRealizedBy a owl:ObjectProperty ;
+    rdfs:domain biz:UseCase ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+biz:implementsProcessStep a owl:ObjectProperty ;
+    rdfs:domain biz:ImplementationSlice ;
+    rdfs:range biz:BusinessProcessStep ;
+    owl:inverseOf biz:isImplementedBySlice .
+
+biz:isImplementedBySlice a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessProcessStep ;
+    rdfs:range biz:ImplementationSlice .
+
+biz:primaryImplementsStep a owl:ObjectProperty ;
+    rdfs:domain code:CodeEntity ;
+    rdfs:range biz:BusinessProcessStep .
+
+biz:supportsStep a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAnalysisEntity ;
+    rdfs:range biz:BusinessProcessStep .
+
+biz:hasPrimaryEntry a owl:ObjectProperty ;
+    rdfs:domain biz:ImplementationSlice ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+biz:containsSupportingEntity a owl:ObjectProperty ;
+    rdfs:domain biz:ImplementationSlice ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+biz:enforcesRule a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAnalysisEntity ;
+    rdfs:range biz:BusinessRule ;
+    owl:inverseOf biz:isEnforcedBy .
+
+biz:isEnforcedBy a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessRule ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+biz:configuresRule a owl:ObjectProperty ;
+    rdfs:domain code:ConfigurationKey ;
+    rdfs:range biz:BusinessRule .
+
+biz:representsBusinessObject a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAnalysisEntity ;
+    rdfs:range biz:BusinessObject .
+
+biz:representsBusinessAttribute a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAnalysisEntity ;
+    rdfs:range biz:BusinessAttribute .
+
+biz:storesBusinessObject a owl:ObjectProperty ;
+    rdfs:domain code:DataEntity ;
+    rdfs:range biz:BusinessObject .
+
+biz:storesBusinessAttribute a owl:ObjectProperty ;
+    rdfs:domain code:DataEntity ;
+    rdfs:range biz:BusinessAttribute .
+
+biz:representsBusinessEvent a owl:ObjectProperty ;
+    rdfs:domain code:ContractEntity ;
+    rdfs:range biz:BusinessEvent .
+
+biz:verifiesBusinessEntity a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:verifies ;
+    rdfs:domain code:TestCase ;
+    rdfs:range biz:BusinessEntity .
+
+biz:runsInDeployableUnit a owl:ObjectProperty ;
+    rdfs:domain biz:ImplementationSlice ;
+    rdfs:range code:DeployableUnit .
+
+#################################################################
+# Mapping reification
+#################################################################
+
+biz:mappingBusinessEntity a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessMapping ;
+    rdfs:range biz:BusinessEntity .
+
+biz:mappingTechnicalEntity a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessMapping ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+biz:mappingRelation a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessMapping ;
+    rdfs:range rdf:Property .
+
+biz:supportedByEvidence a owl:ObjectProperty ;
+    rdfs:domain biz:BusinessMapping ;
+    rdfs:range code:ImpactEvidence .
+
+biz:confidence a owl:DatatypeProperty ;
+    rdfs:range xsd:decimal .
+
+biz:canonicalId a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+biz:reviewStatus a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+biz:validFrom a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime .
+
+biz:validTo a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime .
+
+biz:lastVerifiedCommit a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
