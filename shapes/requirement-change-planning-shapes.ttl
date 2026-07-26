@@ -1,0 +1,311 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix biz:  <https://example.org/code-ontology/business#> .
+@prefix plan: <https://example.org/code-ontology/planning#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+plan:DesignDocumentShape
+    a sh:NodeShape ;
+    sh:targetClass plan:DesignDocument ;
+    sh:property [
+        sh:path plan:documentId ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 3 ;
+        sh:message "设计文档必须具有稳定 documentId。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:hasRevision ;
+        sh:minCount 1 ;
+        sh:class plan:DesignRevision ;
+        sh:message "设计文档至少具有一个 DesignRevision。"@zh
+    ] .
+
+plan:DesignRevisionShape
+    a sh:NodeShape ;
+    sh:targetClass plan:DesignRevision ;
+    sh:property [
+        sh:path plan:revisionNumber ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "DesignRevision 必须具有版本号。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:contentHash ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "DesignRevision 必须保存内容 Hash，支持增量重算。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:normalizedAs ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class plan:RequirementIR ;
+        sh:message "DesignRevision 必须规范化为一个 RequirementIR。"@zh
+    ] .
+
+plan:RequirementIRShape
+    a sh:NodeShape ;
+    sh:targetClass plan:RequirementIR ;
+    sh:property [
+        sh:path plan:describesRequirement ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class biz:Requirement ;
+        sh:message "RequirementIR 必须描述一个 Requirement。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:definesDesiredEntity ;
+        sh:minCount 1 ;
+        sh:class plan:DesiredGraphEntity ;
+        sh:message "RequirementIR 至少应定义一个目标业务或技术实体。"@zh
+    ] .
+
+plan:DocumentEvidenceShape
+    a sh:NodeShape ;
+    sh:targetClass plan:DocumentEvidence ;
+    sh:property [
+        sh:path plan:sourceText ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:message "DocumentEvidence 必须保存源文本或结构化元素内容。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:sectionId ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "DocumentEvidence 必须定位到文档章节或元素。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:confidence ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        sh:message "DocumentEvidence confidence 必须位于 0 到 1。"@zh
+    ] .
+
+plan:DesiredGraphEntityShape
+    a sh:NodeShape ;
+    sh:targetClass plan:DesiredGraphEntity ;
+    sh:property [
+        sh:path plan:derivedFromRevision ;
+        sh:minCount 1 ;
+        sh:class plan:DesignRevision ;
+        sh:message "目标实体必须关联其来源 DesignRevision。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:supportedByDesignEvidence ;
+        sh:minCount 1 ;
+        sh:class plan:DocumentEvidence ;
+        sh:message "目标实体必须至少有一个设计证据。"@zh
+    ] .
+
+plan:CandidateAlignmentShape
+    a sh:NodeShape ;
+    sh:targetClass plan:CandidateAlignment ;
+    sh:property [
+        sh:path plan:alignedDesiredEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class plan:DesiredGraphEntity ;
+        sh:message "CandidateAlignment 必须指定目标设计实体。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:alignedCurrentEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class code:ImpactAnalysisEntity ;
+        sh:message "CandidateAlignment 必须指定当前知识图候选实体。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:alignmentType ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("ExactReuse" "ExtendExisting" "ModifyExisting" "SemanticAlias" "ReplaceExisting" "NoMatch" "Ambiguous") ;
+        sh:message "alignmentType 必须使用受控枚举。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:confidence ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        sh:message "CandidateAlignment confidence 必须位于 0 到 1。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:supportedByDesignEvidence ;
+        sh:minCount 1 ;
+        sh:class plan:DocumentEvidence ;
+        sh:message "实体对齐必须保存证据。"@zh
+    ] .
+
+plan:DesignChangeSetShape
+    a sh:NodeShape ;
+    sh:targetClass plan:DesignChangeSet ;
+    sh:property [
+        sh:path plan:derivedFromRequirement ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class biz:Requirement ;
+        sh:message "DesignChangeSet 必须关联来源 Requirement。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:derivedFromDesignRevision ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class plan:DesignRevision ;
+        sh:message "DesignChangeSet 必须绑定具体设计版本。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:containsProposedChange ;
+        sh:minCount 1 ;
+        sh:class plan:ProposedChange ;
+        sh:message "DesignChangeSet 至少包含一个 ProposedChange。"@zh
+    ] .
+
+plan:ProposedChangeShape
+    a sh:NodeShape ;
+    sh:targetClass plan:ProposedChange ;
+    sh:property [
+        sh:path plan:proposalStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("Extracted" "Aligned" "Proposed" "UnderReview" "Approved" "Rejected" "NeedsRevision" "Implementing" "Implemented" "Verified" "Released" "Cancelled") ;
+        sh:message "ProposedChange 必须具有合法 proposalStatus。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:supportedByDesignEvidence ;
+        sh:minCount 1 ;
+        sh:class plan:DocumentEvidence ;
+        sh:message "ProposedChange 必须保存设计证据。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:riskLevel ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("Low" "Medium" "High" "Critical") ;
+        sh:message "riskLevel 必须使用 Low、Medium、High 或 Critical。"@zh
+    ] .
+
+plan:ProposedNodeModificationShape
+    a sh:NodeShape ;
+    sh:targetClass plan:ProposedNodeModification ;
+    sh:property [
+        sh:path plan:targetsCurrentEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class code:ImpactAnalysisEntity ;
+        sh:message "节点修改提案必须指定当前目标实体。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:proposesEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class plan:DesiredGraphEntity ;
+        sh:message "节点修改提案必须指定期望实体。"@zh
+    ] .
+
+plan:ProposedNodeRemovalShape
+    a sh:NodeShape ;
+    sh:targetClass plan:ProposedNodeRemoval ;
+    sh:property [
+        sh:path plan:targetsCurrentEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class code:ImpactAnalysisEntity ;
+        sh:message "节点删除或废弃提案必须指定当前目标实体。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:requiresDecision ;
+        sh:minCount 1 ;
+        sh:class plan:DesignDecision ;
+        sh:message "删除提案必须有关联的人工设计决策。"@zh
+    ] .
+
+plan:DesignDecisionShape
+    a sh:NodeShape ;
+    sh:targetClass plan:DesignDecision ;
+    sh:property [
+        sh:path plan:decisionQuestion ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 5 ;
+        sh:message "DesignDecision 必须说明待决策问题。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:decisionRationale ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 5 ;
+        sh:message "已记录的 DesignDecision 必须说明决策理由。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:affectsProposedChange ;
+        sh:minCount 1 ;
+        sh:class plan:ProposedChange ;
+        sh:message "DesignDecision 必须关联受影响的 ProposedChange。"@zh
+    ] .
+
+plan:ImplementationTaskShape
+    a sh:NodeShape ;
+    sh:targetClass plan:ImplementationTask ;
+    sh:property [
+        sh:path plan:implementsProposedChange ;
+        sh:minCount 1 ;
+        sh:class plan:ProposedChange ;
+        sh:message "ImplementationTask 至少实现一个 ProposedChange。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:taskStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "ImplementationTask 必须具有状态。"@zh
+    ] .
+
+plan:ReconciliationRunShape
+    a sh:NodeShape ;
+    sh:targetClass plan:ReconciliationRun ;
+    sh:property [
+        sh:path plan:reconcilesChangeSet ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class plan:DesignChangeSet ;
+        sh:message "ReconciliationRun 必须指定被对账的 DesignChangeSet。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:containsReconciliationResult ;
+        sh:minCount 1 ;
+        sh:class plan:ReconciliationResult ;
+        sh:message "ReconciliationRun 至少包含一个对账结果。"@zh
+    ] .
+
+plan:ReconciliationResultShape
+    a sh:NodeShape ;
+    sh:targetClass plan:ReconciliationResult ;
+    sh:property [
+        sh:path plan:reconcilesProposedChange ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class plan:ProposedChange ;
+        sh:message "ReconciliationResult 必须关联一个 ProposedChange。"@zh
+    ] ;
+    sh:property [
+        sh:path plan:reconciliationStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("ImplementedAsDesigned" "PartiallyImplemented" "MissingImplementation" "AlternativeImplementation" "UnexpectedImplementation" "DesignNoLongerApplicable" "CannotVerify") ;
+        sh:message "ReconciliationResult 必须具有合法对账状态。"@zh
+    ] .
