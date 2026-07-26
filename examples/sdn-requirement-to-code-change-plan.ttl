@@ -1,0 +1,435 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix biz:  <https://example.org/code-ontology/business#> .
+@prefix sdn:  <https://example.org/code-ontology/sdn#> .
+@prefix plan: <https://example.org/code-ontology/planning#> .
+@prefix ex:   <https://example.org/code-ontology/example/requirement-plan#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# Design document and Requirement IR
+#################################################################
+
+ex:BandwidthPolicyDesignDocument
+    a plan:DesignDocument ;
+    plan:documentId "DESIGN-SDN-BW-001" ;
+    rdfs:label "支持带宽约束的网络策略部署详细设计"@zh ;
+    plan:hasRevision ex:BandwidthPolicyDesignRevision10 .
+
+ex:BandwidthPolicyDesignRevision10
+    a plan:DesignRevision ;
+    plan:revisionOf ex:BandwidthPolicyDesignDocument ;
+    plan:revisionNumber "1.0" ;
+    plan:contentHash "sha256:example-design-revision-1.0" ;
+    plan:normalizedAs ex:BandwidthPolicyRequirementIR ;
+    plan:containsSection ex:BusinessRuleSection ,
+                         ex:ApiDesignSection ,
+                         ex:ConfigurationSection ,
+                         ex:AcceptanceSection .
+
+ex:BusinessRuleSection
+    a plan:DesignSection ;
+    plan:sectionId "4.2" ;
+    rdfs:label "带宽约束业务规则"@zh .
+
+ex:ApiDesignSection
+    a plan:DesignSection ;
+    plan:sectionId "6.1" ;
+    rdfs:label "策略部署 API 变化"@zh .
+
+ex:ConfigurationSection
+    a plan:DesignSection ;
+    plan:sectionId "8.3" ;
+    rdfs:label "带宽指标新鲜度配置"@zh .
+
+ex:AcceptanceSection
+    a plan:DesignSection ;
+    plan:sectionId "10" ;
+    rdfs:label "验收标准"@zh .
+
+ex:BandwidthPolicyRequirement
+    a biz:Requirement ;
+    biz:canonicalId "REQ-SDN-2026-001" ;
+    rdfs:label "支持带宽约束的网络策略部署"@zh .
+
+ex:BandwidthPolicyRequirementIR
+    a plan:RequirementIR ;
+    plan:describesRequirement ex:BandwidthPolicyRequirement ;
+    plan:definesDesiredEntity ex:MinimumBandwidthRule ,
+                              ex:BandwidthDataFreshnessRule ,
+                              ex:DesiredMinimumBandwidthField ,
+                              ex:DesiredPathConstraintRole ,
+                              ex:DesiredConstraintEvaluatorRole ,
+                              ex:DesiredBandwidthMaxAgeKey ,
+                              ex:DesiredNoSouthboundCallTest .
+
+#################################################################
+# Document evidence
+#################################################################
+
+ex:MinimumBandwidthRuleEvidence
+    a plan:DocumentEvidence ;
+    plan:sectionId "4.2" ;
+    plan:sourceText "所选路径上的每条链路可用带宽不得低于策略要求。"@zh ;
+    plan:confidence "1.0"^^xsd:decimal .
+
+ex:BandwidthFreshnessEvidence
+    a plan:DocumentEvidence ;
+    plan:sectionId "4.3" ;
+    plan:sourceText "带宽采样时间超过允许时限时不得用于路径计算。"@zh ;
+    plan:confidence "1.0"^^xsd:decimal .
+
+ex:ApiFieldEvidence
+    a plan:DocumentEvidence ;
+    plan:sectionId "6.1" ;
+    plan:sourceText "策略部署请求增加可选整数参数 minimumBandwidthMbps。"@zh ;
+    plan:confidence "1.0"^^xsd:decimal .
+
+ex:ConfigurationEvidence
+    a plan:DocumentEvidence ;
+    plan:sectionId "8.3" ;
+    plan:sourceText "新增 topology.bandwidth.max-age，默认值 PT30S。"@zh ;
+    plan:confidence "1.0"^^xsd:decimal .
+
+ex:NegativeAcceptanceEvidence
+    a plan:DocumentEvidence ;
+    plan:sectionId "10.2" ;
+    plan:sourceText "带宽数据过期时返回明确错误且不得向设备下发任何流表。"@zh ;
+    plan:confidence "1.0"^^xsd:decimal .
+
+#################################################################
+# Desired business entities
+#################################################################
+
+ex:MinimumBandwidthRule
+    a plan:DesiredBusinessEntity , sdn:PathEligibilityRule ;
+    plan:derivedFromRevision ex:BandwidthPolicyDesignRevision10 ;
+    plan:supportedByDesignEvidence ex:MinimumBandwidthRuleEvidence ;
+    biz:canonicalId "sdn.rule.minimum-available-bandwidth" ;
+    rdfs:label "路径链路必须满足最小可用带宽"@zh .
+
+ex:BandwidthDataFreshnessRule
+    a plan:DesiredBusinessEntity , sdn:PathEligibilityRule ;
+    plan:derivedFromRevision ex:BandwidthPolicyDesignRevision10 ;
+    plan:supportedByDesignEvidence ex:BandwidthFreshnessEvidence ;
+    biz:canonicalId "sdn.rule.bandwidth-data-freshness" ;
+    rdfs:label "过期带宽数据不得参与路径计算"@zh .
+
+#################################################################
+# Desired technical entities and roles
+#################################################################
+
+ex:DesiredMinimumBandwidthField
+    a plan:DesiredSchemaField ;
+    plan:derivedFromRevision ex:BandwidthPolicyDesignRevision10 ;
+    plan:supportedByDesignEvidence ex:ApiFieldEvidence ;
+    rdfs:label "minimumBandwidthMbps 请求字段"@zh .
+
+ex:DesiredPathConstraintRole
+    a plan:DesiredCodeRole ;
+    plan:derivedFromRevision ex:BandwidthPolicyDesignRevision10 ;
+    plan:supportedByDesignEvidence ex:MinimumBandwidthRuleEvidence ;
+    rdfs:label "承载最小带宽约束的路径约束模型"@zh .
+
+ex:DesiredConstraintEvaluatorRole
+    a plan:DesiredCodeRole ;
+    plan:derivedFromRevision ex:BandwidthPolicyDesignRevision10 ;
+    plan:supportedByDesignEvidence ex:MinimumBandwidthRuleEvidence ,
+                                   ex:BandwidthFreshnessEvidence ;
+    rdfs:label "执行带宽与新鲜度规则的约束执行点"@zh .
+
+ex:DesiredBandwidthMaxAgeKey
+    a plan:DesiredConfigurationKey ;
+    plan:derivedFromRevision ex:BandwidthPolicyDesignRevision10 ;
+    plan:supportedByDesignEvidence ex:ConfigurationEvidence ;
+    rdfs:label "topology.bandwidth.max-age" .
+
+ex:DesiredNoSouthboundCallTest
+    a plan:DesiredTestObligation ;
+    plan:derivedFromRevision ex:BandwidthPolicyDesignRevision10 ;
+    plan:supportedByDesignEvidence ex:NegativeAcceptanceEvidence ;
+    rdfs:label "带宽数据过期时不发生南向调用"@zh .
+
+#################################################################
+# Existing current code graph entities
+#################################################################
+
+ex:CurrentDeployPolicyOperation
+    a code:APIOperation ;
+    rdfs:label "POST /network-policies/{id}/deploy" .
+
+ex:CurrentPolicyDeployRequest
+    a code:Class ;
+    rdfs:label "PolicyDeployRequest" .
+
+ex:CurrentPathConstraint
+    a code:Class ;
+    rdfs:label "PathConstraint" .
+
+ex:CurrentConstraintEvaluator
+    a code:Class ;
+    rdfs:label "ConstraintEvaluator" .
+
+ex:CurrentConstraintEvaluateMethod
+    a code:Method ;
+    rdfs:label "ConstraintEvaluator.evaluate" ;
+    code:declaredIn ex:CurrentConstraintEvaluator .
+
+ex:CurrentPathComputationService
+    a code:Class ;
+    rdfs:label "PathComputationService" .
+
+ex:CurrentComputeMethod
+    a code:Method ;
+    rdfs:label "PathComputationService.compute" ;
+    code:declaredIn ex:CurrentPathComputationService ;
+    code:callsDirectly ex:CurrentConstraintEvaluateMethod .
+
+ex:CurrentOpenFlowInstallMethod
+    a code:Method ;
+    rdfs:label "OpenFlowAdapter.installFlows" .
+
+ex:CurrentPathComputationSlice
+    a biz:ImplementationSlice ;
+    biz:canonicalId "slice.sdn.path-computation" ;
+    biz:hasPrimaryEntry ex:CurrentComputeMethod ;
+    biz:containsSupportingCode ex:CurrentConstraintEvaluateMethod .
+
+#################################################################
+# Candidate alignments
+#################################################################
+
+ex:AlignDesiredPathConstraintToCurrent
+    a plan:CandidateAlignment ;
+    plan:alignedDesiredEntity ex:DesiredPathConstraintRole ;
+    plan:alignedCurrentEntity ex:CurrentPathConstraint ;
+    plan:alignmentType "ModifyExisting" ;
+    plan:alignmentStatus "Confirmed" ;
+    plan:confidence "0.95"^^xsd:decimal ;
+    plan:supportedByDesignEvidence ex:MinimumBandwidthRuleEvidence .
+
+ex:AlignDesiredEvaluatorToCurrent
+    a plan:CandidateAlignment ;
+    plan:alignedDesiredEntity ex:DesiredConstraintEvaluatorRole ;
+    plan:alignedCurrentEntity ex:CurrentConstraintEvaluator ;
+    plan:alignmentType "ExtendExisting" ;
+    plan:alignmentStatus "UnderReview" ;
+    plan:confidence "0.91"^^xsd:decimal ;
+    plan:supportedByDesignEvidence ex:MinimumBandwidthRuleEvidence ,
+                                   ex:BandwidthFreshnessEvidence .
+
+ex:AlignDesiredRequestFieldToRequestClass
+    a plan:CandidateAlignment ;
+    plan:alignedDesiredEntity ex:DesiredMinimumBandwidthField ;
+    plan:alignedCurrentEntity ex:CurrentPolicyDeployRequest ;
+    plan:alignmentType "ModifyExisting" ;
+    plan:alignmentStatus "Confirmed" ;
+    plan:confidence "0.98"^^xsd:decimal ;
+    plan:supportedByDesignEvidence ex:ApiFieldEvidence .
+
+#################################################################
+# Semantic graph diff
+#################################################################
+
+ex:BandwidthRequirementGraphDiff
+    a plan:SemanticGraphDiff ;
+    plan:comparesDesiredRevision ex:BandwidthPolicyDesignRevision10 ;
+    plan:containsDifference ex:AddMinimumBandwidthRuleDiff ,
+                            ex:AddBandwidthFreshnessRuleDiff ,
+                            ex:AddRequestFieldDiff ,
+                            ex:ModifyPathConstraintDiff ,
+                            ex:ModifyConstraintEvaluatorDiff ,
+                            ex:AddConfigurationDiff ,
+                            ex:AddNegativeTestDiff .
+
+ex:AddMinimumBandwidthRuleDiff
+    a plan:AddEntityDifference ;
+    plan:differenceDesiredEntity ex:MinimumBandwidthRule ;
+    plan:missingStatus "MissingConfirmed" .
+
+ex:AddBandwidthFreshnessRuleDiff
+    a plan:AddEntityDifference ;
+    plan:differenceDesiredEntity ex:BandwidthDataFreshnessRule ;
+    plan:missingStatus "MissingConfirmed" .
+
+ex:AddRequestFieldDiff
+    a plan:AddEntityDifference ;
+    plan:differenceDesiredEntity ex:DesiredMinimumBandwidthField ;
+    plan:differenceCurrentEntity ex:CurrentPolicyDeployRequest ;
+    plan:missingStatus "MissingConfirmed" .
+
+ex:ModifyPathConstraintDiff
+    a plan:ModifyEntityDifference ;
+    plan:differenceDesiredEntity ex:DesiredPathConstraintRole ;
+    plan:differenceCurrentEntity ex:CurrentPathConstraint .
+
+ex:ModifyConstraintEvaluatorDiff
+    a plan:ModifyEntityDifference ;
+    plan:differenceDesiredEntity ex:DesiredConstraintEvaluatorRole ;
+    plan:differenceCurrentEntity ex:CurrentConstraintEvaluator .
+
+ex:AddConfigurationDiff
+    a plan:AddEntityDifference ;
+    plan:differenceDesiredEntity ex:DesiredBandwidthMaxAgeKey ;
+    plan:missingStatus "MissingConfirmed" .
+
+ex:AddNegativeTestDiff
+    a plan:VerificationDifference ;
+    plan:differenceDesiredEntity ex:DesiredNoSouthboundCallTest ;
+    plan:missingStatus "MissingConfirmed" .
+
+#################################################################
+# Planning rules
+#################################################################
+
+ex:BandwidthConstraintPlanningRule
+    a plan:PlanningRule ;
+    plan:ruleVersion "1.0.0" ;
+    rdfs:label "SDN 最小带宽约束规划规则"@zh .
+
+ex:ApiSchemaFieldPlanningRule
+    a plan:PlanningRule ;
+    plan:ruleVersion "1.0.0" ;
+    rdfs:label "API Schema 字段新增规划规则"@zh .
+
+#################################################################
+# Design change set and proposed changes
+#################################################################
+
+ex:BandwidthPolicyDesignChangeSet
+    a plan:DesignChangeSet ;
+    plan:derivedFromRequirement ex:BandwidthPolicyRequirement ;
+    plan:derivedFromDesignRevision ex:BandwidthPolicyDesignRevision10 ;
+    plan:basedOnGraphDiff ex:BandwidthRequirementGraphDiff ;
+    plan:containsProposedChange ex:ModifyRequestSchemaProposal ,
+                                ex:ModifyPathConstraintProposal ,
+                                ex:ExtendConstraintEvaluatorProposal ,
+                                ex:AddBandwidthMaxAgeProposal ,
+                                ex:AddStaleDataFailureProposal ,
+                                ex:AddBandwidthRuleTestsProposal ,
+                                ex:AddNoSouthboundCallTestProposal .
+
+ex:ModifyRequestSchemaProposal
+    a plan:ProposedContractChange ;
+    plan:targetsCurrentEntity ex:CurrentPolicyDeployRequest ;
+    plan:proposesEntity ex:DesiredMinimumBandwidthField ;
+    plan:basedOnAlignment ex:AlignDesiredRequestFieldToRequestClass ;
+    plan:derivedByRule ex:ApiSchemaFieldPlanningRule ;
+    plan:supportedByDesignEvidence ex:ApiFieldEvidence ;
+    plan:proposalStatus "Proposed" ;
+    plan:riskLevel "Medium" .
+
+ex:ModifyPathConstraintProposal
+    a plan:ProposedNodeModification ;
+    plan:targetsCurrentEntity ex:CurrentPathConstraint ;
+    plan:proposesEntity ex:DesiredPathConstraintRole ;
+    plan:basedOnAlignment ex:AlignDesiredPathConstraintToCurrent ;
+    plan:derivedByRule ex:BandwidthConstraintPlanningRule ;
+    plan:supportedByDesignEvidence ex:MinimumBandwidthRuleEvidence ;
+    plan:proposalStatus "Proposed" ;
+    plan:riskLevel "Medium" .
+
+ex:ExtendConstraintEvaluatorProposal
+    a plan:ProposedBehaviorChange ;
+    plan:targetsCurrentEntity ex:CurrentConstraintEvaluator ;
+    plan:proposesEntity ex:DesiredConstraintEvaluatorRole ;
+    plan:basedOnAlignment ex:AlignDesiredEvaluatorToCurrent ;
+    plan:derivedByRule ex:BandwidthConstraintPlanningRule ;
+    plan:supportedByDesignEvidence ex:MinimumBandwidthRuleEvidence ,
+                                   ex:BandwidthFreshnessEvidence ;
+    plan:proposalStatus "UnderReview" ;
+    plan:riskLevel "High" ;
+    plan:requiresDecision ex:EvaluatorReuseDecision .
+
+ex:AddBandwidthMaxAgeProposal
+    a plan:ProposedConfigurationChange ;
+    plan:proposesEntity ex:DesiredBandwidthMaxAgeKey ;
+    plan:derivedByRule ex:BandwidthConstraintPlanningRule ;
+    plan:supportedByDesignEvidence ex:ConfigurationEvidence ;
+    plan:proposalStatus "Proposed" ;
+    plan:riskLevel "Medium" .
+
+ex:AddStaleDataFailureProposal
+    a plan:ProposedContractChange ;
+    plan:targetsCurrentEntity ex:CurrentDeployPolicyOperation ;
+    plan:derivedByRule ex:BandwidthConstraintPlanningRule ;
+    plan:supportedByDesignEvidence ex:BandwidthFreshnessEvidence ;
+    plan:proposalStatus "Proposed" ;
+    plan:riskLevel "Medium" ;
+    plan:dependsOnProposedChange ex:ExtendConstraintEvaluatorProposal .
+
+ex:AddBandwidthRuleTestsProposal
+    a plan:ProposedTestChange ;
+    plan:derivedByRule ex:BandwidthConstraintPlanningRule ;
+    plan:supportedByDesignEvidence ex:MinimumBandwidthRuleEvidence ;
+    plan:proposalStatus "Proposed" ;
+    plan:riskLevel "Low" .
+
+ex:AddNoSouthboundCallTestProposal
+    a plan:ProposedTestChange ;
+    plan:proposesEntity ex:DesiredNoSouthboundCallTest ;
+    plan:derivedByRule ex:BandwidthConstraintPlanningRule ;
+    plan:supportedByDesignEvidence ex:NegativeAcceptanceEvidence ;
+    plan:proposalStatus "Proposed" ;
+    plan:riskLevel "High" ;
+    plan:dependsOnProposedChange ex:ExtendConstraintEvaluatorProposal .
+
+#################################################################
+# Design decision
+#################################################################
+
+ex:EvaluatorReuseDecision
+    a plan:DesignDecision ;
+    plan:decisionQuestion "带宽约束应扩展现有 ConstraintEvaluator，还是新增独立 BandwidthConstraintEvaluator？"@zh ;
+    plan:decisionRationale "当前约束计算已由同一 ImplementationSlice 统一组合，优先扩展现有插件式规则框架；若性能评估显示需要独立预过滤阶段，再拆分实现。"@zh ;
+    plan:selectedAlternative ex:CurrentConstraintEvaluator ;
+    plan:affectsProposedChange ex:ExtendConstraintEvaluatorProposal .
+
+#################################################################
+# Verification obligations and implementation tasks
+#################################################################
+
+ex:VerifyMinimumBandwidthRule
+    a plan:VerificationObligation ;
+    rdfs:label "验证路径所有链路满足最小带宽"@zh .
+
+ex:VerifyNoSouthboundOnStaleData
+    a plan:VerificationObligation ;
+    rdfs:label "验证带宽数据过期时不发生南向调用"@zh .
+
+ex:ExtendConstraintEvaluatorProposal
+    plan:requiresVerification ex:VerifyMinimumBandwidthRule .
+
+ex:AddNoSouthboundCallTestProposal
+    plan:requiresVerification ex:VerifyNoSouthboundOnStaleData .
+
+ex:TaskExtendPolicyContract
+    a plan:ImplementationTask ;
+    plan:taskStatus "Planned" ;
+    plan:implementsProposedChange ex:ModifyRequestSchemaProposal ,
+                                  ex:ModifyPathConstraintProposal ;
+    rdfs:label "扩展策略请求和路径约束模型"@zh .
+
+ex:TaskImplementBandwidthRules
+    a plan:ImplementationTask ;
+    plan:taskStatus "Planned" ;
+    plan:implementsProposedChange ex:ExtendConstraintEvaluatorProposal ,
+                                  ex:AddBandwidthMaxAgeProposal ,
+                                  ex:AddStaleDataFailureProposal ;
+    rdfs:label "实现带宽约束与指标新鲜度规则"@zh .
+
+ex:TaskAddBandwidthVerification
+    a plan:ImplementationTask ;
+    plan:taskStatus "Planned" ;
+    plan:implementsProposedChange ex:AddBandwidthRuleTestsProposal ,
+                                  ex:AddNoSouthboundCallTestProposal ;
+    rdfs:label "增加带宽约束与负向流程验证"@zh .
+
+ex:ModifyRequestSchemaProposal plan:createsTask ex:TaskExtendPolicyContract .
+ex:ModifyPathConstraintProposal plan:createsTask ex:TaskExtendPolicyContract .
+ex:ExtendConstraintEvaluatorProposal plan:createsTask ex:TaskImplementBandwidthRules .
+ex:AddBandwidthMaxAgeProposal plan:createsTask ex:TaskImplementBandwidthRules .
+ex:AddStaleDataFailureProposal plan:createsTask ex:TaskImplementBandwidthRules .
+ex:AddBandwidthRuleTestsProposal plan:createsTask ex:TaskAddBandwidthVerification .
+ex:AddNoSouthboundCallTestProposal plan:createsTask ex:TaskAddBandwidthVerification .
