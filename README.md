@@ -1,8 +1,8 @@
 # Code Ontology
 
-面向代码知识图谱、语义变更识别、需求变更规划与全链路波及分析的本体和实现设计。
+面向代码知识图谱、语义变更识别、需求变更规划、Agent 辅助实现与全链路波及分析的本体和实现设计。
 
-本仓库建立从源码、调用、类型、字段数据流、数据库、API、消息、配置、测试、业务语义，到需求详细设计、构建、部署和运行版本的统一模型。设计目标不是进行无约束图遍历，也不是让设计文档直接污染当前代码事实，而是根据变更类型、关系语义、兼容边界、运行证据和规划规则，生成可解释、可评审、可对账的变更结论。
+本仓库建立从源码、调用、类型、字段数据流、数据库、API、消息、配置、测试、业务语义，到需求详细设计、Agent 实现、构建、部署和运行版本的统一模型。设计目标不是进行无约束图遍历，也不是让设计文档或 AI 候选直接污染当前代码事实，而是根据变更类型、关系语义、兼容边界、运行证据和规划规则，生成可解释、可评审、可实现、可对账的变更结论。
 
 ## 文档入口
 
@@ -11,6 +11,7 @@
 - [业务语义建图完整设计](docs/17-business-semantic-graph.md)
 - [业务图与代码图关联完整设计](docs/18-business-code-graph-linkage.md)
 - [新增需求详细设计到代码图变更](docs/19-requirement-design-to-code-graph-change.md)
+- [OpenCode Agent + Skill AI 辅助架构](docs/20-opencode-agent-skill-architecture.md)
 - [影响传播规则](docs/14-impact-propagation-rules.md)
 - [RDFS、OWL、SHACL 与规则引擎边界](docs/15-rdfs-owl-shacl.md)
 - [实现架构与数据管道](docs/16-implementation-architecture.md)
@@ -27,6 +28,31 @@
 - [SDN 网络策略部署实例图](examples/sdn-network-policy-deployment.ttl)
 - [SDN 需求到代码图变更实例](examples/sdn-requirement-to-code-change-plan.ttl)
 
+## OpenCode Agent + Skill
+
+- [OpenCode 项目权限与 MCP 配置](opencode.json)
+- [Agent 定义](.opencode/agents/)
+- [Skill 定义](.opencode/skills/)
+- [代码本体平台受控工具](.opencode/tools/ontology.ts)
+
+AI 层采用：
+
+```text
+OpenCode Agent
+→ 按角色编排任务
+
+SKILL.md
+→ 定义稳定、可复用、可审计的工作流和输出契约
+
+Custom Tool / MCP
+→ 查询 Current/Desired/Proposed/Actual/Impact 图并写入草案 Artifact
+
+人工 Gate
+→ 确认业务语义、关键映射、架构方案、破坏性变化、合并和发布
+```
+
+项目提供需求编排、需求文档分析、代码图对齐、变更规划、独立架构复核、批准后实现和实现对账 Agent。实现 Agent 只能在 Approved Change、独立 Worktree 和文件白名单存在时编辑代码，且禁止 Git Commit、Push、Merge 和生产部署。
+
 ## 核心原则
 
 1. 编译器、Schema Parser 和平台连接器负责抽取事实，语义技术不替代静态分析。
@@ -41,7 +67,9 @@
 10. 业务图、代码图和项目级映射保持独立，通过 ImplementationSlice、稳定业务 ID、证据和版本化映射连接。
 11. 通用业务元模型与 SDN 领域本体分层，避免把项目代码结构固化为领域语义。
 12. 实现完成后必须重新抽取实际代码图，并与 Approved Change Graph 做设计—实现对账。
+13. Agent 负责角色化执行，Skill 负责稳定流程，Tool/MCP 负责受控事实访问，人工负责需要承担责任的决策。
+14. AI 未确认候选不得写入 Current Graph；Approved Change 不得复制为 Actual Graph。
 
 ## 仓库方向
 
-后续实现目录将围绕 `ontology/`、`shapes/`、`rules/`、`extractors/`、`queries/`、`examples/` 和分析服务展开。
+后续实现目录将围绕 `ontology/`、`shapes/`、`rules/`、`extractors/`、`queries/`、`examples/`、`.opencode/` 和分析服务展开。
