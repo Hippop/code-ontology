@@ -1,0 +1,442 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix biz:  <https://example.org/code-ontology/business#> .
+@prefix plan: <https://example.org/code-ontology/planning#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/code-ontology/planning>
+    a owl:Ontology ;
+    owl:imports <https://example.org/code-ontology> ,
+                <https://example.org/code-ontology/business> ;
+    rdfs:label "Requirement design to code graph change planning ontology"@en ;
+    rdfs:label "需求设计到代码图变更规划本体"@zh .
+
+#################################################################
+# Document and requirement design classes
+#################################################################
+
+plan:DesignArtifact a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+plan:DesignDocument a owl:Class ;
+    rdfs:subClassOf plan:DesignArtifact .
+
+plan:DesignRevision a owl:Class ;
+    rdfs:subClassOf plan:DesignArtifact .
+
+plan:DesignSection a owl:Class ;
+    rdfs:subClassOf plan:DesignArtifact .
+
+plan:RequirementIR a owl:Class ;
+    rdfs:subClassOf plan:DesignArtifact .
+
+plan:DocumentEvidence a owl:Class ;
+    rdfs:subClassOf code:ImpactEvidence .
+
+plan:ExplicitDesignFact a owl:Class ;
+    rdfs:subClassOf plan:DesignArtifact .
+
+plan:InferredDesignFact a owl:Class ;
+    rdfs:subClassOf plan:DesignArtifact .
+
+plan:ImplementationSuggestion a owl:Class ;
+    rdfs:subClassOf plan:DesignArtifact .
+
+plan:UnresolvedDesignQuestion a owl:Class ;
+    rdfs:subClassOf plan:DesignArtifact .
+
+#################################################################
+# Desired graph classes
+#################################################################
+
+plan:DesiredGraphEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+plan:DesiredBusinessEntity a owl:Class ;
+    rdfs:subClassOf plan:DesiredGraphEntity .
+
+plan:DesiredTechnicalEntity a owl:Class ;
+    rdfs:subClassOf plan:DesiredGraphEntity .
+
+plan:DesiredCodeRole a owl:Class ;
+    rdfs:subClassOf plan:DesiredTechnicalEntity .
+
+plan:DesiredAPIOperation a owl:Class ;
+    rdfs:subClassOf plan:DesiredTechnicalEntity .
+
+plan:DesiredSchema a owl:Class ;
+    rdfs:subClassOf plan:DesiredTechnicalEntity .
+
+plan:DesiredSchemaField a owl:Class ;
+    rdfs:subClassOf plan:DesiredTechnicalEntity .
+
+plan:DesiredDatabaseObject a owl:Class ;
+    rdfs:subClassOf plan:DesiredTechnicalEntity .
+
+plan:DesiredEventType a owl:Class ;
+    rdfs:subClassOf plan:DesiredTechnicalEntity .
+
+plan:DesiredConfigurationKey a owl:Class ;
+    rdfs:subClassOf plan:DesiredTechnicalEntity .
+
+plan:DesiredTestObligation a owl:Class ;
+    rdfs:subClassOf plan:DesiredTechnicalEntity .
+
+plan:DesiredDeploymentAction a owl:Class ;
+    rdfs:subClassOf plan:DesiredTechnicalEntity .
+
+#################################################################
+# Alignment and graph diff classes
+#################################################################
+
+plan:CandidateAlignment a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+plan:SemanticGraphDiff a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+plan:GraphDifference a owl:Class ;
+    rdfs:subClassOf plan:SemanticGraphDiff .
+
+plan:AddEntityDifference a owl:Class ;
+    rdfs:subClassOf plan:GraphDifference .
+
+plan:ModifyEntityDifference a owl:Class ;
+    rdfs:subClassOf plan:GraphDifference .
+
+plan:RemoveEntityDifference a owl:Class ;
+    rdfs:subClassOf plan:GraphDifference .
+
+plan:AddRelationDifference a owl:Class ;
+    rdfs:subClassOf plan:GraphDifference .
+
+plan:RemoveRelationDifference a owl:Class ;
+    rdfs:subClassOf plan:GraphDifference .
+
+plan:ConstraintDifference a owl:Class ;
+    rdfs:subClassOf plan:GraphDifference .
+
+plan:StateTransitionDifference a owl:Class ;
+    rdfs:subClassOf plan:GraphDifference .
+
+plan:VerificationDifference a owl:Class ;
+    rdfs:subClassOf plan:GraphDifference .
+
+plan:DeliveryDifference a owl:Class ;
+    rdfs:subClassOf plan:GraphDifference .
+
+#################################################################
+# Proposed change and planning classes
+#################################################################
+
+plan:DesignChangeSet a owl:Class ;
+    rdfs:subClassOf code:ChangeSet .
+
+plan:ProposedChange a owl:Class ;
+    rdfs:subClassOf code:ChangeItem .
+
+plan:ProposedNodeAddition a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedNodeModification a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedNodeRemoval a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedRelationAddition a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedRelationRemoval a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedConstraintChange a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedBehaviorChange a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedContractChange a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedDataMigration a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedConfigurationChange a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedTestChange a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:ProposedDeploymentChange a owl:Class ;
+    rdfs:subClassOf plan:ProposedChange .
+
+plan:PlanningRule a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+plan:DesignDecision a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+plan:ImplementationTask a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+plan:VerificationObligation a owl:Class ;
+    rdfs:subClassOf code:VerificationEntity .
+
+plan:MigrationAction a owl:Class ;
+    rdfs:subClassOf code:DeliveryEntity .
+
+plan:DeliveryAction a owl:Class ;
+    rdfs:subClassOf code:DeliveryEntity .
+
+#################################################################
+# Reconciliation classes
+#################################################################
+
+plan:ReconciliationRun a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+plan:ReconciliationResult a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+plan:ImplementedAsDesigned a owl:Class ;
+    rdfs:subClassOf plan:ReconciliationResult .
+
+plan:PartiallyImplemented a owl:Class ;
+    rdfs:subClassOf plan:ReconciliationResult .
+
+plan:MissingImplementation a owl:Class ;
+    rdfs:subClassOf plan:ReconciliationResult .
+
+plan:AlternativeImplementation a owl:Class ;
+    rdfs:subClassOf plan:ReconciliationResult .
+
+plan:UnexpectedImplementation a owl:Class ;
+    rdfs:subClassOf plan:ReconciliationResult .
+
+plan:CannotVerify a owl:Class ;
+    rdfs:subClassOf plan:ReconciliationResult .
+
+#################################################################
+# Object properties
+#################################################################
+
+plan:hasRevision a owl:ObjectProperty ;
+    rdfs:domain plan:DesignDocument ;
+    rdfs:range plan:DesignRevision .
+
+plan:revisionOf a owl:ObjectProperty ;
+    owl:inverseOf plan:hasRevision ;
+    rdfs:domain plan:DesignRevision ;
+    rdfs:range plan:DesignDocument .
+
+plan:containsSection a owl:ObjectProperty ;
+    rdfs:domain plan:DesignRevision ;
+    rdfs:range plan:DesignSection .
+
+plan:normalizedAs a owl:ObjectProperty ;
+    rdfs:domain plan:DesignRevision ;
+    rdfs:range plan:RequirementIR .
+
+plan:derivedFromRevision a owl:ObjectProperty ;
+    rdfs:range plan:DesignRevision .
+
+plan:supportedByDesignEvidence a owl:ObjectProperty ;
+    rdfs:range plan:DocumentEvidence .
+
+plan:describesRequirement a owl:ObjectProperty ;
+    rdfs:domain plan:RequirementIR ;
+    rdfs:range biz:Requirement .
+
+plan:definesDesiredEntity a owl:ObjectProperty ;
+    rdfs:domain plan:RequirementIR ;
+    rdfs:range plan:DesiredGraphEntity .
+
+plan:desiredCounterpartOf a owl:ObjectProperty ;
+    rdfs:domain plan:DesiredGraphEntity ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+plan:desiredRoleType a owl:ObjectProperty ;
+    rdfs:domain plan:DesiredCodeRole .
+
+plan:alignedDesiredEntity a owl:ObjectProperty ;
+    rdfs:domain plan:CandidateAlignment ;
+    rdfs:range plan:DesiredGraphEntity .
+
+plan:alignedCurrentEntity a owl:ObjectProperty ;
+    rdfs:domain plan:CandidateAlignment ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+plan:hasAlternativeAlignment a owl:ObjectProperty ;
+    rdfs:domain plan:CandidateAlignment ;
+    rdfs:range plan:CandidateAlignment .
+
+plan:comparesCurrentRevision a owl:ObjectProperty ;
+    rdfs:domain plan:SemanticGraphDiff .
+
+plan:comparesDesiredRevision a owl:ObjectProperty ;
+    rdfs:domain plan:SemanticGraphDiff ;
+    rdfs:range plan:DesignRevision .
+
+plan:containsDifference a owl:ObjectProperty ;
+    rdfs:domain plan:SemanticGraphDiff ;
+    rdfs:range plan:GraphDifference .
+
+plan:differenceDesiredEntity a owl:ObjectProperty ;
+    rdfs:domain plan:GraphDifference ;
+    rdfs:range plan:DesiredGraphEntity .
+
+plan:differenceCurrentEntity a owl:ObjectProperty ;
+    rdfs:domain plan:GraphDifference ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+plan:derivedFromRequirement a owl:ObjectProperty ;
+    rdfs:domain plan:DesignChangeSet ;
+    rdfs:range biz:Requirement .
+
+plan:derivedFromDesignRevision a owl:ObjectProperty ;
+    rdfs:domain plan:DesignChangeSet ;
+    rdfs:range plan:DesignRevision .
+
+plan:basedOnGraphDiff a owl:ObjectProperty ;
+    rdfs:domain plan:DesignChangeSet ;
+    rdfs:range plan:SemanticGraphDiff .
+
+plan:containsProposedChange a owl:ObjectProperty ;
+    rdfs:domain plan:DesignChangeSet ;
+    rdfs:range plan:ProposedChange ;
+    rdfs:subPropertyOf code:containsChange .
+
+plan:targetsCurrentEntity a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+plan:proposesEntity a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range plan:DesiredGraphEntity .
+
+plan:basedOnAlignment a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range plan:CandidateAlignment .
+
+plan:derivedByRule a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range plan:PlanningRule .
+
+plan:requiresDecision a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range plan:DesignDecision .
+
+plan:dependsOnProposedChange a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range plan:ProposedChange .
+
+plan:createsTask a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range plan:ImplementationTask .
+
+plan:implementsProposedChange a owl:ObjectProperty ;
+    rdfs:domain plan:ImplementationTask ;
+    rdfs:range plan:ProposedChange .
+
+plan:requiresVerification a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range plan:VerificationObligation .
+
+plan:requiresMigrationAction a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range plan:MigrationAction .
+
+plan:requiresDeliveryAction a owl:ObjectProperty ;
+    rdfs:domain plan:ProposedChange ;
+    rdfs:range plan:DeliveryAction .
+
+plan:selectedAlternative a owl:ObjectProperty ;
+    rdfs:domain plan:DesignDecision .
+
+plan:affectsProposedChange a owl:ObjectProperty ;
+    rdfs:domain plan:DesignDecision ;
+    rdfs:range plan:ProposedChange .
+
+plan:reconcilesChangeSet a owl:ObjectProperty ;
+    rdfs:domain plan:ReconciliationRun ;
+    rdfs:range plan:DesignChangeSet .
+
+plan:usesActualRevision a owl:ObjectProperty ;
+    rdfs:domain plan:ReconciliationRun .
+
+plan:containsReconciliationResult a owl:ObjectProperty ;
+    rdfs:domain plan:ReconciliationRun ;
+    rdfs:range plan:ReconciliationResult .
+
+plan:reconcilesProposedChange a owl:ObjectProperty ;
+    rdfs:domain plan:ReconciliationResult ;
+    rdfs:range plan:ProposedChange .
+
+plan:matchedActualEntity a owl:ObjectProperty ;
+    rdfs:domain plan:ReconciliationResult ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+plan:verifiedByTest a owl:ObjectProperty ;
+    rdfs:domain plan:ReconciliationResult ;
+    rdfs:range code:TestCase .
+
+#################################################################
+# Datatype properties
+#################################################################
+
+plan:documentId a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:revisionNumber a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:contentHash a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:sourceText a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:sectionId a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:confidence a owl:DatatypeProperty ;
+    rdfs:range xsd:decimal .
+
+plan:alignmentType a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:alignmentStatus a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:missingStatus a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:proposalStatus a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:riskLevel a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:decisionQuestion a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:decisionRationale a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:taskStatus a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:reconciliationStatus a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:reasonCode a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:toolVersion a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+plan:ruleVersion a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
