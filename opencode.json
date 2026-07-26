@@ -1,0 +1,81 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "*": "ask",
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "**/secrets/**": "deny",
+      "**/*.pem": "deny",
+      "**/*.key": "deny"
+    },
+    "glob": "allow",
+    "grep": "allow",
+    "lsp": "allow",
+    "edit": "ask",
+    "skill": {
+      "*": "deny",
+      "orchestrate-requirement-change": "allow",
+      "extract-requirement-ir": "allow",
+      "align-design-to-code-graph": "allow",
+      "plan-code-graph-change": "allow",
+      "implement-approved-change": "allow",
+      "verify-and-reconcile": "allow",
+      "explain-change-impact": "allow"
+    },
+    "task": {
+      "*": "deny",
+      "requirement-analyst": "allow",
+      "code-graph-analyst": "allow",
+      "change-planner": "allow",
+      "architecture-reviewer": "allow",
+      "implementation-agent": "ask",
+      "verification-agent": "allow"
+    },
+    "ontology_*": "allow",
+    "bash": {
+      "*": "ask",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git show*": "allow",
+      "git branch --show-current*": "allow",
+      "./mvnw -q test*": "allow",
+      "./mvnw test*": "allow",
+      "mvn -q test*": "allow",
+      "mvn test*": "allow",
+      "./gradlew test*": "allow",
+      "./gradlew check*": "allow",
+      "git commit*": "deny",
+      "git push*": "deny",
+      "git merge*": "deny",
+      "git rebase*": "deny",
+      "kubectl *": "deny",
+      "helm *": "deny",
+      "terraform *": "deny"
+    },
+    "webfetch": "ask",
+    "websearch": "ask",
+    "external_directory": "deny"
+  },
+  "watcher": {
+    "ignore": [
+      ".git/**",
+      "target/**",
+      "build/**",
+      "node_modules/**",
+      ".idea/**",
+      ".vscode/**",
+      "data/tdb2/**"
+    ]
+  },
+  "mcp": {
+    "code-ontology": {
+      "type": "remote",
+      "url": "http://127.0.0.1:8080/mcp",
+      "enabled": false,
+      "timeout": 10000
+    }
+  }
+}
