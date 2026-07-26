@@ -1,0 +1,221 @@
+@prefix biz:  <https://example.org/code-ontology/business#> .
+@prefix sdn:  <https://example.org/code-ontology/sdn#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://example.org/code-ontology/sdn>
+    a owl:Ontology ;
+    owl:imports <https://example.org/code-ontology/business> ;
+    rdfs:label "SDN business domain ontology"@en ;
+    rdfs:label "SDN 网络管理业务领域本体"@zh .
+
+#################################################################
+# Domain and capabilities
+#################################################################
+
+sdn:SDNNetworkManagement a biz:BusinessDomain ;
+    rdfs:label "SDN 网络管理"@zh .
+
+sdn:SDNBusinessCapability a owl:Class ;
+    rdfs:subClassOf biz:BusinessCapability .
+
+sdn:DeviceLifecycleManagement a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+sdn:TopologyDiscoveryAndMaintenance a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+sdn:NetworkIntentManagement a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+sdn:NetworkPolicyOrchestration a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+sdn:PathComputation a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+sdn:SouthboundProvisioning a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+sdn:FlowRuleLifecycleManagement a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+sdn:NetworkFaultRecovery a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+sdn:NetworkObservation a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+sdn:ConfigurationCompliance a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessCapability .
+
+#################################################################
+# Business objects
+#################################################################
+
+sdn:SDNBusinessObject a owl:Class ;
+    rdfs:subClassOf biz:BusinessObject .
+
+sdn:ManagedDevice a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:PhysicalSwitch a owl:Class ;
+    rdfs:subClassOf sdn:ManagedDevice .
+
+sdn:VirtualSwitch a owl:Class ;
+    rdfs:subClassOf sdn:ManagedDevice .
+
+sdn:Router a owl:Class ;
+    rdfs:subClassOf sdn:ManagedDevice .
+
+sdn:NetworkPort a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:NetworkLink a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:NetworkTopology a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:NetworkPath a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:NetworkIntent a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:NetworkPolicy a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:FlowRule a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:FlowRuleSet a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:MeterPolicy a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:GroupPolicy a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:DeviceConfiguration a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:DeploymentTask a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:NetworkFault a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+sdn:NetworkAlarm a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessObject .
+
+#################################################################
+# Domain attributes
+#################################################################
+
+sdn:DeviceId a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:ManagementAddress a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:AdministrativeState a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:OperationalState a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:ConnectionState a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:ProtocolType a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:CapabilitySet a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:LinkState a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:PolicyDeploymentStatus a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:FlowRulePriority a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:FlowMatchCondition a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+sdn:FlowAction a owl:Class ; rdfs:subClassOf biz:BusinessAttribute .
+
+#################################################################
+# Domain rule classes
+#################################################################
+
+sdn:SDNBusinessRule a owl:Class ;
+    rdfs:subClassOf biz:BusinessRule .
+
+sdn:DeviceEligibilityRule a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessRule, biz:ValidationRule .
+
+sdn:TopologyConsistencyRule a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessRule, biz:ConsistencyRule .
+
+sdn:PathConstraintRule a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessRule, biz:RoutingRule .
+
+sdn:FlowConflictRule a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessRule, biz:ConsistencyRule .
+
+sdn:DeploymentConsistencyRule a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessRule, biz:ConsistencyRule .
+
+sdn:RollbackRule a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessRule, biz:CompensationRule .
+
+sdn:TenantIsolationRule a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessRule, biz:AuthorizationRule .
+
+sdn:ControllerAuthorityRule a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessRule, biz:AuthorizationRule .
+
+#################################################################
+# Domain event classes
+#################################################################
+
+sdn:SDNBusinessEvent a owl:Class ;
+    rdfs:subClassOf biz:BusinessEvent .
+
+sdn:DeviceLifecycleEvent a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessEvent .
+
+sdn:TopologyEvent a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessEvent .
+
+sdn:PolicyLifecycleEvent a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessEvent .
+
+sdn:FlowRuleLifecycleEvent a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessEvent .
+
+sdn:FaultEvent a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessEvent .
+
+sdn:ConfigurationComplianceEvent a owl:Class ;
+    rdfs:subClassOf sdn:SDNBusinessEvent .
+
+#################################################################
+# Domain-specific relations
+#################################################################
+
+sdn:containsDevice a owl:ObjectProperty ;
+    rdfs:domain sdn:NetworkTopology ;
+    rdfs:range sdn:ManagedDevice .
+
+sdn:containsLink a owl:ObjectProperty ;
+    rdfs:domain sdn:NetworkTopology ;
+    rdfs:range sdn:NetworkLink .
+
+sdn:connectsDevice a owl:ObjectProperty ;
+    rdfs:domain sdn:NetworkLink ;
+    rdfs:range sdn:ManagedDevice .
+
+sdn:usesPath a owl:ObjectProperty ;
+    rdfs:domain sdn:NetworkPolicy ;
+    rdfs:range sdn:NetworkPath .
+
+sdn:compiledToFlowRuleSet a owl:ObjectProperty ;
+    rdfs:domain sdn:NetworkPolicy ;
+    rdfs:range sdn:FlowRuleSet .
+
+sdn:containsFlowRule a owl:ObjectProperty ;
+    rdfs:domain sdn:FlowRuleSet ;
+    rdfs:range sdn:FlowRule .
+
+sdn:targetsDevice a owl:ObjectProperty ;
+    rdfs:domain sdn:FlowRule ;
+    rdfs:range sdn:ManagedDevice .
+
+sdn:deploymentForPolicy a owl:ObjectProperty ;
+    rdfs:domain sdn:DeploymentTask ;
+    rdfs:range sdn:NetworkPolicy .
