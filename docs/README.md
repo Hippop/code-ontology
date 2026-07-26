@@ -2,6 +2,12 @@
 
 本目录是 `code-ontology` 的正式设计基线。文档不是概念速览，而是面向实现、评审和长期演进的完整建模说明。
 
+## 推荐入口
+
+- [需求到代码智能平台完整系统设计](21-complete-requirement-to-code-intelligence-platform.md)
+- [总体架构](00-overall-architecture.md)
+- [OpenCode Agent + Skill AI 辅助架构](20-opencode-agent-skill-architecture.md)
+
 ## 阅读顺序
 
 1. [总体架构](00-overall-architecture.md)
@@ -25,6 +31,7 @@
 19. [业务图与代码图关联完整设计](18-business-code-graph-linkage.md)
 20. [新增需求详细设计到代码图变更](19-requirement-design-to-code-graph-change.md)
 21. [OpenCode Agent + Skill AI 辅助架构](20-opencode-agent-skill-architecture.md)
+22. [需求到代码智能平台完整系统设计](21-complete-requirement-to-code-intelligence-platform.md)
 
 ## 业务语义与需求规划资产
 
