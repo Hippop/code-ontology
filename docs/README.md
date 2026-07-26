@@ -21,6 +21,15 @@
 15. [影响传播规则](14-impact-propagation-rules.md)
 16. [RDFS、OWL、SHACL 与规则引擎边界](15-rdfs-owl-shacl.md)
 17. [实现架构与数据管道](16-implementation-architecture.md)
+18. [业务语义建图完整设计](17-business-semantic-graph.md)
+19. [业务图与代码图关联完整设计](18-business-code-graph-linkage.md)
+
+## 业务语义相关机器可执行资产
+
+- [业务语义与代码图桥接本体](../ontology/business-code-linkage.ttl)
+- [SDN 网络管理业务领域本体](../ontology/sdn-business-ontology.ttl)
+- [业务图与代码图 SHACL 约束](../shapes/business-code-linkage-shapes.ttl)
+- [SDN 网络策略部署实例图](../examples/sdn-network-policy-deployment.ttl)
 
 ## 统一写作结构
 
