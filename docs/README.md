@@ -24,6 +24,7 @@
 18. [业务语义建图完整设计](17-business-semantic-graph.md)
 19. [业务图与代码图关联完整设计](18-business-code-graph-linkage.md)
 20. [新增需求详细设计到代码图变更](19-requirement-design-to-code-graph-change.md)
+21. [OpenCode Agent + Skill AI 辅助架构](20-opencode-agent-skill-architecture.md)
 
 ## 业务语义与需求规划资产
 
@@ -35,6 +36,15 @@
 - [需求变更规划规则模板](../rules/requirement-change-planning-rules.yaml)
 - [SDN 网络策略部署实例图](../examples/sdn-network-policy-deployment.ttl)
 - [SDN 需求到代码图变更实例](../examples/sdn-requirement-to-code-change-plan.ttl)
+
+## OpenCode Agent 与 Skill 资产
+
+- [OpenCode 项目配置](../opencode.json)
+- [Agent 定义](../.opencode/agents/)
+- [Skill 定义](../.opencode/skills/)
+- [代码本体平台自定义工具](../.opencode/tools/ontology.ts)
+
+Agent 负责角色化执行与编排，Skill 负责稳定工作流与输出契约，自定义 Tool/MCP 负责受控事实访问和草案写入。AI 结果必须保存 Agent、Skill 版本、上下文 Hash、证据、假设和人工 Gate。
 
 ## 统一写作结构
 
