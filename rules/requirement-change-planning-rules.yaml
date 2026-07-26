@@ -1,0 +1,175 @@
+version: 1.0.0
+ruleSet: requirement-change-planning
+
+defaults:
+  proposalStatus: Proposed
+  minimumAutoAlignmentConfidence: 0.90
+  requireHumanReviewBelowConfidence: 0.80
+  breakingChangeReviewRequired: true
+
+rules:
+  - id: PLAN-API-SCHEMA-FIELD-ADDED
+    description: API Schema 新增字段时展开契约、DTO、映射、兼容和测试变更。
+    when:
+      differenceType: AddEntityDifference
+      desiredEntityType: DesiredSchemaField
+    then:
+      proposals:
+        - type: ProposedContractChange
+          role: ModifyContractSchema
+        - type: ProposedNodeModification
+          role: ModifyCodeRepresentation
+        - type: ProposedRelationAddition
+          role: AddBusinessAttributeMapping
+        - type: ProposedTestChange
+          role: AddContractVerification
+      assessments:
+        - CompatibilityAssessment
+      reviewPolicy:
+        requiredWhen:
+          - fieldRequired: true
+          - defaultMissing: true
+          - publicContract: true
+
+  - id: PLAN-BUSINESS-RULE-ADDED
+    description: 新增业务规则时优先查找现有规则执行边界并生成实现、失败契约和验证义务。
+    when:
+      differenceType: AddEntityDifference
+      desiredEntityType: BusinessRule
+    then:
+      alignmentSearch:
+        preferredRoles:
+          - RuleEnforcer
+          - Validator
+          - DomainService
+          - DatabaseConstraint
+        preferredRelations:
+          - enforcesRule
+          - implementsProcessStep
+          - containsSupportingCode
+      proposals:
+        - type: ProposedBehaviorChange
+          role: ImplementRule
+        - type: ProposedRelationAddition
+          role: LinkRuleEnforcer
+        - type: ProposedTestChange
+          role: VerifyBusinessRule
+      reviewPolicy:
+        requiredWhen:
+          - noExistingEnforcementBoundary: true
+          - crossServiceResponsibilityChange: true
+
+  - id: PLAN-BUSINESS-EVENT-ADDED
+    description: 新增业务事件时生成技术事件、Schema、生产消费、兼容和发布顺序提案。
+    when:
+      differenceType: AddEntityDifference
+      desiredEntityType: BusinessEvent
+    then:
+      proposals:
+        - type: ProposedNodeAddition
+          role: AddTechnicalEventType
+        - type: ProposedContractChange
+          role: AddMessageSchema
+        - type: ProposedRelationAddition
+          role: AddProducerRelation
+        - type: ProposedRelationAddition
+          role: AddConsumerRelation
+        - type: ProposedTestChange
+          role: AddMessageContractTest
+        - type: ProposedDeploymentChange
+          role: AddConsumerProducerOrdering
+      assessments:
+        - CompatibilityAssessment
+        - ReplayAssessment
+        - IdempotencyAssessment
+
+  - id: PLAN-DATABASE-CONSTRAINT-ADDED
+    description: 新增数据库约束时生成历史数据检查、应用校验、迁移和回滚验证。
+    when:
+      differenceType: ConstraintDifference
+      targetLayer: Database
+      action: Add
+    then:
+      proposals:
+        - type: ProposedConstraintChange
+          role: AddDatabaseConstraint
+        - type: ProposedDataMigration
+          role: ValidateExistingData
+        - type: ProposedBehaviorChange
+          role: AddApplicationValidation
+        - type: ProposedTestChange
+          role: AddMigrationAndConstraintTests
+      reviewPolicy:
+        requiredWhen:
+          - existingDataMayViolate: true
+          - migrationIrreversible: true
+
+  - id: PLAN-CONFIGURATION-KEY-ADDED
+    description: 新增配置时确定生效阶段、默认值、环境覆盖、重启和回滚要求。
+    when:
+      differenceType: AddEntityDifference
+      desiredEntityType: DesiredConfigurationKey
+    then:
+      proposals:
+        - type: ProposedConfigurationChange
+          role: AddConfigurationDefinition
+        - type: ProposedBehaviorChange
+          role: ReadConfiguration
+        - type: ProposedTestChange
+          role: AddBoundaryAndEnvironmentTests
+        - type: ProposedDeploymentChange
+          role: DetermineActivationAction
+      requiredDesignProperties:
+        - valueType
+        - defaultValue
+        - consumptionPhase
+        - environmentScope
+
+  - id: PLAN-STATE-TRANSITION-ADDED
+    description: 新增状态迁移时生成状态模型、触发、守卫、持久化、事件和测试提案。
+    when:
+      differenceType: StateTransitionDifference
+      action: Add
+    then:
+      proposals:
+        - type: ProposedBehaviorChange
+          role: AddStateTransitionLogic
+        - type: ProposedRelationAddition
+          role: AddGuardRule
+        - type: ProposedNodeModification
+          role: ModifyPersistedState
+        - type: ProposedTestChange
+          role: AddStateTransitionTestMatrix
+
+  - id: PLAN-SDN-MINIMUM-BANDWIDTH-CONSTRAINT
+    description: SDN 最小可用带宽约束的领域化变更展开。
+    when:
+      businessRuleId: BR-SDN-BW-001
+    then:
+      alignmentSearch:
+        preferredCurrentEntities:
+          - ConstraintEvaluator
+          - PathConstraint
+          - LinkMetrics
+          - PathComputationService
+      proposals:
+        - type: ProposedContractChange
+          role: AddMinimumBandwidthRequestField
+        - type: ProposedNodeModification
+          role: ExtendPathConstraint
+        - type: ProposedBehaviorChange
+          role: FilterInsufficientBandwidthLinks
+        - type: ProposedRelationAddition
+          role: MapAvailableBandwidthAttribute
+        - type: ProposedConfigurationChange
+          role: AddBandwidthMetricMaxAge
+        - type: ProposedContractChange
+          role: AddStaleAndNoPathErrors
+        - type: ProposedTestChange
+          role: VerifyBandwidthPathConstraint
+        - type: ProposedTestChange
+          role: VerifyNoSouthboundCallOnStaleData
+      decisions:
+        - question: 扩展通用 ConstraintEvaluator 还是新增独立 BandwidthConstraintEvaluator？
+          requiredWhen:
+            - existingConstraintFrameworkExtensible: unknown
