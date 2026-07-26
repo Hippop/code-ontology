@@ -1,0 +1,701 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/code-ontology>
+    a owl:Ontology ;
+    rdfs:label "Code Ontology for Impact Analysis"@en ;
+    rdfs:comment "面向代码知识图谱与变更波及分析的核心本体草案。"@zh .
+
+#################################################################
+# Classes
+#################################################################
+
+code:ImpactAnalysisEntity a owl:Class .
+
+code:CodeEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:Repository a owl:Class ; rdfs:subClassOf code:CodeEntity .
+code:Module a owl:Class ; rdfs:subClassOf code:CodeEntity .
+code:SourceFile a owl:Class ; rdfs:subClassOf code:CodeEntity .
+code:Type a owl:Class ; rdfs:subClassOf code:CodeEntity .
+code:Class a owl:Class ; rdfs:subClassOf code:Type .
+code:Interface a owl:Class ; rdfs:subClassOf code:Type .
+code:Enum a owl:Class ; rdfs:subClassOf code:Type .
+code:Callable a owl:Class ; rdfs:subClassOf code:CodeEntity .
+code:Method a owl:Class ; rdfs:subClassOf code:Callable .
+code:Function a owl:Class ; rdfs:subClassOf code:Callable .
+code:Constructor a owl:Class ; rdfs:subClassOf code:Callable .
+code:Field a owl:Class ; rdfs:subClassOf code:CodeEntity .
+code:Parameter a owl:Class ; rdfs:subClassOf code:CodeEntity .
+
+code:ArchitectureEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:Component a owl:Class ; rdfs:subClassOf code:ArchitectureEntity .
+code:LogicalService a owl:Class ; rdfs:subClassOf code:ArchitectureEntity .
+code:BoundedContext a owl:Class ; rdfs:subClassOf code:ArchitectureEntity .
+
+code:ContractEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:APIOperation a owl:Class ; rdfs:subClassOf code:ContractEntity .
+code:Schema a owl:Class ; rdfs:subClassOf code:ContractEntity .
+code:RequestSchema a owl:Class ; rdfs:subClassOf code:Schema .
+code:ResponseSchema a owl:Class ; rdfs:subClassOf code:Schema .
+code:MessageSchema a owl:Class ; rdfs:subClassOf code:Schema .
+code:SchemaField a owl:Class ; rdfs:subClassOf code:ContractEntity .
+code:MessageField a owl:Class ; rdfs:subClassOf code:SchemaField .
+code:EventType a owl:Class ; rdfs:subClassOf code:ContractEntity .
+code:CommandMessage a owl:Class ; rdfs:subClassOf code:ContractEntity .
+code:Topic a owl:Class ; rdfs:subClassOf code:ContractEntity .
+code:ConsumerGroup a owl:Class ; rdfs:subClassOf code:ImpactAnalysisEntity .
+
+code:DataEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:Database a owl:Class ; rdfs:subClassOf code:DataEntity .
+code:Table a owl:Class ; rdfs:subClassOf code:DataEntity .
+code:Column a owl:Class ; rdfs:subClassOf code:DataEntity .
+code:Query a owl:Class ; rdfs:subClassOf code:DataEntity .
+code:Index a owl:Class ; rdfs:subClassOf code:DataEntity .
+
+code:ConfigurationEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:ConfigurationKey a owl:Class ; rdfs:subClassOf code:ConfigurationEntity .
+code:ConfigurationValue a owl:Class ; rdfs:subClassOf code:ConfigurationEntity .
+code:ConfigurationSource a owl:Class ; rdfs:subClassOf code:ConfigurationEntity .
+code:FeatureFlag a owl:Class ; rdfs:subClassOf code:ConfigurationKey .
+code:Secret a owl:Class ; rdfs:subClassOf code:ConfigurationEntity .
+code:Environment a owl:Class ; rdfs:subClassOf code:ImpactAnalysisEntity .
+
+code:VerificationEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:TestCase a owl:Class ; rdfs:subClassOf code:VerificationEntity .
+code:UnitTest a owl:Class ; rdfs:subClassOf code:TestCase .
+code:IntegrationTest a owl:Class ; rdfs:subClassOf code:TestCase .
+code:ContractTest a owl:Class ; rdfs:subClassOf code:TestCase .
+code:EndToEndTest a owl:Class ; rdfs:subClassOf code:TestCase .
+code:TestFixture a owl:Class ; rdfs:subClassOf code:VerificationEntity .
+code:TestEnvironment a owl:Class ; rdfs:subClassOf code:VerificationEntity .
+
+code:BusinessEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:BusinessCapability a owl:Class ; rdfs:subClassOf code:BusinessEntity .
+code:CriticalBusinessCapability a owl:Class ;
+    rdfs:subClassOf code:BusinessCapability .
+code:BusinessProcess a owl:Class ; rdfs:subClassOf code:BusinessEntity .
+code:BusinessProcessStep a owl:Class ; rdfs:subClassOf code:BusinessEntity .
+code:BusinessRule a owl:Class ; rdfs:subClassOf code:BusinessEntity .
+code:Requirement a owl:Class ; rdfs:subClassOf code:BusinessEntity .
+code:AcceptanceCriterion a owl:Class ; rdfs:subClassOf code:BusinessEntity .
+code:Team a owl:Class ; rdfs:subClassOf code:ImpactAnalysisEntity .
+
+code:DeliveryEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:BuildArtifact a owl:Class ; rdfs:subClassOf code:DeliveryEntity .
+code:ArtifactVersion a owl:Class ; rdfs:subClassOf code:BuildArtifact .
+code:DeployableUnit a owl:Class ; rdfs:subClassOf code:DeliveryEntity .
+code:Release a owl:Class ; rdfs:subClassOf code:DeliveryEntity .
+code:Deployment a owl:Class ; rdfs:subClassOf code:DeliveryEntity .
+code:DeploymentAction a owl:Class ; rdfs:subClassOf code:DeliveryEntity .
+code:RuntimeInstance a owl:Class ; rdfs:subClassOf code:DeliveryEntity .
+
+code:ChangeEntity a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:ChangeSet a owl:Class ; rdfs:subClassOf code:ChangeEntity .
+code:ChangeItem a owl:Class ; rdfs:subClassOf code:ChangeEntity .
+code:FieldTypeChanged a owl:Class ; rdfs:subClassOf code:ChangeItem .
+code:MethodDeleted a owl:Class ; rdfs:subClassOf code:ChangeItem .
+code:SignatureChanged a owl:Class ; rdfs:subClassOf code:ChangeItem .
+code:ContractChanged a owl:Class ; rdfs:subClassOf code:ChangeItem .
+code:ConfigurationChanged a owl:Class ; rdfs:subClassOf code:ChangeItem .
+
+code:ImpactAssessment a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:ImpactEvidence a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:ImpactPath a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+code:CompatibilityAssessment a owl:Class ;
+    rdfs:subClassOf code:ImpactAnalysisEntity .
+
+#################################################################
+# Root relation hierarchies
+#################################################################
+
+code:relatedTo a owl:ObjectProperty .
+
+code:structurallyRelatedTo a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:relatedTo .
+
+code:dependsOn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:relatedTo .
+
+code:executionDependsOn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dependsOn .
+
+code:declarationDependsOn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dependsOn .
+
+code:dataDependsOn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dependsOn .
+
+code:contractDependsOn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dependsOn .
+
+code:messagingDependsOn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dependsOn .
+
+code:configurationDependsOn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dependsOn .
+
+code:deliveryDependsOn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dependsOn .
+
+#################################################################
+# Structural relations
+#################################################################
+
+code:contains a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:structurallyRelatedTo ;
+    owl:inverseOf code:containedIn .
+
+code:containedIn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:structurallyRelatedTo .
+
+code:declares a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:contains ;
+    owl:inverseOf code:declaredIn .
+
+code:declaredIn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:containedIn .
+
+code:belongsToModule a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:structurallyRelatedTo ;
+    rdfs:range code:Module .
+
+code:belongsToComponent a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:structurallyRelatedTo ;
+    rdfs:range code:Component .
+
+code:belongsToService a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:structurallyRelatedTo ;
+    rdfs:range code:LogicalService .
+
+#################################################################
+# Call relations
+#################################################################
+
+code:callRelation a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:executionDependsOn ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:Callable .
+
+code:callsDirectly a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:callRelation ;
+    owl:inverseOf code:isDirectlyCalledBy .
+
+code:isDirectlyCalledBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:callRelation .
+
+code:mayCall a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:callRelation ;
+    owl:inverseOf code:mayBeCalledBy .
+
+code:mayBeCalledBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:callRelation .
+
+code:observedCalls a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:callRelation .
+
+code:dispatchesTo a owl:ObjectProperty ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:Callable .
+
+code:invokesReflectively a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:callRelation .
+
+code:callsRemoteOperation a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:contractDependsOn ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:APIOperation .
+
+#################################################################
+# Type relations
+#################################################################
+
+code:typeDependency a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:declarationDependsOn .
+
+code:hasParameterType a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:Type ;
+    owl:inverseOf code:isParameterTypeOf .
+
+code:isParameterTypeOf a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency .
+
+code:hasReturnType a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:Type ;
+    owl:inverseOf code:isReturnTypeOf .
+
+code:isReturnTypeOf a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency .
+
+code:hasFieldType a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency ;
+    rdfs:domain code:Field ;
+    rdfs:range code:Type .
+
+code:extendsType a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency ;
+    rdfs:domain code:Type ;
+    rdfs:range code:Type ;
+    owl:inverseOf code:isExtendedBy .
+
+code:isExtendedBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency .
+
+code:implementsType a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency ;
+    rdfs:domain code:Type ;
+    rdfs:range code:Interface ;
+    owl:inverseOf code:isImplementedBy .
+
+code:isImplementedBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency .
+
+code:overridesMethod a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:Callable ;
+    owl:inverseOf code:isOverriddenBy .
+
+code:isOverriddenBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency .
+
+code:referencesType a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency ;
+    rdfs:range code:Type .
+
+code:instantiatesType a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:typeDependency ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:Type .
+
+#################################################################
+# Field and data-flow relations
+#################################################################
+
+code:fieldAccess a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dataDependsOn .
+
+code:readsField a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:fieldAccess ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:Field ;
+    owl:inverseOf code:isReadBy .
+
+code:isReadBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:fieldAccess .
+
+code:writesField a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:fieldAccess ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:Field ;
+    owl:inverseOf code:isWrittenBy .
+
+code:isWrittenBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:fieldAccess .
+
+code:mapsTo a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dataDependsOn ;
+    owl:inverseOf code:isMappedFrom .
+
+code:isMappedFrom a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dataDependsOn .
+
+code:derivedFrom a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dataDependsOn .
+
+code:passesValueTo a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dataDependsOn .
+
+#################################################################
+# Database relations
+#################################################################
+
+code:readsData a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dataDependsOn .
+
+code:writesData a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:dataDependsOn .
+
+code:readsTable a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:readsData ;
+    rdfs:range code:Table .
+
+code:writesTable a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:writesData ;
+    rdfs:range code:Table .
+
+code:readsColumn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:readsData ;
+    rdfs:range code:Column ;
+    owl:inverseOf code:isColumnReadBy .
+
+code:isColumnReadBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:readsData .
+
+code:writesColumn a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:writesData ;
+    rdfs:range code:Column ;
+    owl:inverseOf code:isColumnWrittenBy .
+
+code:isColumnWrittenBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:writesData .
+
+code:executesQuery a owl:ObjectProperty ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:Query .
+
+code:mappedToTable a owl:ObjectProperty ;
+    rdfs:domain code:Type ;
+    rdfs:range code:Table .
+
+code:persistedAs a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:mapsTo ;
+    rdfs:domain code:Field ;
+    rdfs:range code:Column .
+
+#################################################################
+# API relations
+#################################################################
+
+code:exposes a owl:ObjectProperty ;
+    rdfs:domain code:LogicalService ;
+    rdfs:range code:APIOperation ;
+    owl:inverseOf code:exposedBy .
+
+code:exposedBy a owl:ObjectProperty .
+
+code:implementsOperation a owl:ObjectProperty ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:APIOperation ;
+    owl:inverseOf code:operationImplementedBy .
+
+code:operationImplementedBy a owl:ObjectProperty .
+
+code:hasRequestSchema a owl:ObjectProperty ;
+    rdfs:domain code:APIOperation ;
+    rdfs:range code:RequestSchema .
+
+code:hasResponseSchema a owl:ObjectProperty ;
+    rdfs:domain code:APIOperation ;
+    rdfs:range code:ResponseSchema .
+
+code:hasSchemaField a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:contains ;
+    rdfs:domain code:Schema ;
+    rdfs:range code:SchemaField .
+
+code:serializesTo a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:contractDependsOn ;
+    owl:inverseOf code:isSerializedFrom .
+
+code:isSerializedFrom a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:contractDependsOn .
+
+code:deserializesTo a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:contractDependsOn .
+
+code:consumesAPI a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:contractDependsOn ;
+    rdfs:range code:APIOperation ;
+    owl:inverseOf code:isAPIConsumedBy .
+
+code:isAPIConsumedBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:contractDependsOn .
+
+#################################################################
+# Messaging relations
+#################################################################
+
+code:publishesEvent a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:messagingDependsOn ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:EventType ;
+    owl:inverseOf code:isPublishedBy .
+
+code:isPublishedBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:messagingDependsOn .
+
+code:consumesEvent a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:messagingDependsOn ;
+    rdfs:domain code:Callable ;
+    rdfs:range code:EventType ;
+    owl:inverseOf code:isConsumedBy .
+
+code:isConsumedBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:messagingDependsOn .
+
+code:publishedTo a owl:ObjectProperty ;
+    rdfs:domain code:EventType ;
+    rdfs:range code:Topic .
+
+code:subscribesTo a owl:ObjectProperty ;
+    rdfs:domain code:ConsumerGroup ;
+    rdfs:range code:Topic .
+
+code:hasMessageSchema a owl:ObjectProperty ;
+    rdfs:domain code:EventType ;
+    rdfs:range code:MessageSchema .
+
+code:serializesAsMessage a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:messagingDependsOn ;
+    rdfs:domain code:Type ;
+    rdfs:range code:MessageSchema .
+
+code:deserializesMessageAs a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:messagingDependsOn ;
+    rdfs:domain code:MessageSchema ;
+    rdfs:range code:Type .
+
+#################################################################
+# Configuration relations
+#################################################################
+
+code:readsConfiguration a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:configurationDependsOn ;
+    rdfs:range code:ConfigurationKey ;
+    owl:inverseOf code:configurationReadBy .
+
+code:configurationReadBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:configurationDependsOn .
+
+code:definesConfiguration a owl:ObjectProperty ;
+    rdfs:domain code:ConfigurationSource ;
+    rdfs:range code:ConfigurationKey .
+
+code:providesValueFor a owl:ObjectProperty ;
+    rdfs:domain code:ConfigurationValue ;
+    rdfs:range code:ConfigurationKey .
+
+code:effectiveIn a owl:ObjectProperty ;
+    rdfs:domain code:ConfigurationValue ;
+    rdfs:range code:Environment .
+
+code:overridesConfiguration a owl:ObjectProperty ;
+    rdfs:domain code:ConfigurationValue ;
+    rdfs:range code:ConfigurationValue .
+
+code:guardedByFeatureFlag a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:configurationDependsOn ;
+    rdfs:range code:FeatureFlag .
+
+code:dependsOnSecret a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:configurationDependsOn ;
+    rdfs:range code:Secret .
+
+#################################################################
+# Test relations
+#################################################################
+
+code:verifies a owl:ObjectProperty ;
+    rdfs:domain code:TestCase ;
+    rdfs:range code:ImpactAnalysisEntity ;
+    owl:inverseOf code:isVerifiedBy .
+
+code:isVerifiedBy a owl:ObjectProperty .
+
+code:covers a owl:ObjectProperty ;
+    rdfs:domain code:TestCase ;
+    rdfs:range code:ImpactAnalysisEntity ;
+    owl:inverseOf code:isCoveredBy .
+
+code:isCoveredBy a owl:ObjectProperty .
+
+code:assertsContract a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:verifies ;
+    rdfs:domain code:ContractTest ;
+    rdfs:range code:ContractEntity .
+
+code:usesFixture a owl:ObjectProperty ;
+    rdfs:domain code:TestCase ;
+    rdfs:range code:TestFixture .
+
+code:dependsOnTestEnvironment a owl:ObjectProperty ;
+    rdfs:domain code:TestCase ;
+    rdfs:range code:TestEnvironment .
+
+#################################################################
+# Business and ownership relations
+#################################################################
+
+code:supportsCapability a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAnalysisEntity ;
+    rdfs:range code:BusinessCapability ;
+    owl:inverseOf code:isSupportedBy .
+
+code:isSupportedBy a owl:ObjectProperty .
+
+code:implementsRequirement a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAnalysisEntity ;
+    rdfs:range code:Requirement ;
+    owl:inverseOf code:requirementImplementedBy .
+
+code:requirementImplementedBy a owl:ObjectProperty .
+
+code:implementsAcceptanceCriterion a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:implementsRequirement ;
+    rdfs:range code:AcceptanceCriterion .
+
+code:enforcesRule a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAnalysisEntity ;
+    rdfs:range code:BusinessRule ;
+    owl:inverseOf code:isEnforcedBy .
+
+code:isEnforcedBy a owl:ObjectProperty .
+
+code:implementsProcessStep a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAnalysisEntity ;
+    rdfs:range code:BusinessProcessStep .
+
+code:containsStep a owl:ObjectProperty ;
+    rdfs:domain code:BusinessProcess ;
+    rdfs:range code:BusinessProcessStep .
+
+code:precedes a owl:ObjectProperty ;
+    rdfs:domain code:BusinessProcessStep ;
+    rdfs:range code:BusinessProcessStep .
+
+code:compensatedBy a owl:ObjectProperty ;
+    rdfs:domain code:BusinessProcessStep ;
+    rdfs:range code:BusinessProcessStep .
+
+code:ownedBy a owl:ObjectProperty ;
+    rdfs:range code:Team ;
+    owl:inverseOf code:ownsEntity .
+
+code:ownsEntity a owl:ObjectProperty .
+
+code:accountableTo a owl:ObjectProperty ;
+    rdfs:range code:Team .
+
+code:reviewedBy a owl:ObjectProperty ;
+    rdfs:range code:Team .
+
+#################################################################
+# Delivery relations
+#################################################################
+
+code:builtFrom a owl:ObjectProperty ;
+    rdfs:domain code:BuildArtifact ;
+    rdfs:range code:CodeEntity .
+
+code:packagedInto a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:structurallyRelatedTo ;
+    rdfs:range code:BuildArtifact .
+
+code:dependsOnArtifact a owl:ObjectProperty ;
+    rdfs:subPropertyOf code:deliveryDependsOn ;
+    rdfs:range code:BuildArtifact .
+
+code:deployedAs a owl:ObjectProperty ;
+    rdfs:domain code:DeployableUnit ;
+    rdfs:range code:ArtifactVersion .
+
+code:deployedTo a owl:ObjectProperty ;
+    rdfs:domain code:Deployment ;
+    rdfs:range code:Environment .
+
+code:runsVersion a owl:ObjectProperty ;
+    rdfs:domain code:RuntimeInstance ;
+    rdfs:range code:ArtifactVersion .
+
+code:partOfRelease a owl:ObjectProperty ;
+    rdfs:domain code:ArtifactVersion ;
+    rdfs:range code:Release .
+
+code:mustPrecede a owl:ObjectProperty ;
+    rdfs:domain code:DeploymentAction ;
+    rdfs:range code:DeploymentAction .
+
+code:canCoexistWith a owl:ObjectProperty ;
+    rdfs:domain code:ArtifactVersion ;
+    rdfs:range code:ArtifactVersion .
+
+#################################################################
+# Change and impact relations
+#################################################################
+
+code:containsChange a owl:ObjectProperty ;
+    rdfs:domain code:ChangeSet ;
+    rdfs:range code:ChangeItem .
+
+code:changesEntity a owl:ObjectProperty ;
+    rdfs:domain code:ChangeItem ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+code:causesImpact a owl:ObjectProperty ;
+    rdfs:domain code:ChangeItem ;
+    rdfs:range code:ImpactAssessment .
+
+code:affectsEntity a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAssessment ;
+    rdfs:range code:ImpactAnalysisEntity .
+
+code:supportedByEvidence a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAssessment ;
+    rdfs:range code:ImpactEvidence .
+
+code:hasImpactPath a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAssessment ;
+    rdfs:range code:ImpactPath .
+
+code:recommendedTest a owl:ObjectProperty ;
+    rdfs:domain code:ImpactAssessment ;
+    rdfs:range code:TestCase .
+
+#################################################################
+# Datatype properties
+#################################################################
+
+code:stableId a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+code:confidence a owl:DatatypeProperty ;
+    rdfs:range xsd:decimal .
+
+code:riskLevel a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+code:propagationState a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+code:impactType a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+code:beforeValue a owl:DatatypeProperty ;
+    rdfs:domain code:ChangeItem ;
+    rdfs:range xsd:string .
+
+code:afterValue a owl:DatatypeProperty ;
+    rdfs:domain code:ChangeItem ;
+    rdfs:range xsd:string .
+
+code:analysisSource a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+code:sourceRevision a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+code:version a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+code:environmentName a owl:DatatypeProperty ;
+    rdfs:domain code:Environment ;
+    rdfs:range xsd:string .
