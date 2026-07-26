@@ -1,0 +1,328 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix biz:  <https://example.org/code-ontology/business#> .
+@prefix sdn:  <https://example.org/code-ontology/sdn#> .
+@prefix ex:   <https://example.org/code-ontology/example/sdn#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# Capabilities, actor and use case
+#################################################################
+
+ex:PolicyOrchestrationCapability
+    a sdn:NetworkPolicyOrchestration ;
+    biz:canonicalId "sdn.capability.policy-orchestration" ;
+    rdfs:label "网络策略编排与部署"@zh .
+
+ex:PathComputationCapability
+    a sdn:PathComputation ;
+    biz:canonicalId "sdn.capability.path-computation" ;
+    rdfs:label "网络路径计算"@zh .
+
+ex:SouthboundProvisioningCapability
+    a sdn:SouthboundProvisioning ;
+    biz:canonicalId "sdn.capability.southbound-provisioning" ;
+    rdfs:label "南向配置下发"@zh .
+
+ex:NetworkAdministrator
+    a biz:Actor ;
+    biz:canonicalId "sdn.actor.network-administrator" ;
+    rdfs:label "网络管理员"@zh ;
+    biz:performsUseCase ex:DeployNetworkPolicy .
+
+ex:DeployNetworkPolicy
+    a biz:UseCase ;
+    biz:canonicalId "sdn.usecase.deploy-network-policy" ;
+    rdfs:label "部署网络策略"@zh ;
+    biz:belongsToCapability ex:PolicyOrchestrationCapability ;
+    biz:includesProcess ex:PolicyDeploymentProcess .
+
+#################################################################
+# Process and steps
+#################################################################
+
+ex:PolicyDeploymentProcess
+    a biz:BusinessProcess ;
+    biz:canonicalId "sdn.process.policy-deployment" ;
+    rdfs:label "网络策略部署流程"@zh ;
+    biz:hasEntryStep ex:ReceivePolicyRequest ;
+    biz:hasExitStep ex:PublishDeploymentOutcome ;
+    biz:containsStep
+        ex:ReceivePolicyRequest,
+        ex:ValidatePolicySemantics,
+        ex:ReadCurrentTopology,
+        ex:ComputeConstrainedPath,
+        ex:CompileDeviceFlowRules,
+        ex:PushFlowRulesToDevices,
+        ex:WaitForDeviceAcknowledgements,
+        ex:PersistDeploymentResult,
+        ex:PublishDeploymentOutcome,
+        ex:PartialDeployment,
+        ex:RollbackInstalledFlowRules .
+
+ex:ReceivePolicyRequest
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.receive-policy-request" ;
+    rdfs:label "接收网络策略请求"@zh ;
+    biz:hasBusinessInput ex:NetworkPolicyObject ;
+    biz:precedes ex:ValidatePolicySemantics .
+
+ex:ValidatePolicySemantics
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.validate-policy-semantics" ;
+    rdfs:label "校验策略语义"@zh ;
+    biz:hasBusinessInput ex:NetworkPolicyObject ;
+    biz:governedBy ex:TenantOwnedResourceRule ;
+    biz:precedes ex:ReadCurrentTopology .
+
+ex:ReadCurrentTopology
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.read-current-topology" ;
+    rdfs:label "读取当前网络拓扑"@zh ;
+    biz:hasBusinessOutput ex:NetworkTopologyObject ;
+    biz:precedes ex:ComputeConstrainedPath .
+
+ex:ComputeConstrainedPath
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.compute-constrained-path" ;
+    rdfs:label "计算满足约束的网络路径"@zh ;
+    biz:hasBusinessInput ex:NetworkPolicyObject, ex:NetworkTopologyObject ;
+    biz:hasBusinessOutput ex:NetworkPathObject ;
+    biz:governedBy ex:ExcludeUnavailableLinkRule ;
+    biz:precedes ex:CompileDeviceFlowRules .
+
+ex:CompileDeviceFlowRules
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.compile-device-flow-rules" ;
+    rdfs:label "编译设备流表"@zh ;
+    biz:hasBusinessInput ex:NetworkPathObject ;
+    biz:hasBusinessOutput ex:FlowRuleSetObject ;
+    biz:governedBy ex:NoConflictingFlowRulesRule ;
+    biz:precedes ex:PushFlowRulesToDevices .
+
+ex:PushFlowRulesToDevices
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.push-flow-rules" ;
+    rdfs:label "向目标设备下发流表"@zh ;
+    biz:hasBusinessInput ex:FlowRuleSetObject ;
+    biz:hasBusinessOutput ex:DeploymentTaskObject ;
+    biz:governedBy ex:OnlyOnlineManagedDeviceRule ;
+    biz:producesBusinessEvent ex:PolicyDeploymentStartedEvent ;
+    biz:precedes ex:WaitForDeviceAcknowledgements ;
+    biz:branchesTo ex:PartialDeployment .
+
+ex:WaitForDeviceAcknowledgements
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.wait-device-acknowledgements" ;
+    rdfs:label "等待设备确认"@zh ;
+    biz:hasBusinessInput ex:DeploymentTaskObject ;
+    biz:governedBy ex:AllTargetDevicesAcknowledgeRule ;
+    biz:precedes ex:PersistDeploymentResult .
+
+ex:PersistDeploymentResult
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.persist-deployment-result" ;
+    rdfs:label "保存策略部署结果"@zh ;
+    biz:hasBusinessInput ex:DeploymentTaskObject ;
+    biz:hasBusinessOutput ex:NetworkPolicyObject ;
+    biz:precedes ex:PublishDeploymentOutcome .
+
+ex:PublishDeploymentOutcome
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.publish-deployment-outcome" ;
+    rdfs:label "发布策略部署结果"@zh ;
+    biz:hasBusinessInput ex:NetworkPolicyObject ;
+    biz:producesBusinessEvent ex:PolicyDeployedEvent .
+
+ex:PartialDeployment
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.partial-deployment" ;
+    rdfs:label "处理部分设备下发失败"@zh ;
+    biz:hasBusinessInput ex:DeploymentTaskObject ;
+    biz:governedBy ex:RollbackOnPartialFailureRule ;
+    biz:compensatedBy ex:RollbackInstalledFlowRules ;
+    biz:producesBusinessEvent ex:PolicyDeploymentFailedEvent .
+
+ex:RollbackInstalledFlowRules
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.rollback-installed-flow-rules" ;
+    rdfs:label "回滚已成功下发的流表"@zh ;
+    biz:hasBusinessInput ex:DeploymentTaskObject ;
+    biz:producesBusinessEvent ex:PolicyRolledBackEvent .
+
+#################################################################
+# Objects, rules and events
+#################################################################
+
+ex:NetworkPolicyObject a sdn:NetworkPolicy ;
+    biz:canonicalId "sdn.object.network-policy" .
+
+ex:NetworkTopologyObject a sdn:NetworkTopology ;
+    biz:canonicalId "sdn.object.network-topology" .
+
+ex:NetworkPathObject a sdn:NetworkPath ;
+    biz:canonicalId "sdn.object.network-path" .
+
+ex:FlowRuleSetObject a sdn:FlowRuleSet ;
+    biz:canonicalId "sdn.object.flow-rule-set" .
+
+ex:DeploymentTaskObject a sdn:DeploymentTask ;
+    biz:canonicalId "sdn.object.deployment-task" .
+
+ex:TenantOwnedResourceRule a sdn:TenantIsolationRule ;
+    biz:canonicalId "sdn.rule.tenant-owned-resource" ;
+    rdfs:label "策略只能使用当前租户拥有的资源"@zh .
+
+ex:ExcludeUnavailableLinkRule a sdn:PathConstraintRule ;
+    biz:canonicalId "sdn.rule.exclude-unavailable-link" ;
+    rdfs:label "路径不得包含不可用链路"@zh .
+
+ex:NoConflictingFlowRulesRule a sdn:FlowConflictRule ;
+    biz:canonicalId "sdn.rule.no-conflicting-flow-rules" ;
+    rdfs:label "同一设备不得存在相互冲突的流表"@zh .
+
+ex:OnlyOnlineManagedDeviceRule a sdn:DeviceEligibilityRule ;
+    biz:canonicalId "sdn.rule.only-online-managed-device" ;
+    rdfs:label "只有已纳管且在线的设备才能接收流表"@zh .
+
+ex:AllTargetDevicesAcknowledgeRule a sdn:DeploymentConsistencyRule ;
+    biz:canonicalId "sdn.rule.all-target-devices-acknowledge" ;
+    rdfs:label "所有目标设备确认后策略才算部署成功"@zh .
+
+ex:RollbackOnPartialFailureRule a sdn:RollbackRule ;
+    biz:canonicalId "sdn.rule.rollback-partial-failure" ;
+    rdfs:label "部分设备下发失败时必须回滚"@zh .
+
+ex:PolicyDeploymentStartedEvent a sdn:PolicyLifecycleEvent ;
+    biz:canonicalId "sdn.event.policy-deployment-started" .
+
+ex:PolicyDeployedEvent a sdn:PolicyLifecycleEvent ;
+    biz:canonicalId "sdn.event.policy-deployed" .
+
+ex:PolicyDeploymentFailedEvent a sdn:PolicyLifecycleEvent ;
+    biz:canonicalId "sdn.event.policy-deployment-failed" .
+
+ex:PolicyRolledBackEvent a sdn:PolicyLifecycleEvent ;
+    biz:canonicalId "sdn.event.policy-rolled-back" .
+
+#################################################################
+# Technical code graph nodes
+#################################################################
+
+ex:DeployPolicyOperation a code:APIOperation ;
+    biz:realizesUseCase ex:DeployNetworkPolicy .
+
+ex:PolicyControllerDeploy a code:Method ;
+    code:callsDirectly ex:PolicyDeploymentServiceDeploy ;
+    biz:primaryImplementsStep ex:ReceivePolicyRequest .
+
+ex:PolicyDeploymentServiceDeploy a code:Method ;
+    code:callsDirectly ex:PolicyValidationServiceValidate,
+        ex:PathComputationServiceCompute,
+        ex:FlowRuleCompilerCompile,
+        ex:OpenFlowAdapterInstallFlows ;
+    biz:supportsStep ex:ValidatePolicySemantics,
+        ex:ComputeConstrainedPath,
+        ex:CompileDeviceFlowRules,
+        ex:PushFlowRulesToDevices .
+
+ex:PolicyValidationServiceValidate a code:Method ;
+    biz:primaryImplementsStep ex:ValidatePolicySemantics ;
+    biz:enforcesRule ex:TenantOwnedResourceRule .
+
+ex:PathComputationServiceCompute a code:Method ;
+    code:callsDirectly ex:TopologyGraphServiceCurrentGraph,
+        ex:ConstraintEvaluatorEvaluate,
+        ex:ShortestPathAlgorithmFindPath ;
+    biz:primaryImplementsStep ex:ComputeConstrainedPath .
+
+ex:TopologyGraphServiceCurrentGraph a code:Method ;
+    biz:supportsStep ex:ReadCurrentTopology,
+        ex:ComputeConstrainedPath .
+
+ex:ConstraintEvaluatorEvaluate a code:Method ;
+    biz:supportsStep ex:ComputeConstrainedPath ;
+    biz:enforcesRule ex:ExcludeUnavailableLinkRule .
+
+ex:ShortestPathAlgorithmFindPath a code:Method ;
+    biz:supportsStep ex:ComputeConstrainedPath .
+
+ex:FlowRuleCompilerCompile a code:Method ;
+    biz:primaryImplementsStep ex:CompileDeviceFlowRules ;
+    biz:enforcesRule ex:NoConflictingFlowRulesRule .
+
+ex:OpenFlowAdapterInstallFlows a code:Method ;
+    code:callsRemoteOperation ex:OpenFlowFlowModOperation ;
+    code:readsConfiguration ex:OpenFlowRequestTimeout ;
+    biz:primaryImplementsStep ex:PushFlowRulesToDevices ;
+    biz:enforcesRule ex:OnlyOnlineManagedDeviceRule .
+
+ex:OpenFlowFlowModOperation a code:APIOperation .
+
+ex:DeploymentResultHandler a code:Method ;
+    biz:primaryImplementsStep ex:WaitForDeviceAcknowledgements ;
+    biz:enforcesRule ex:AllTargetDevicesAcknowledgeRule .
+
+ex:PolicyDeploymentCoordinatorRollback a code:Method ;
+    biz:primaryImplementsStep ex:RollbackInstalledFlowRules ;
+    biz:enforcesRule ex:RollbackOnPartialFailureRule .
+
+ex:PolicyEntity a code:Class ;
+    biz:representsBusinessObject ex:NetworkPolicyObject .
+
+ex:PolicyStatusField a code:Field ;
+    biz:representsBusinessAttribute ex:PolicyDeploymentStatusAttribute .
+
+ex:PolicyDeploymentStatusAttribute a biz:BusinessAttribute ;
+    biz:canonicalId "sdn.attribute.policy-deployment-status" .
+
+ex:NetworkPolicyTable a code:Table ;
+    biz:storesBusinessObject ex:NetworkPolicyObject .
+
+ex:DeploymentStatusColumn a code:Column ;
+    biz:storesBusinessAttribute ex:PolicyDeploymentStatusAttribute .
+
+ex:PolicyDeployedEventV2 a code:EventType ;
+    biz:representsBusinessEvent ex:PolicyDeployedEvent .
+
+ex:OpenFlowRequestTimeout a code:ConfigurationKey ;
+    biz:canonicalId "config.openflow.request.timeout" .
+
+#################################################################
+# Implementation slices
+#################################################################
+
+ex:ComputePathSlice
+    a biz:ImplementationSlice ;
+    biz:canonicalId "sdn.slice.compute-path" ;
+    biz:implementsProcessStep ex:ComputeConstrainedPath ;
+    biz:hasPrimaryEntry ex:PathComputationServiceCompute ;
+    biz:containsSupportingEntity
+        ex:TopologyGraphServiceCurrentGraph,
+        ex:ConstraintEvaluatorEvaluate,
+        ex:ShortestPathAlgorithmFindPath .
+
+ex:PushFlowRulesSlice
+    a biz:ImplementationSlice ;
+    biz:canonicalId "sdn.slice.push-flow-rules" ;
+    biz:implementsProcessStep ex:PushFlowRulesToDevices ;
+    biz:hasPrimaryEntry ex:OpenFlowAdapterInstallFlows ;
+    biz:containsSupportingEntity
+        ex:OpenFlowFlowModOperation,
+        ex:OpenFlowRequestTimeout .
+
+#################################################################
+# Mapping evidence example
+#################################################################
+
+ex:ComputePathAnnotationEvidence a code:ImpactEvidence .
+
+ex:ComputePathConfirmedMapping
+    a biz:ConfirmedMapping ;
+    biz:mappingBusinessEntity ex:ComputeConstrainedPath ;
+    biz:mappingTechnicalEntity ex:PathComputationServiceCompute ;
+    biz:mappingRelation biz:primaryImplementsStep ;
+    biz:confidence "1.0"^^xsd:decimal ;
+    biz:supportedByEvidence ex:ComputePathAnnotationEvidence ;
+    biz:lastVerifiedCommit "example-commit-sha" .
