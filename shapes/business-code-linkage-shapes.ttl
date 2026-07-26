@@ -1,0 +1,133 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix biz:  <https://example.org/code-ontology/business#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+biz:BusinessEntityShape
+    a sh:NodeShape ;
+    sh:targetClass biz:BusinessEntity ;
+    sh:property [
+        sh:path biz:canonicalId ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 3 ;
+        sh:message "业务实体必须具有稳定的 canonicalId。"@zh
+    ] .
+
+biz:UseCaseShape
+    a sh:NodeShape ;
+    sh:targetClass biz:UseCase ;
+    sh:property [
+        sh:path biz:belongsToCapability ;
+        sh:minCount 1 ;
+        sh:class biz:BusinessCapability ;
+        sh:message "每个 UseCase 至少属于一个 BusinessCapability。"@zh
+    ] ;
+    sh:property [
+        sh:path biz:includesProcess ;
+        sh:minCount 1 ;
+        sh:class biz:BusinessProcess ;
+        sh:message "每个 UseCase 至少包含一个业务流程。"@zh
+    ] .
+
+biz:BusinessProcessShape
+    a sh:NodeShape ;
+    sh:targetClass biz:BusinessProcess ;
+    sh:property [
+        sh:path biz:containsStep ;
+        sh:minCount 1 ;
+        sh:class biz:BusinessProcessStep ;
+        sh:message "业务流程必须包含至少一个步骤。"@zh
+    ] ;
+    sh:property [
+        sh:path biz:hasEntryStep ;
+        sh:minCount 1 ;
+        sh:class biz:BusinessProcessStep ;
+        sh:message "业务流程必须定义入口步骤。"@zh
+    ] ;
+    sh:property [
+        sh:path biz:hasExitStep ;
+        sh:minCount 1 ;
+        sh:class biz:BusinessProcessStep ;
+        sh:message "业务流程必须定义完成或退出步骤。"@zh
+    ] .
+
+biz:StateTransitionShape
+    a sh:NodeShape ;
+    sh:targetClass biz:StateTransition ;
+    sh:property [
+        sh:path biz:fromState ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class biz:BusinessState ;
+        sh:message "状态迁移必须有且仅有一个 fromState。"@zh
+    ] ;
+    sh:property [
+        sh:path biz:toState ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class biz:BusinessState ;
+        sh:message "状态迁移必须有且仅有一个 toState。"@zh
+    ] .
+
+biz:ImplementationSliceShape
+    a sh:NodeShape ;
+    sh:targetClass biz:ImplementationSlice ;
+    sh:property [
+        sh:path biz:implementsProcessStep ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class biz:BusinessProcessStep ;
+        sh:message "ImplementationSlice 必须关联一个主要业务步骤。"@zh
+    ] ;
+    sh:property [
+        sh:path biz:hasPrimaryEntry ;
+        sh:minCount 1 ;
+        sh:class code:ImpactAnalysisEntity ;
+        sh:message "ImplementationSlice 必须至少有一个主要技术入口。"@zh
+    ] .
+
+biz:BusinessMappingShape
+    a sh:NodeShape ;
+    sh:targetClass biz:BusinessMapping ;
+    sh:property [
+        sh:path biz:mappingBusinessEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class biz:BusinessEntity ;
+        sh:message "映射必须指定业务实体。"@zh
+    ] ;
+    sh:property [
+        sh:path biz:mappingTechnicalEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class code:ImpactAnalysisEntity ;
+        sh:message "映射必须指定技术实体。"@zh
+    ] ;
+    sh:property [
+        sh:path biz:confidence ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        sh:message "映射置信度必须位于 0 到 1 之间。"@zh
+    ] ;
+    sh:property [
+        sh:path biz:supportedByEvidence ;
+        sh:minCount 1 ;
+        sh:class code:ImpactEvidence ;
+        sh:message "业务映射必须保存证据。"@zh
+    ] .
+
+biz:ConfirmedMappingShape
+    a sh:NodeShape ;
+    sh:targetClass biz:ConfirmedMapping ;
+    sh:property [
+        sh:path biz:lastVerifiedCommit ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "已确认映射必须记录最近验证的 Commit。"@zh
+    ] .
