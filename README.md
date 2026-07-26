@@ -8,10 +8,19 @@
 
 - [正式设计文档目录](docs/README.md)
 - [总体架构](docs/00-overall-architecture.md)
+- [业务语义建图完整设计](docs/17-business-semantic-graph.md)
+- [业务图与代码图关联完整设计](docs/18-business-code-graph-linkage.md)
 - [影响传播规则](docs/14-impact-propagation-rules.md)
 - [RDFS、OWL、SHACL 与规则引擎边界](docs/15-rdfs-owl-shacl.md)
 - [实现架构与数据管道](docs/16-implementation-architecture.md)
-- [核心本体 Turtle](ontology/code-ontology.ttl)
+
+## 本体与示例
+
+- [核心代码本体](ontology/code-ontology.ttl)
+- [业务语义与代码图桥接本体](ontology/business-code-linkage.ttl)
+- [SDN 网络管理业务领域本体](ontology/sdn-business-ontology.ttl)
+- [业务图与代码图 SHACL 约束](shapes/business-code-linkage-shapes.ttl)
+- [SDN 网络策略部署实例图](examples/sdn-network-policy-deployment.ttl)
 
 ## 核心原则
 
@@ -22,6 +31,8 @@
 5. 知识图、变更图和影响图分离，所有结论保留规则、证据、路径、风险和版本。
 6. 传播支持 Confirmed、Contained、Rejected 和 Unresolved，识别 Mapper、Adapter、Serializer 等变化吸收点。
 7. 影响结果最终连接到测试、业务能力、责任团队、构建产物、发布顺序和运行版本。
+8. 业务图、代码图和项目级映射保持独立，通过 ImplementationSlice、稳定业务 ID、证据和版本化映射连接。
+9. 通用业务元模型与 SDN 领域本体分层，避免把项目代码结构固化为领域语义。
 
 ## 仓库方向
 
