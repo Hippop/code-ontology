@@ -1,0 +1,7 @@
+topology:
+  bandwidth:
+    max-age: PT30S
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost/sdn
+    password: example-only

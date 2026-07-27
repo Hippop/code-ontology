@@ -1,0 +1,30 @@
+services:
+  platform:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: code-ontology-platform:local
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      CODE_ONTOLOGY_API_TOKEN: ${CODE_ONTOLOGY_API_TOKEN:?set CODE_ONTOLOGY_API_TOKEN}
+      CODE_ONTOLOGY_REPOSITORY_ROOTS: /workspace/repositories
+      CODE_ONTOLOGY_WORKTREE_ROOT: /opt/code-ontology/data/agent-worktrees
+      OPENCODE_BINARY: /usr/local/bin/opencode
+    volumes:
+      - platform-data:/var/lib/code-ontology
+      - ${REPOSITORY_ROOT:?set REPOSITORY_ROOT}:/workspace/repositories
+    read_only: true
+    tmpfs:
+      - /tmp:size=2g,mode=1770
+      - /opt/code-ontology/data:size=2g,uid=10001,gid=10001,mode=0770
+      - /home/platform/.cache:size=512m,uid=10001,gid=10001,mode=0700
+      - /home/platform/.local/share/opencode:size=1g,uid=10001,gid=10001,mode=0700
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+
+volumes:
+  platform-data:

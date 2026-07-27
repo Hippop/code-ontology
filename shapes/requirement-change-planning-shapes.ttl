@@ -1,6 +1,7 @@
 @prefix code: <https://example.org/code-ontology#> .
 @prefix biz:  <https://example.org/code-ontology/business#> .
 @prefix plan: <https://example.org/code-ontology/planning#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
@@ -70,7 +71,10 @@ plan:DocumentEvidenceShape
     sh:property [
         sh:path plan:sourceText ;
         sh:minCount 1 ;
-        sh:datatype xsd:string ;
+        sh:or (
+            [ sh:datatype xsd:string ]
+            [ sh:datatype rdf:langString ]
+        ) ;
         sh:minLength 1 ;
         sh:message "DocumentEvidence 必须保存源文本或结构化元素内容。"@zh
     ] ;
@@ -238,7 +242,10 @@ plan:DesignDecisionShape
         sh:path plan:decisionQuestion ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:datatype xsd:string ;
+        sh:or (
+            [ sh:datatype xsd:string ]
+            [ sh:datatype rdf:langString ]
+        ) ;
         sh:minLength 5 ;
         sh:message "DesignDecision 必须说明待决策问题。"@zh
     ] ;
@@ -246,7 +253,10 @@ plan:DesignDecisionShape
         sh:path plan:decisionRationale ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:datatype xsd:string ;
+        sh:or (
+            [ sh:datatype xsd:string ]
+            [ sh:datatype rdf:langString ]
+        ) ;
         sh:minLength 5 ;
         sh:message "已记录的 DesignDecision 必须说明决策理由。"@zh
     ] ;

@@ -1,0 +1,22 @@
+{
+  "changeSet": {
+    "requirementId": "REQ-SDN-2026-001",
+    "currentRevision": "sdn-controller@abc123",
+    "desiredRevision": "DESIGN-SDN-BW-001@1.0",
+    "ruleSetVersion": "1.0.0"
+  },
+  "difference": {
+    "differenceId": "diff-minimum-bandwidth-field",
+    "differenceType": "AddEntityDifference",
+    "desiredEntityType": "DesiredSchemaField",
+    "desiredEntityId": "desired:minimumBandwidthMbps",
+    "evidenceRefs": [
+      "evidence:DESIGN-SDN-BW-001:6.1"
+    ]
+  },
+  "context": {
+    "fieldRequired": false,
+    "defaultMissing": false,
+    "publicContract": true
+  }
+}

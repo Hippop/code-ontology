@@ -1,0 +1,28 @@
+{
+  "name": "code-ontology-workbench",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b && vite build",
+    "dev": "vite",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "cytoscape": "^3.33.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/cytoscape": "^3.21.9",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "rollup": "npm:@rollup/wasm-node@^4.46.2",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.6"
+  },
+  "overrides": {
+    "dompurify": "^3.4.12"
+  }
+}

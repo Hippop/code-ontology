@@ -178,12 +178,15 @@ requirement-orchestrator                 Primary Agent
 
 职责：
 
+- 加载 `review-change-architecture` Skill；
 - 独立检查规划结果；
 - 检查跨服务边界、公共契约、数据库迁移、消息兼容、并发、事务和部署风险；
 - 验证 Proposed Change 是否与证据一致；
 - 输出 ReviewFinding，不直接修改代码。
 
-该 Agent 与 change-planner 使用不同提示和独立上下文，避免规划者自我确认。
+该 Agent 与 change-planner 使用不同提示、专用 Skill 和独立上下文，避免规划者
+自我确认。评审只消费平台提供的 Change Plan 快照，不调用写入工具；输出 JSON
+ReviewFinding 后立即结束。
 
 ### 4.6 implementation-agent
 
@@ -224,6 +227,7 @@ orchestrate-requirement-change
 extract-requirement-ir
 align-design-to-code-graph
 plan-code-graph-change
+review-change-architecture
 implement-approved-change
 verify-and-reconcile
 explain-change-impact

@@ -7,6 +7,9 @@
 ## 系统总入口
 
 - [需求到代码智能平台完整系统设计](docs/21-complete-requirement-to-code-intelligence-platform.md)
+- [可执行 Agent Gateway 与规划规则 MVP](docs/22-executable-agent-gateway-mvp.md)
+- [完整智能平台符合性审计与证据](docs/23-complete-platform-compliance-audit.md)
+- [核心功能完成矩阵](docs/24-core-function-completion-matrix.md)
 - [正式设计文档目录](docs/README.md)
 - [总体架构](docs/00-overall-architecture.md)
 
@@ -57,6 +60,49 @@ Approved Change
 - [SDN 网络策略部署实例图](examples/sdn-network-policy-deployment.ttl)
 - [SDN 需求到代码图变更实例](examples/sdn-requirement-to-code-change-plan.ttl)
 
+## 可执行平台
+
+要求 Python 3.11+：
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e .
+.venv/bin/code-ontology-platform validate
+.venv/bin/code-ontology-platform scan examples/java-spring-sample \
+  --repository-id repo-sdn-sample --include-graph
+.venv/bin/code-ontology-platform serve
+```
+
+默认 API 为 `http://127.0.0.1:8080`。设置 `CODE_ONTOLOGY_API_TOKEN` 后，除 Health 和静态工作台外的 API 都需要 Bearer Token。
+
+工作台：
+
+```bash
+cd web
+npm ci
+npm run build
+cd ..
+code-ontology-platform serve --web-root web/dist
+```
+
+容器部署见 [deploy/README.md](deploy/README.md)。
+
+主要平台 API：
+
+```text
+Repository / Snapshot / Scan / Graph Revision
+Graph Catalog / Bounded Query / Cross-Graph Compare
+Design Document / Revision / Requirement IR / Review
+Persistent Requirement Workflow / Human Gate Resume / Failed-Stage Retry
+Alignment Candidate / Confirm / Reject / ImplementationSlice
+Semantic Diff / Change Plan / Architecture Review / Approval
+Agent Run / Permission / Diff / Artifact
+Actual Graph / Reconciliation
+Impact Graph / Test Selection / Release Plan
+Runtime Evidence
+Audit Event / Requirement Replay
+```
+
 ## OpenCode Agent + Skill
 
 - [OpenCode 项目权限与 MCP 配置](opencode.json)
@@ -80,7 +126,7 @@ Custom Tool / MCP
 → 确认业务语义、关键映射、架构方案、破坏性变化、合并和发布
 ```
 
-项目提供需求编排、需求文档分析、代码图对齐、变更规划、独立架构复核、批准后实现和实现对账 Agent。实现 Agent 只能在 Approved Change、独立 Worktree 和文件白名单存在时编辑代码，且禁止 Git Commit、Push、Merge 和生产部署。
+项目提供需求编排、需求文档分析、代码图对齐、变更规划、独立架构复核、批准后实现和实现对账 Agent，以及八个窄职责 Skill。平台持久化调度各角色，在 Requirement、Alignment、Architecture 和 Change Approval Gate 暂停；失败后可只重试失败阶段。实现 Agent 只能在 Approved Change、独立 Worktree 和文件白名单存在时编辑代码，且禁止 Git Commit、Push、Merge 和生产部署。
 
 ## 核心原则
 
@@ -100,6 +146,29 @@ Custom Tool / MCP
 14. AI 未确认候选不得写入 Current Graph；Approved Change 不得复制为 Actual Graph。
 15. 机器负责可证明事实，AI 负责候选和解释，人负责需要承担责任的决定。
 
-## 仓库方向
+## 实现目录
 
-后续实现目录将围绕 `ontology/`、`shapes/`、`rules/`、`extractors/`、`queries/`、`examples/`、`.opencode/`、Agent Gateway 和分析服务展开。
+```text
+src/code_ontology_platform/
+  repository_scan.py       Java/Spring 和相邻工程资产抽取
+  document_ingestion.py    Design Revision 与 Requirement IR
+  analysis_workflow.py     Alignment、ImplementationSlice、Diff、Plan
+  agent_runtime.py         OpenCode、Worktree、Policy、Patch、Test
+  verification_workflow.py Actual、Reconciliation、Impact、Release
+  workflow_orchestration.py 多角色持久化状态机、人工 Gate 与失败恢复
+  service.py               Gate 与应用工作流
+  store.py                 持久化、Artifact、审计链和重放
+  http_api.py              平台 REST API 与 Web 静态资源
+
+web/                       React/TypeScript/Cytoscape 图谱工作台
+deploy/                    单节点容器部署
+tests/                     语义、HTTP、安全和端到端回归
+```
+
+前端默认进入统一 Graph Explorer，可按 Revision 查看代码本体、业务本体、
+Desired、Proposed、Approved、Actual 和 Impact 七类图空间。图谱支持实体类型、
+关系、关键字和节点上限过滤，也支持邻域、实现切片、业务追踪、调用路径、契约
+消费者、数据依赖、变更上下文和波及路径查询；点击节点或关系可查看完整属性与
+证据。Graph Compare 提供任意双图差异叠加、左右对照和字段 Diff；Workflow
+Control 可创建、装载、恢复人工 Gate 或重试失败阶段；Requirement Trace 提供
+不可变端到端重放视图。

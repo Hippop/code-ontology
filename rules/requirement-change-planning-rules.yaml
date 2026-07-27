@@ -63,11 +63,33 @@ rules:
     description: 新增业务事件时生成技术事件、Schema、生产消费、兼容和发布顺序提案。
     when:
       differenceType: AddEntityDifference
-      desiredEntityType: BusinessEvent
+      desiredEntityType: DesiredEventType
     then:
       proposals:
         - type: ProposedNodeAddition
           role: AddTechnicalEventType
+        - type: ProposedContractChange
+          role: AddMessageSchema
+        - type: ProposedRelationAddition
+          role: AddProducerRelation
+        - type: ProposedRelationAddition
+          role: AddConsumerRelation
+        - type: ProposedTestChange
+          role: AddMessageContractTest
+        - type: ProposedDeploymentChange
+          role: AddConsumerProducerOrdering
+      assessments:
+        - CompatibilityAssessment
+        - ReplayAssessment
+        - IdempotencyAssessment
+
+  - id: PLAN-BUSINESS-EVENT-MODIFIED
+    description: 现有业务事件扩展时同步消息 Schema、生产消费关系、兼容测试和发布顺序。
+    when:
+      differenceType: ModifyEntityDifference
+      desiredEntityType: DesiredEventType
+    then:
+      proposals:
         - type: ProposedContractChange
           role: AddMessageSchema
         - type: ProposedRelationAddition
