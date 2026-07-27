@@ -15,6 +15,7 @@
 #################################################################
 
 sdn:SDNNetworkManagement a biz:BusinessDomain ;
+    biz:canonicalId "sdn.domain.network-management" ;
     rdfs:label "SDN 网络管理"@zh .
 
 sdn:SDNBusinessCapability a owl:Class ;

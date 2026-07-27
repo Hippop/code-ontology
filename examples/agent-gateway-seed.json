@@ -1,0 +1,84 @@
+{
+  "requirementContexts": [
+    {
+      "requirementId": "REQ-SDN-2026-001",
+      "designRevisionId": "DESIGN-SDN-BW-001@1.0",
+      "stage": "plan",
+      "payload": {
+        "approvalState": "AlignmentConfirmed",
+        "allowedActions": [
+          "ReadPlanningContext",
+          "QueryApprovedGraphSpaces",
+          "CreateChangePlanDraft"
+        ],
+        "repositorySnapshot": "sdn-controller@abc123",
+        "requirementRevision": "REQ-SDN-2026-001@1.0",
+        "ruleSetVersion": "1.0.0",
+        "extractorVersion": "example-1.0",
+        "relevantArtifacts": [
+          "artifact:requirement-ir",
+          "artifact:alignment"
+        ]
+      }
+    }
+  ],
+  "graphs": [
+    {
+      "graphSpace": "current",
+      "revision": "sdn-controller@abc123",
+      "nodes": [
+        {
+          "id": "code:PolicyController.deploy",
+          "type": "APIOperation",
+          "label": "POST /network-policies/{id}/deploy"
+        },
+        {
+          "id": "code:PathComputationService.compute",
+          "type": "Method",
+          "label": "PathComputationService.compute"
+        },
+        {
+          "id": "code:ConstraintEvaluator.evaluate",
+          "type": "Method",
+          "label": "ConstraintEvaluator.evaluate"
+        },
+        {
+          "id": "code:PathRepository.findCandidates",
+          "type": "Method",
+          "label": "PathRepository.findCandidates"
+        }
+      ],
+      "edges": [
+        {
+          "source": "code:PolicyController.deploy",
+          "relation": "code:callsDirectly",
+          "target": "code:PathComputationService.compute"
+        },
+        {
+          "source": "code:PathComputationService.compute",
+          "relation": "code:callsDirectly",
+          "target": "code:ConstraintEvaluator.evaluate"
+        },
+        {
+          "source": "code:PathComputationService.compute",
+          "relation": "code:callsDirectly",
+          "target": "code:PathRepository.findCandidates"
+        }
+      ]
+    }
+  ],
+  "reconciliationContexts": [
+    {
+      "reconciliationRunId": "reconcile-sdn-001",
+      "payload": {
+        "approvedChangeRevision": "change-set:REQ-SDN-2026-001@approved-1",
+        "actualGraphRevision": "sdn-controller@worktree-456",
+        "verificationObligations": [
+          "VerifyBandwidthPathConstraint",
+          "VerifyNoSouthboundCallOnStaleData"
+        ],
+        "testResults": []
+      }
+    }
+  ]
+}

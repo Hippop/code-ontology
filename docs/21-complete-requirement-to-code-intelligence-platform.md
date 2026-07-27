@@ -959,6 +959,9 @@ CompatibilityAssessment
 
 作为独立 Agent，不与 Change Planner 共享结论偏好。
 
+加载只读、一次性的 `review-change-architecture` Skill，只评审平台随阶段上下文
+提供的 Change Plan 快照，不保存 Draft、不调用本体写工具。
+
 检查：
 
 ```text
@@ -1038,15 +1041,20 @@ Unverified
 
 负责 Graph Diff 到变更提案、兼容评估、验证义务和任务 DAG。
 
-### 11.5 `implement-approved-change`
+### 11.5 `review-change-architecture`
+
+负责一次性独立检查变更计划的边界、兼容、事务、数据、部署和验证风险，只输出
+结构化 ReviewFinding。
+
+### 11.6 `implement-approved-change`
 
 负责在批准范围和文件白名单内修改代码和测试。
 
-### 11.6 `verify-and-reconcile`
+### 11.7 `verify-and-reconcile`
 
 负责 Approved Change 与 Actual Graph 对账。
 
-### 11.7 `explain-change-impact`
+### 11.8 `explain-change-impact`
 
 负责根据结构化 Impact Graph 输出开发、测试、架构和发布视角解释。
 

@@ -190,9 +190,15 @@ ex:CurrentOpenFlowInstallMethod
     a code:Method ;
     rdfs:label "OpenFlowAdapter.installFlows" .
 
+ex:CurrentComputeConstrainedPathStep
+    a biz:BusinessProcessStep ;
+    biz:canonicalId "sdn.step.compute-constrained-path" ;
+    rdfs:label "计算满足约束的网络路径"@zh .
+
 ex:CurrentPathComputationSlice
     a biz:ImplementationSlice ;
     biz:canonicalId "slice.sdn.path-computation" ;
+    biz:implementsProcessStep ex:CurrentComputeConstrainedPathStep ;
     biz:hasPrimaryEntry ex:CurrentComputeMethod ;
     biz:containsSupportingCode ex:CurrentConstraintEvaluateMethod .
 

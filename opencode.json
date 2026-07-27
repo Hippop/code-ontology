@@ -20,6 +20,7 @@
       "extract-requirement-ir": "allow",
       "align-design-to-code-graph": "allow",
       "plan-code-graph-change": "allow",
+      "review-change-architecture": "allow",
       "implement-approved-change": "allow",
       "verify-and-reconcile": "allow",
       "explain-change-impact": "allow"

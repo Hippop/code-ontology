@@ -5,6 +5,9 @@
 ## 推荐入口
 
 - [需求到代码智能平台完整系统设计](21-complete-requirement-to-code-intelligence-platform.md)
+- [可执行 Agent Gateway 与规划规则 MVP](22-executable-agent-gateway-mvp.md)
+- [完整智能平台符合性审计](23-complete-platform-compliance-audit.md)
+- [核心功能完成矩阵](24-core-function-completion-matrix.md)
 - [总体架构](00-overall-architecture.md)
 - [OpenCode Agent + Skill AI 辅助架构](20-opencode-agent-skill-architecture.md)
 
@@ -32,6 +35,9 @@
 20. [新增需求详细设计到代码图变更](19-requirement-design-to-code-graph-change.md)
 21. [OpenCode Agent + Skill AI 辅助架构](20-opencode-agent-skill-architecture.md)
 22. [需求到代码智能平台完整系统设计](21-complete-requirement-to-code-intelligence-platform.md)
+23. [可执行 Agent Gateway 与规划规则 MVP](22-executable-agent-gateway-mvp.md)
+24. [完整智能平台符合性审计](23-complete-platform-compliance-audit.md)
+25. [核心功能完成矩阵](24-core-function-completion-matrix.md)
 
 ## 业务语义与需求规划资产
 
@@ -68,3 +74,8 @@ Agent 负责角色化执行与编排，Skill 负责稳定工作流与输出契�
 - **Impact Graph**：针对实际或提议变化生成的候选、确定影响、吸收点、证据、测试和风险结论。
 
 这些图空间分离，是保证事实纯净、设计可评审、变更可重算和实现可对账的基础。
+
+前端 Graph Explorer 已把 Business 和 Approved 补入可视图空间，当前统一支持
+Current、Business、Desired、Proposed、Approved、Actual、Impact 七类图的版本
+选择、过滤、路径查询和证据检查。核心功能逐项状态见
+[智能代码本体平台核心功能完成矩阵](24-core-function-completion-matrix.md)。
