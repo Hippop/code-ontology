@@ -314,7 +314,7 @@ class PlatformService:
         graph_metadata = {
             key: value for key, value in graph.items() if key not in {"nodes", "edges"}
         }
-        self.replace_graph(
+        graph_text_snapshot = self.replace_graph(
             "current",
             graph["revision"],
             graph["nodes"],
@@ -342,6 +342,7 @@ class PlatformService:
                 "extractorVersion": EXTRACTOR_VERSION,
                 "coverage": result["coverage"],
                 "graphId": graph["graphId"],
+                "graphTextSnapshot": graph_text_snapshot,
                 "createdAt": graph["createdAt"],
             }
         )
@@ -2157,7 +2158,7 @@ class PlatformService:
         nodes_value: Any,
         edges_value: Any,
         metadata: Mapping[str, Any] | None = None,
-    ) -> None:
+    ) -> dict[str, Any] | None:
         graph_space = enum_value(graph_space, "graphSpace", GRAPH_SPACES)
         revision = string_value(revision, "revision")
         nodes = list_value(nodes_value, "nodes", nonempty=True)
@@ -2193,7 +2194,7 @@ class PlatformService:
             edge["relation"] = relation
             edge["target"] = target
             normalized_edges.append(edge)
-        self.store.replace_graph(
+        return self.store.replace_graph(
             graph_space,
             revision,
             normalized_nodes,

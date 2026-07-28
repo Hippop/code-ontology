@@ -8,6 +8,7 @@
 - [可执行 Agent Gateway 与规划规则 MVP](22-executable-agent-gateway-mvp.md)
 - [完整智能平台符合性审计](23-complete-platform-compliance-audit.md)
 - [核心功能完成矩阵](24-core-function-completion-matrix.md)
+- [图谱文本快照与预期基线](25-graph-text-snapshots-and-baselines.md)
 - [总体架构](00-overall-architecture.md)
 - [OpenCode Agent + Skill AI 辅助架构](20-opencode-agent-skill-architecture.md)
 
@@ -38,6 +39,7 @@
 23. [可执行 Agent Gateway 与规划规则 MVP](22-executable-agent-gateway-mvp.md)
 24. [完整智能平台符合性审计](23-complete-platform-compliance-audit.md)
 25. [核心功能完成矩阵](24-core-function-completion-matrix.md)
+26. [图谱文本快照与预期基线](25-graph-text-snapshots-and-baselines.md)
 
 ## 业务语义与需求规划资产
 

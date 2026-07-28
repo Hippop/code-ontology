@@ -10,6 +10,7 @@ services:
       CODE_ONTOLOGY_API_TOKEN: ${CODE_ONTOLOGY_API_TOKEN:?set CODE_ONTOLOGY_API_TOKEN}
       CODE_ONTOLOGY_REPOSITORY_ROOTS: /workspace/repositories
       CODE_ONTOLOGY_WORKTREE_ROOT: /opt/code-ontology/data/agent-worktrees
+      CODE_ONTOLOGY_GRAPH_TEXT_ROOT: /var/lib/code-ontology/graphs
       OPENCODE_BINARY: /usr/local/bin/opencode
     volumes:
       - platform-data:/var/lib/code-ontology

@@ -79,7 +79,7 @@ CODE_ONTOLOGY_API_TOKEN=validation-token REPOSITORY_ROOT=/tmp \
   docker compose -f deploy/docker-compose.yml config --quiet
 ```
 
-最终复核结果：Python 格式与静态检查通过，19 项自动化测试全部通过；Web 生产构建成功，锁文件依赖审计为 0 漏洞；Compose 配置展开成功。CLI 复核中 4 份本体、2 份 Shape 和 2 份 RDF 实例全部 conform，Java/Spring 样例 9/9 文件解析成功并生成 72 个节点、95 条边、0 个未解析调用。
+最终复核结果：Python 格式与静态检查通过，21 项自动化测试全部通过；Web 生产构建成功，锁文件依赖审计为 0 漏洞；Compose 配置展开成功。CLI 复核中 4 份本体、2 份 Shape 和 2 份 RDF 实例全部 conform，Java/Spring 样例 9/9 文件解析成功并生成 72 个节点、95 条边、0 个未解析调用。
 
 覆盖点包括：
 
@@ -94,6 +94,7 @@ CODE_ONTOLOGY_API_TOKEN=validation-token REPOSITORY_ROOT=/tmp \
 - 审计链完整性和 Requirement Replay Hash；
 - HTTP Bearer Token、幂等冲突和图空间隔离；
 - 任意双图 Compare、字段级 Diff 与快照 Revision 非语义漂移过滤；
+- 七类图空间的 SQLite/JSON 双写、文本 Hash 防篡改和示例预期图谱回归；
 - 多角色 Requirement Workflow、四个人工 Gate、失败阶段原地重试；
 - 4 份本体、2 份 Shape、2 份 RDF 实例的 SHACL 一致性。
 

@@ -7,8 +7,15 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
+from .graph_baseline import (
+    build_graph_baseline,
+    compare_graph_baseline,
+    load_graph_baseline,
+    write_graph_baseline,
+)
 from .http_api import handler_for
 from .models import list_value, object_value
+from .repository_scan import RepositoryScanner
 from .semantic_validation import validate_semantic_assets
 from .service import PlatformService
 from .store import SQLiteStore
@@ -122,6 +129,35 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("path", type=Path)
     scan.add_argument("--repository-id")
     scan.add_argument("--include-graph", action="store_true")
+    scan.add_argument(
+        "--expected-graph",
+        type=Path,
+        help="扫描后与指定预期图谱基线比较；发现漂移时退出码为 1",
+    )
+
+    baseline = commands.add_parser(
+        "baseline",
+        help="生成或比较可移植的代码图谱预期基线",
+    )
+    baseline_commands = baseline.add_subparsers(
+        dest="baseline_command",
+        required=True,
+    )
+    baseline_generate = baseline_commands.add_parser(
+        "generate",
+        help="扫描仓库并生成预期图谱基线",
+    )
+    baseline_generate.add_argument("path", type=Path)
+    baseline_generate.add_argument("output", type=Path)
+    baseline_generate.add_argument("--repository-id")
+    baseline_compare = baseline_commands.add_parser(
+        "compare",
+        help="扫描仓库并与预期图谱基线比较",
+    )
+    baseline_compare.add_argument("path", type=Path)
+    baseline_compare.add_argument("expected", type=Path)
+    baseline_compare.add_argument("--repository-id")
+    baseline_compare.add_argument("--limit", type=int, default=200)
     return parser
 
 
@@ -138,6 +174,43 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if result["conforms"] else 1
 
+    if arguments.command == "baseline":
+        path = arguments.path.resolve()
+        if arguments.baseline_command == "generate":
+            repository_id = arguments.repository_id or f"repo-{path.name}"
+            scan_result = RepositoryScanner().scan(path, repository_id)
+            baseline = build_graph_baseline(
+                scan_result["graph"],
+                repository_id=repository_id,
+            )
+            output = write_graph_baseline(arguments.output, baseline)
+            print(
+                json.dumps(
+                    {
+                        "status": "Generated",
+                        "path": str(output),
+                        "repositoryId": repository_id,
+                        "contentHash": baseline["contentHash"],
+                        "summary": baseline["summary"],
+                        "coverage": scan_result["coverage"],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 0
+        expected = load_graph_baseline(arguments.expected)
+        repository_id = arguments.repository_id or str(expected["repositoryId"])
+        scan_result = RepositoryScanner().scan(path, repository_id)
+        comparison = compare_graph_baseline(
+            expected,
+            scan_result["graph"],
+            limit=arguments.limit,
+        )
+        comparison["coverage"] = scan_result["coverage"]
+        print(json.dumps(comparison, ensure_ascii=False, indent=2))
+        return 0 if comparison["status"] == "Matched" else 1
+
     service = _service(arguments)
 
     if arguments.command == "init":
@@ -146,6 +219,11 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "status": "initialized",
                     "database": arguments.database,
+                    "graphTextRoot": (
+                        str(service.store.graph_text_root)
+                        if service.store.graph_text_root is not None
+                        else None
+                    ),
                     "ruleSet": service.planning_rules.rule_set,
                     "ruleSetVersion": service.planning_rules.version,
                 },
@@ -182,10 +260,25 @@ def main(argv: list[str] | None = None) -> int:
         )
         result = service.scan_repository(
             repository["repositoryId"],
-            {"includeGraph": arguments.include_graph},
+            {
+                "includeGraph": (
+                    arguments.include_graph or arguments.expected_graph is not None
+                )
+            },
         )
+        if arguments.expected_graph is not None:
+            comparison = compare_graph_baseline(
+                load_graph_baseline(arguments.expected_graph),
+                result["graph"],
+            )
+            result["baselineComparison"] = comparison
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0
+        return (
+            1
+            if arguments.expected_graph is not None
+            and result["baselineComparison"]["status"] != "Matched"
+            else 0
+        )
 
     server = ThreadingHTTPServer(
         (arguments.host, arguments.port),

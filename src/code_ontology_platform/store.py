@@ -2,14 +2,19 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import re
 import sqlite3
+import tempfile
 import uuid
 from collections.abc import Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .errors import conflict
+from .errors import PlatformError, conflict
+
+GRAPH_TEXT_SCHEMA_VERSION = "code-ontology-graph-snapshot/v1"
 
 
 def canonical_json(value: Any) -> str:
@@ -24,14 +29,179 @@ def utc_now() -> str:
     return datetime.now(UTC).isoformat()
 
 
+def _safe_graph_filename(revision: str) -> str:
+    readable = re.sub(r"[^A-Za-z0-9._-]+", "-", revision).strip("-._")
+    readable = readable[:80] or "revision"
+    digest = hashlib.sha256(revision.encode("utf-8")).hexdigest()[:16]
+    return f"{readable}--{digest}.graph.json"
+
+
+def build_graph_text_snapshot(
+    *,
+    graph_space: str,
+    revision: str,
+    nodes: Iterable[Mapping[str, Any]],
+    edges: Iterable[Mapping[str, Any]],
+    metadata: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    node_values = sorted(
+        (dict(node) for node in nodes),
+        key=lambda item: item["id"],
+    )
+    edge_values = sorted(
+        (dict(edge) for edge in edges),
+        key=lambda item: (
+            item["source"],
+            item["relation"],
+            item["target"],
+        ),
+    )
+    snapshot = {
+        "schemaVersion": GRAPH_TEXT_SCHEMA_VERSION,
+        "graphSpace": graph_space,
+        "revision": revision,
+        "metadata": dict(metadata or {}),
+        "summary": {
+            "nodeCount": len(node_values),
+            "edgeCount": len(edge_values),
+        },
+        "nodes": node_values,
+        "edges": edge_values,
+    }
+    snapshot["contentHash"] = content_hash(snapshot)
+    return snapshot
+
+
 class SQLiteStore:
     """Small durable store that keeps graph spaces and Agent artifacts separate."""
 
-    def __init__(self, database: str | Path) -> None:
+    def __init__(
+        self,
+        database: str | Path,
+        graph_text_root: str | Path | None = None,
+    ) -> None:
         self.database = str(database)
         if self.database != ":memory:":
-            Path(self.database).parent.mkdir(parents=True, exist_ok=True)
+            database_path = Path(self.database).resolve()
+            database_path.parent.mkdir(parents=True, exist_ok=True)
+            configured_root = graph_text_root or os.environ.get(
+                "CODE_ONTOLOGY_GRAPH_TEXT_ROOT"
+            )
+            self.graph_text_root = (
+                Path(configured_root).resolve()
+                if configured_root is not None
+                else database_path.parent / f"{database_path.stem}.graphs"
+            )
+            self.graph_text_root.mkdir(parents=True, exist_ok=True)
+        else:
+            self.graph_text_root = (
+                Path(graph_text_root).resolve() if graph_text_root is not None else None
+            )
+            if self.graph_text_root is not None:
+                self.graph_text_root.mkdir(parents=True, exist_ok=True)
         self.initialize()
+
+    def graph_text_snapshot_path(self, graph_space: str, revision: str) -> Path | None:
+        if self.graph_text_root is None:
+            return None
+        return (
+            self.graph_text_root
+            / re.sub(r"[^A-Za-z0-9._-]+", "-", graph_space)
+            / _safe_graph_filename(revision)
+        )
+
+    def graph_text_snapshot_info(
+        self, graph_space: str, revision: str
+    ) -> dict[str, Any] | None:
+        path = self.graph_text_snapshot_path(graph_space, revision)
+        if path is None or not path.is_file():
+            return None
+        document = self._load_graph_text_document(path, graph_space, revision)
+        return {
+            "format": "application/json",
+            "schemaVersion": document["schemaVersion"],
+            "relativePath": path.relative_to(self.graph_text_root).as_posix(),
+            "contentHash": document["contentHash"],
+        }
+
+    def read_graph_text_snapshot(
+        self, graph_space: str, revision: str
+    ) -> dict[str, Any] | None:
+        path = self.graph_text_snapshot_path(graph_space, revision)
+        if path is None or not path.is_file():
+            return None
+        document = self._load_graph_text_document(path, graph_space, revision)
+        expected_hash = document.get("contentHash")
+        value_without_hash = {
+            key: value for key, value in document.items() if key != "contentHash"
+        }
+        if expected_hash != content_hash(value_without_hash):
+            raise PlatformError(
+                409,
+                "GRAPH_TEXT_INTEGRITY_ERROR",
+                f"图文本快照内容 Hash 校验失败: {graph_space}/{revision}",
+            )
+        return document
+
+    @staticmethod
+    def _load_graph_text_document(
+        path: Path,
+        graph_space: str,
+        revision: str,
+    ) -> dict[str, Any]:
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            raise PlatformError(
+                409,
+                "GRAPH_TEXT_INTEGRITY_ERROR",
+                f"无法读取图文本快照: {graph_space}/{revision}",
+            ) from error
+        if not isinstance(document, dict):
+            raise PlatformError(
+                409,
+                "GRAPH_TEXT_INTEGRITY_ERROR",
+                f"图文本快照根节点不是 JSON Object: {graph_space}/{revision}",
+            )
+        return document
+
+    def _write_graph_text_snapshot(
+        self,
+        document: Mapping[str, Any],
+    ) -> dict[str, Any] | None:
+        graph_space = str(document["graphSpace"])
+        revision = str(document["revision"])
+        path = self.graph_text_snapshot_path(graph_space, revision)
+        if path is None:
+            return None
+        path.parent.mkdir(parents=True, exist_ok=True)
+        serialized = (
+            json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        )
+        temporary_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                "w",
+                encoding="utf-8",
+                dir=path.parent,
+                prefix=f".{path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as temporary:
+                temporary.write(serialized)
+                temporary.flush()
+                os.fsync(temporary.fileno())
+                temporary_path = Path(temporary.name)
+            os.replace(temporary_path, path)
+        finally:
+            if temporary_path is not None and temporary_path.exists():
+                temporary_path.unlink()
+        return {
+            "format": "application/json",
+            "schemaVersion": document["schemaVersion"],
+            "relativePath": path.relative_to(self.graph_text_root).as_posix(),
+            "contentHash": document["contentHash"],
+        }
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.database, timeout=10)
@@ -1243,9 +1413,22 @@ class SQLiteStore:
         nodes: Iterable[Mapping[str, Any]],
         edges: Iterable[Mapping[str, Any]],
         metadata: Mapping[str, Any] | None = None,
-    ) -> None:
+    ) -> dict[str, Any] | None:
         node_values = [dict(node) for node in nodes]
         edge_values = [dict(edge) for edge in edges]
+        snapshot_metadata = dict(metadata or {})
+        snapshot_metadata.pop("textSnapshot", None)
+        text_document = build_graph_text_snapshot(
+            graph_space=graph_space,
+            revision=revision,
+            nodes=node_values,
+            edges=edge_values,
+            metadata=snapshot_metadata,
+        )
+        text_snapshot = self._write_graph_text_snapshot(text_document)
+        stored_metadata = dict(snapshot_metadata)
+        if text_snapshot is not None:
+            stored_metadata["textSnapshot"] = text_snapshot
         with self._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             connection.execute(
@@ -1269,14 +1452,14 @@ class SQLiteStore:
                 "DELETE FROM graph_metadata WHERE graph_space = ? AND revision = ?",
                 (graph_space, revision),
             )
-            if metadata is not None:
+            if stored_metadata:
                 connection.execute(
                     """
                     INSERT INTO graph_metadata(
                         graph_space, revision, metadata_json
                     ) VALUES (?, ?, ?)
                     """,
-                    (graph_space, revision, canonical_json(metadata)),
+                    (graph_space, revision, canonical_json(stored_metadata)),
                 )
             for node in node_values:
                 connection.execute(
@@ -1309,6 +1492,7 @@ class SQLiteStore:
                         canonical_json(edge),
                     ),
                 )
+        return text_snapshot
 
     def latest_graph_revision(self, graph_space: str) -> str | None:
         with self._connect() as connection:

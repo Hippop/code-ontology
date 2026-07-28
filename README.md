@@ -10,6 +10,7 @@
 - [可执行 Agent Gateway 与规划规则 MVP](docs/22-executable-agent-gateway-mvp.md)
 - [完整智能平台符合性审计与证据](docs/23-complete-platform-compliance-audit.md)
 - [核心功能完成矩阵](docs/24-core-function-completion-matrix.md)
+- [图谱文本快照与预期基线](docs/25-graph-text-snapshots-and-baselines.md)
 - [正式设计文档目录](docs/README.md)
 - [总体架构](docs/00-overall-architecture.md)
 
@@ -70,10 +71,32 @@ python3 -m venv .venv
 .venv/bin/code-ontology-platform validate
 .venv/bin/code-ontology-platform scan examples/java-spring-sample \
   --repository-id repo-sdn-sample --include-graph
+.venv/bin/code-ontology-platform baseline compare \
+  examples/java-spring-sample \
+  examples/expected-graphs/java-spring-sample.current.graph.json
 .venv/bin/code-ontology-platform serve
 ```
 
 默认 API 为 `http://127.0.0.1:8080`。设置 `CODE_ONTOLOGY_API_TOKEN` 后，除 Health 和静态工作台外的 API 都需要 Bearer Token。
+
+每次发布图谱时都会同时写入 SQLite 和规范化 JSON 文本快照。默认文本目录为
+`<数据库文件名>.graphs/`，可通过 `CODE_ONTOLOGY_GRAPH_TEXT_ROOT` 修改。文本快照
+包含完整 Metadata、稳定排序的 Nodes/Edges、数量和内容 Hash。
+
+示例代码库的预期语义图位于
+[`examples/expected-graphs/java-spring-sample.current.graph.json`](examples/expected-graphs/java-spring-sample.current.graph.json)。
+它排除了 Commit、时间戳和绝对路径等环境噪声，可用于后续自动扫描回归：
+
+```bash
+code-ontology-platform baseline generate \
+  examples/java-spring-sample \
+  examples/expected-graphs/java-spring-sample.current.graph.json \
+  --repository-id repo-sdn-sample
+
+code-ontology-platform scan examples/java-spring-sample \
+  --repository-id repo-sdn-sample \
+  --expected-graph examples/expected-graphs/java-spring-sample.current.graph.json
+```
 
 工作台：
 
@@ -151,13 +174,14 @@ Custom Tool / MCP
 ```text
 src/code_ontology_platform/
   repository_scan.py       Java/Spring 和相邻工程资产抽取
+  graph_baseline.py        可移植预期图谱生成、校验和漂移对比
   document_ingestion.py    Design Revision 与 Requirement IR
   analysis_workflow.py     Alignment、ImplementationSlice、Diff、Plan
   agent_runtime.py         OpenCode、Worktree、Policy、Patch、Test
   verification_workflow.py Actual、Reconciliation、Impact、Release
   workflow_orchestration.py 多角色持久化状态机、人工 Gate 与失败恢复
   service.py               Gate 与应用工作流
-  store.py                 持久化、Artifact、审计链和重放
+  store.py                 SQLite/JSON 图双写、Artifact、审计链和重放
   http_api.py              平台 REST API 与 Web 静态资源
 
 web/                       React/TypeScript/Cytoscape 图谱工作台
