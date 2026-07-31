@@ -3,6 +3,7 @@ from __future__ import annotations
 import hmac
 import json
 import mimetypes
+import os
 import re
 import uuid
 from http import HTTPStatus
@@ -12,6 +13,7 @@ from typing import Any
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from .errors import PlatformError, invalid
+from .mcp_gateway import ReadOnlyMcpGateway
 from .service import PlatformService
 
 MAX_BODY_BYTES = 1_048_576
@@ -23,9 +25,15 @@ def handler_for(
     web_root: str | Path | None = None,
 ) -> type[BaseHTTPRequestHandler]:
     static_root = Path(web_root).resolve() if web_root is not None else None
+    mcp_gateway = ReadOnlyMcpGateway(service)
+    allowed_mcp_origins = {
+        value.strip().rstrip("/")
+        for value in os.environ.get("CODE_ONTOLOGY_ALLOWED_ORIGINS", "").split(",")
+        if value.strip()
+    }
 
     class AgentGatewayHandler(BaseHTTPRequestHandler):
-        server_version = "CodeOntologyAgentGateway/0.1"
+        server_version = "CodeOntologyAgentGateway/0.3"
 
         def do_GET(self) -> None:
             self._dispatch("GET")
@@ -70,6 +78,24 @@ def handler_for(
                             "缺少或使用了无效的 Bearer Token",
                         )
 
+                if path == "/mcp":
+                    self._validate_mcp_origin(allowed_mcp_origins)
+                    if method == "GET":
+                        raise PlatformError(
+                            405,
+                            "MCP_SSE_NOT_SUPPORTED",
+                            "此无状态 MCP Gateway 不提供 GET/SSE",
+                        )
+                    mcp_gateway.validate_protocol_header(
+                        self.headers.get("MCP-Protocol-Version")
+                    )
+                    result = mcp_gateway.handle(self._body())
+                    if result is None:
+                        self._empty(HTTPStatus.ACCEPTED, request_id)
+                    else:
+                        self._json(HTTPStatus.OK, result, request_id)
+                    return
+
                 if method == "GET" and path == "/api/graphs":
                     limit_value = self._optional_query(query, "limit")
                     try:
@@ -86,6 +112,38 @@ def handler_for(
                 if method == "POST" and path == "/api/graphs/compare":
                     result = service.graph_compare(self._body())
                     self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if method == "POST" and path == "/api/graph-analysis/hybrid-search":
+                    self._json(
+                        HTTPStatus.OK,
+                        service.hybrid_search(self._body()),
+                        request_id,
+                    )
+                    return
+
+                if method == "POST" and path == "/api/graph-analysis/communities":
+                    self._json(
+                        HTTPStatus.OK,
+                        service.graph_communities(self._body()),
+                        request_id,
+                    )
+                    return
+
+                if method == "POST" and path == "/api/graph-analysis/processes":
+                    self._json(
+                        HTTPStatus.OK,
+                        service.graph_processes(self._body()),
+                        request_id,
+                    )
+                    return
+
+                if method == "POST" and path == "/api/graph-analysis/contracts":
+                    self._json(
+                        HTTPStatus.OK,
+                        service.contract_graph(self._body()),
+                        request_id,
+                    )
                     return
 
                 if method == "GET" and path == "/api/requirement-workflows":
@@ -334,6 +392,45 @@ def handler_for(
                     self._json(HTTPStatus.OK, result, request_id)
                     return
 
+                codegraph_match = re.fullmatch(
+                    r"/api/repositories/([^/]+)/codegraph/"
+                    r"(index|status|explore|impact|affected-tests|compare)",
+                    path,
+                )
+                if codegraph_match:
+                    repository_id = unquote(codegraph_match.group(1))
+                    operation = codegraph_match.group(2)
+                    if method == "GET" and operation == "status":
+                        result = service.codegraph_index_status(repository_id)
+                    elif method == "POST" and operation == "index":
+                        result = service.codegraph_index(
+                            repository_id, self._body(), request_id
+                        )
+                    elif method == "POST" and operation == "explore":
+                        result = service.codegraph_explore(
+                            repository_id, self._body()
+                        )
+                    elif method == "POST" and operation == "impact":
+                        result = service.codegraph_impact(
+                            repository_id, self._body()
+                        )
+                    elif method == "POST" and operation == "affected-tests":
+                        result = service.codegraph_affected_tests(
+                            repository_id, self._body()
+                        )
+                    elif method == "POST" and operation == "compare":
+                        result = service.codegraph_compare(
+                            repository_id, self._body()
+                        )
+                    else:
+                        raise PlatformError(
+                            405,
+                            "METHOD_NOT_ALLOWED",
+                            f"CodeGraph 操作不支持 {method}",
+                        )
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
                 if method == "POST" and path == "/api/agent-context/graph-query":
                     result = service.graph_query(self._body())
                     self._json(HTTPStatus.OK, result, request_id)
@@ -568,6 +665,34 @@ def handler_for(
                 self.send_header("X-Idempotent-Replay", "true")
             self.end_headers()
             self.wfile.write(response)
+
+        def _empty(self, status: int, request_id: str) -> None:
+            self.send_response(int(status))
+            self.send_header("Content-Length", "0")
+            self.send_header("X-Correlation-ID", request_id)
+            self.end_headers()
+
+        def _validate_mcp_origin(self, allowed_origins: set[str]) -> None:
+            origin = self.headers.get("Origin")
+            if origin is None:
+                return
+            normalized = origin.rstrip("/")
+            if normalized in allowed_origins:
+                return
+            parsed = urlsplit(normalized)
+            host = self.headers.get("Host", "").lower()
+            if (
+                parsed.scheme in {"http", "https"}
+                and parsed.netloc
+                and parsed.netloc.lower() == host
+            ):
+                return
+            raise PlatformError(
+                403,
+                "MCP_ORIGIN_REJECTED",
+                "MCP Origin 与服务 Host 不匹配",
+                {"origin": origin, "host": host},
+            )
 
         def _static(self, path: str, root: Path, request_id: str) -> None:
             relative = "index.html" if path == "/" else path.lstrip("/")

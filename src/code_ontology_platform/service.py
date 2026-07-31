@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
+import subprocess
 import uuid
 from collections import deque
 from collections.abc import Mapping
@@ -9,12 +11,16 @@ from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
+from .code_intelligence import (
+    CodeGraphSidecar,
+    compare_codegraph_to_baseline,
+)
 from .agent_runtime import (
     AgentAdapter,
     GitWorktreeManager,
-    OpenCodeAdapter,
     build_agent_prompt,
     collect_worktree_diff,
+    default_agent_adapter,
     run_required_tests,
     validate_changed_paths,
     validate_test_command,
@@ -33,6 +39,12 @@ from .document_ingestion import (
     parse_design_document,
 )
 from .errors import PlatformError, conflict, invalid, not_found
+from .graph_analysis import (
+    build_contract_graph,
+    detect_communities,
+    detect_processes,
+    hybrid_graph_search,
+)
 from .models import (
     ARTIFACT_TYPES,
     GRAPH_SPACES,
@@ -118,6 +130,77 @@ _BUSINESS_ENTITY_TYPES = frozenset(
         "DesiredBusinessEntity",
     }
 )
+_SAFE_GIT_REF = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/@{}^~:+-]{0,255}$")
+
+
+def _git_changed_files(repository: Path, base_ref: str | None) -> dict[str, Any]:
+    if base_ref is not None and not _SAFE_GIT_REF.fullmatch(base_ref):
+        raise invalid("baseRef 格式不安全或不受支持")
+
+    def run(*arguments: str) -> subprocess.CompletedProcess[bytes]:
+        try:
+            return subprocess.run(
+                ["git", "-C", str(repository), *arguments],
+                check=False,
+                capture_output=True,
+                timeout=15,
+            )
+        except (OSError, subprocess.TimeoutExpired) as error:
+            raise PlatformError(
+                503,
+                "GIT_UNAVAILABLE",
+                "无法读取 Git 变更",
+                {"reason": str(error)},
+            ) from error
+
+    probe = run("rev-parse", "--is-inside-work-tree")
+    if probe.returncode != 0 or probe.stdout.strip() != b"true":
+        return {"source": "filesystem", "baseRef": base_ref, "files": []}
+
+    commands: list[tuple[str, ...]] = []
+    if base_ref is not None:
+        commands.append(
+            (
+                "diff",
+                "--name-only",
+                "-z",
+                "--relative",
+                "--no-renames",
+                f"{base_ref}...HEAD",
+                "--",
+            )
+        )
+    commands.extend(
+        [
+            (
+                "diff",
+                "--name-only",
+                "-z",
+                "--relative",
+                "--no-renames",
+                "HEAD",
+                "--",
+            ),
+            ("ls-files", "--others", "--exclude-standard", "-z", "--"),
+        ]
+    )
+    paths: set[str] = set()
+    for arguments in commands:
+        completed = run(*arguments)
+        if completed.returncode != 0:
+            message = completed.stderr.decode("utf-8", errors="replace")[-2000:]
+            if base_ref is not None and arguments[0] == "diff":
+                raise invalid(
+                    "baseRef 无法用于 Git 对比",
+                    {"baseRef": base_ref, "stderr": message},
+                )
+            continue
+        paths.update(
+            item.decode("utf-8", errors="replace").replace("\\", "/")
+            for item in completed.stdout.split(b"\0")
+            if item
+        )
+    return {"source": "git", "baseRef": base_ref, "files": sorted(paths)}
 
 
 def _relation_name(relation: str) -> str:
@@ -165,6 +248,7 @@ class PlatformService:
         worktree_root: str | Path | None = None,
         agent_adapter: AgentAdapter | None = None,
         role_agent_adapter: AgentAdapter | None = None,
+        codegraph_sidecar: CodeGraphSidecar | None = None,
     ) -> None:
         self.store = store
         self.planning_rules = PlanningRules(rules_path)
@@ -172,14 +256,13 @@ class PlatformService:
             Path(root).resolve() for root in (repository_roots or [Path.cwd()])
         ]
         project_root = Path(__file__).resolve().parents[2]
+        self.project_root = project_root
         self.worktree_manager = GitWorktreeManager(
             worktree_root or project_root / "data" / "agent-worktrees"
         )
-        self.agent_adapter = agent_adapter or OpenCodeAdapter(
-            project_root / ".opencode",
-            os.environ.get("OPENCODE_BINARY"),
-        )
+        self.agent_adapter = agent_adapter or default_agent_adapter(project_root)
         self.role_agent_adapter = role_agent_adapter or self.agent_adapter
+        self.codegraph_sidecar = codegraph_sidecar or CodeGraphSidecar(store)
         self.workflow_orchestrator = RequirementWorkflowOrchestrator(self)
 
     def _repository_path(self, value: Any) -> Path:
@@ -240,6 +323,66 @@ class PlatformService:
         if repository is None:
             raise not_found(f"未找到仓库: {repository_id}")
         return repository
+
+    def list_repositories(self, body_value: Any | None = None) -> dict[str, Any]:
+        body = object_value(body_value or {}, "request")
+        limit = body.get("limit", 100)
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 500
+        ):
+            raise invalid("limit 必须是 1 到 500 的整数")
+        repositories = self.store.list_repositories(limit + 1)
+        truncated = len(repositories) > limit
+        repositories = repositories[:limit]
+        return {
+            "repositories": repositories,
+            "count": len(repositories),
+            "truncated": truncated,
+        }
+
+    def repository_context(self, repository_id: str) -> dict[str, Any]:
+        repository = self.get_repository(repository_id)
+        identity = inspect_repository(repository["path"], repository_id)
+        revisions = self.store.list_repository_graph_revisions(repository_id)
+        latest_revision = revisions[0] if revisions else None
+        try:
+            index = self.codegraph_sidecar.status(repository_id, repository["path"])
+        except PlatformError as error:
+            index = {
+                "provider": "codegraph",
+                "repositoryId": repository_id,
+                "status": "Error",
+                "error": {
+                    "code": error.code,
+                    "message": error.message,
+                    "details": error.details,
+                },
+            }
+        return {
+            "repository": repository,
+            "workspace": identity,
+            "currentGraph": (
+                {
+                    "revision": latest_revision.get("revision"),
+                    "status": latest_revision.get("status"),
+                    "extractorVersion": latest_revision.get("extractorVersion"),
+                    "coverage": latest_revision.get("coverage"),
+                    "metadata": latest_revision.get("graph"),
+                }
+                if latest_revision is not None
+                else None
+            ),
+            "codegraphIndex": index,
+            "capabilities": {
+                "graphQuery": latest_revision is not None,
+                "hybridSearch": latest_revision is not None,
+                "communities": latest_revision is not None,
+                "processes": latest_revision is not None,
+                "codegraphQueries": index.get("status") in {"Fresh", "Stale"},
+            },
+        }
 
     def create_repository_snapshot(
         self,
@@ -311,6 +454,19 @@ class PlatformService:
 
         result = RepositoryScanner().scan(repository["path"], repository_id)
         graph = result["graph"]
+        repository_revision = graph["revision"]
+        existing_metadata = self.store.get_graph_metadata(
+            "current", repository_revision
+        )
+        if (
+            existing_metadata is not None
+            and existing_metadata.get("repositoryId") not in {None, repository_id}
+        ):
+            graph["revision"] = (
+                f"{repository_revision}@repo="
+                + hashlib.sha256(repository_id.encode("utf-8")).hexdigest()[:12]
+            )
+        graph["repositoryRevision"] = repository_revision
         graph_metadata = {
             key: value for key, value in graph.items() if key not in {"nodes", "edges"}
         }
@@ -1531,7 +1687,7 @@ class PlatformService:
                 {
                     "status": (
                         "TimedOut"
-                        if error.code == "OPENCODE_RUN_TIMEOUT"
+                        if error.code in {"OPENCODE_RUN_TIMEOUT", "CODEX_RUN_TIMEOUT"}
                         else "Blocked"
                     ),
                     "sessionId": (
@@ -2460,10 +2616,567 @@ class PlatformService:
             },
         }
 
+    def codegraph_index(
+        self,
+        repository_id: str,
+        body_value: Any | None = None,
+        correlation_id: str | None = None,
+    ) -> dict[str, Any]:
+        body = object_value(body_value or {}, "request")
+        repository = self.get_repository(repository_id)
+        result = self.codegraph_sidecar.index(repository_id, repository["path"])
+        self.store.append_audit_event(
+            "CodeGraphIndexUpdated",
+            {
+                "provider": result["provider"],
+                "status": result["status"],
+                "fingerprint": result["fingerprint"],
+                "fileCount": result["fileCount"],
+            },
+            correlation_id=correlation_id,
+            repository_id=repository_id,
+            revision=result["revision"],
+            actor=body.get("actor"),
+        )
+        return result
+
+    def codegraph_index_status(self, repository_id: str) -> dict[str, Any]:
+        repository = self.get_repository(repository_id)
+        return self.codegraph_sidecar.status(repository_id, repository["path"])
+
+    def codegraph_explore(
+        self, repository_id: str, body_value: Any
+    ) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        repository = self.get_repository(repository_id)
+        query = string_value(body.get("query"), "query")
+        return self.codegraph_sidecar.explore(
+            repository_id,
+            repository["path"],
+            query,
+            allow_stale=body.get("allowStale") is True,
+        )
+
+    def codegraph_impact(
+        self, repository_id: str, body_value: Any
+    ) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        repository = self.get_repository(repository_id)
+        symbol = string_value(body.get("symbol"), "symbol")
+        depth = body.get("depth", 3)
+        if isinstance(depth, bool) or not isinstance(depth, int) or not 1 <= depth <= 8:
+            raise invalid("depth 必须是 1 到 8 的整数")
+        return self.codegraph_sidecar.impact(
+            repository_id,
+            repository["path"],
+            symbol,
+            depth=depth,
+            allow_stale=body.get("allowStale") is True,
+        )
+
+    def codegraph_affected_tests(
+        self, repository_id: str, body_value: Any
+    ) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        repository = self.get_repository(repository_id)
+        changed_files = [
+            string_value(value, "changedFiles item")
+            for value in list_value(
+                body.get("changedFiles"), "changedFiles", nonempty=True
+            )
+        ]
+        depth = body.get("depth", 3)
+        if isinstance(depth, bool) or not isinstance(depth, int) or not 1 <= depth <= 8:
+            raise invalid("depth 必须是 1 到 8 的整数")
+        return self.codegraph_sidecar.affected_tests(
+            repository_id,
+            repository["path"],
+            changed_files,
+            depth=depth,
+            allow_stale=body.get("allowStale") is True,
+        )
+
+    def codegraph_compare(
+        self, repository_id: str, body_value: Any
+    ) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        repository = self.get_repository(repository_id)
+        baseline = object_value(body.get("expectedGraph"), "expectedGraph")
+        snapshot = self.codegraph_sidecar.graph_snapshot(
+            repository_id,
+            repository["path"],
+            allow_stale=body.get("allowStale") is True,
+        )
+        limit = body.get("differenceLimit", 200)
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 1000
+        ):
+            raise invalid("differenceLimit 必须是 1 到 1000 的整数")
+        return compare_codegraph_to_baseline(
+            snapshot, baseline, difference_limit=limit
+        )
+
+    def _analysis_graph(
+        self, body: Mapping[str, Any]
+    ) -> tuple[str, str, list[dict[str, Any]], list[dict[str, Any]]]:
+        graph_space = enum_value(
+            body.get("graphSpace", "current"), "graphSpace", GRAPH_SPACES
+        )
+        repository_id_value = body.get("repositoryId")
+        repository_id = (
+            string_value(repository_id_value, "repositoryId")
+            if repository_id_value is not None
+            else None
+        )
+        if repository_id is not None:
+            self.get_repository(repository_id)
+        revision_value = body.get("revision")
+        if (
+            repository_id is not None
+            and graph_space != "current"
+            and revision_value is None
+        ):
+            raise invalid(
+                "非 Current Graph 使用 repositoryId 时必须显式提供 revision"
+            )
+        revision = (
+            string_value(revision_value, "revision")
+            if revision_value is not None
+            else (
+                self._repository_current_revision(repository_id)
+                if repository_id is not None and graph_space == "current"
+                else self.store.latest_graph_revision(graph_space)
+            )
+        )
+        if revision is None:
+            raise not_found(f"图空间 {graph_space} 尚无快照")
+        self._validate_repository_graph_scope(
+            repository_id, graph_space, revision
+        )
+        nodes, edges = self.store.read_graph(graph_space, revision)
+        if not nodes:
+            raise not_found(f"图快照不存在: {graph_space}/{revision}")
+        return graph_space, revision, nodes, edges
+
+    def _repository_current_revision(self, repository_id: str) -> str | None:
+        revisions = self.store.list_repository_graph_revisions(repository_id)
+        return str(revisions[0]["revision"]) if revisions else None
+
+    def _validate_repository_graph_scope(
+        self,
+        repository_id: str | None,
+        graph_space: str,
+        revision: str,
+    ) -> None:
+        if repository_id is None:
+            return
+        if graph_space == "current":
+            repository_revisions = {
+                str(item["revision"])
+                for item in self.store.list_repository_graph_revisions(
+                    repository_id
+                )
+            }
+            if revision not in repository_revisions:
+                raise not_found(
+                    f"仓库 {repository_id} 不包含 Current Graph Revision: {revision}"
+                )
+            return
+        metadata = self.store.get_graph_metadata(graph_space, revision) or {}
+        scoped_repository = metadata.get("repositoryId")
+        if (
+            isinstance(scoped_repository, str)
+            and scoped_repository
+            and scoped_repository != repository_id
+        ):
+            raise not_found(
+                f"Revision {graph_space}/{revision} 不属于仓库 {repository_id}"
+            )
+
+    def symbol_context(self, body_value: Any) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        query = string_value(body.get("query"), "query")
+        repository_id_value = body.get("repositoryId")
+        repository_id = (
+            string_value(repository_id_value, "repositoryId")
+            if repository_id_value is not None
+            else None
+        )
+        if repository_id is not None:
+            self.get_repository(repository_id)
+        graph_space = enum_value(
+            body.get("graphSpace", "current"), "graphSpace", GRAPH_SPACES
+        )
+        revision_value = body.get("revision")
+        if (
+            repository_id is not None
+            and graph_space != "current"
+            and revision_value is None
+        ):
+            raise invalid(
+                "非 Current Graph 使用 repositoryId 时必须显式提供 revision"
+            )
+        revision = (
+            string_value(revision_value, "revision")
+            if revision_value is not None
+            else (
+                self._repository_current_revision(repository_id)
+                if repository_id is not None and graph_space == "current"
+                else None
+            )
+        )
+        depth = body.get("depth", 2)
+        limit = body.get("limit", 50)
+        if isinstance(depth, bool) or not isinstance(depth, int) or not 0 <= depth <= 6:
+            raise invalid("depth 必须是 0 到 6 的整数")
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 200
+        ):
+            raise invalid("limit 必须是 1 到 200 的整数")
+        search_body: dict[str, Any] = {
+            "graphSpace": graph_space,
+            "query": query,
+            "limit": min(limit, 20),
+        }
+        if repository_id is not None:
+            search_body["repositoryId"] = repository_id
+        if revision is not None:
+            search_body["revision"] = revision
+        search = self.hybrid_search(search_body)
+        requested_entity = body.get("entityId")
+        entity_id = (
+            string_value(requested_entity, "entityId")
+            if requested_entity is not None
+            else (
+                str(search["results"][0]["node"]["id"])
+                if search["results"]
+                else None
+            )
+        )
+        if entity_id is None:
+            return {
+                "repositoryId": repository_id,
+                "graphSpace": search["graphSpace"],
+                "revision": search["revision"],
+                "query": query,
+                "selectedEntityId": None,
+                "candidates": [],
+                "context": None,
+            }
+        context = self.graph_query(
+            {
+                "repositoryId": repository_id,
+                "graphSpace": search["graphSpace"],
+                "revision": search["revision"],
+                "queryType": "ENTITY_NEIGHBORHOOD",
+                "entityId": entity_id,
+                "depth": depth,
+                "limit": limit,
+            }
+        )
+        return {
+            "repositoryId": repository_id,
+            "graphSpace": search["graphSpace"],
+            "revision": search["revision"],
+            "query": query,
+            "selectedEntityId": entity_id,
+            "candidates": search["results"],
+            "context": context,
+        }
+
+    def detect_changes(self, body_value: Any) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        repository_id = string_value(body.get("repositoryId"), "repositoryId")
+        repository = self.get_repository(repository_id)
+        base_ref_value = body.get("baseRef")
+        base_ref = (
+            string_value(base_ref_value, "baseRef")
+            if base_ref_value is not None
+            else None
+        )
+        depth = body.get("depth", 2)
+        limit = body.get("limit", 100)
+        if isinstance(depth, bool) or not isinstance(depth, int) or not 0 <= depth <= 6:
+            raise invalid("depth 必须是 0 到 6 的整数")
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 500
+        ):
+            raise invalid("limit 必须是 1 到 500 的整数")
+
+        repository_path = Path(repository["path"]).resolve()
+        change_set = _git_changed_files(repository_path, base_ref)
+        changed_files = list(change_set["files"])
+        if change_set["source"] == "filesystem":
+            try:
+                status = self.codegraph_sidecar.status(
+                    repository_id, repository_path
+                )
+            except PlatformError:
+                status = {}
+            changed_files = sorted(
+                {
+                    *status.get("changedFiles", []),
+                    *status.get("deletedFiles", []),
+                    *status.get("unindexedFiles", []),
+                }
+            )
+
+        revision = self._repository_current_revision(repository_id)
+        if revision is None:
+            return {
+                "repositoryId": repository_id,
+                "baseRef": base_ref,
+                "source": change_set["source"],
+                "changedFiles": changed_files,
+                "changedFileCount": len(changed_files),
+                "currentGraph": None,
+                "matchedNodes": [],
+                "impactedNodes": [],
+                "affectedProcesses": [],
+                "affectedTests": [],
+                "unmappedFiles": changed_files,
+                "truncated": False,
+            }
+        if not changed_files:
+            return {
+                "repositoryId": repository_id,
+                "baseRef": base_ref,
+                "source": change_set["source"],
+                "changedFiles": [],
+                "changedFileCount": 0,
+                "currentGraph": {"graphSpace": "current", "revision": revision},
+                "matchedNodes": [],
+                "impactedNodes": [],
+                "affectedProcesses": [],
+                "affectedTests": [],
+                "unmappedFiles": [],
+                "truncated": False,
+            }
+
+        nodes, edges = self.store.read_graph("current", revision)
+        changed_set = set(changed_files)
+
+        def source_path(node: Mapping[str, Any]) -> str | None:
+            evidence = node.get("evidence")
+            candidates = [
+                node.get("relativePath"),
+                node.get("filePath"),
+                node.get("path"),
+                evidence.get("source") if isinstance(evidence, Mapping) else None,
+            ]
+            for candidate in candidates:
+                if isinstance(candidate, str) and candidate:
+                    normalized = candidate.replace("\\", "/")
+                    return normalized.removeprefix("./")
+            return None
+
+        matched_nodes = [
+            dict(node) for node in nodes if source_path(node) in changed_set
+        ]
+        mapped_files = {
+            path
+            for node in matched_nodes
+            if (path := source_path(node)) is not None
+        }
+        source_file_nodes = [
+            node for node in matched_nodes if str(node.get("type")) == "SourceFile"
+        ]
+        seeds = source_file_nodes or matched_nodes
+        impacted_by_id: dict[str, dict[str, Any]] = {
+            str(node["id"]): node for node in matched_nodes
+        }
+        for seed in seeds[: min(limit, 50)]:
+            context = self.graph_query(
+                {
+                    "graphSpace": "current",
+                    "revision": revision,
+                    "queryType": "CHANGE_CONTEXT",
+                    "entityId": seed["id"],
+                    "depth": depth,
+                    "limit": limit,
+                }
+            )
+            for node in context["nodes"]:
+                impacted_by_id[str(node["id"])] = node
+            if len(impacted_by_id) >= limit:
+                break
+        impacted_nodes = [
+            impacted_by_id[node_id]
+            for node_id in sorted(impacted_by_id)[:limit]
+        ]
+        impacted_ids = {str(node["id"]) for node in impacted_nodes}
+        process_result = detect_processes(
+            nodes, edges, max_depth=max(depth + 2, 2), limit=500
+        )
+        all_affected_processes = [
+            process
+            for process in process_result["processes"]
+            if any(step["nodeId"] in impacted_ids for step in process["steps"])
+        ]
+        affected_processes = all_affected_processes[:limit]
+        affected_tests = [
+            node
+            for node in impacted_nodes
+            if str(node.get("type"))
+            in {"UnitTest", "IntegrationTest", "ContractTest", "TestSuite"}
+        ]
+        return {
+            "repositoryId": repository_id,
+            "baseRef": base_ref,
+            "source": change_set["source"],
+            "changedFiles": changed_files,
+            "changedFileCount": len(changed_files),
+            "currentGraph": {"graphSpace": "current", "revision": revision},
+            "matchedNodes": matched_nodes[:limit],
+            "impactedNodes": impacted_nodes,
+            "affectedProcesses": affected_processes,
+            "affectedTests": affected_tests,
+            "unmappedFiles": sorted(changed_set - mapped_files),
+            "truncated": (
+                len(matched_nodes) > limit
+                or len(impacted_by_id) > limit
+                or len(all_affected_processes) > limit
+            ),
+        }
+
+    def hybrid_search(self, body_value: Any) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        graph_space, revision, nodes, edges = self._analysis_graph(body)
+        query = string_value(body.get("query"), "query")
+        limit = body.get("limit", 20)
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 100
+        ):
+            raise invalid("limit 必须是 1 到 100 的整数")
+        entity_types = {
+            string_value(value, "entityTypes item")
+            for value in list_value(body.get("entityTypes", []), "entityTypes")
+        }
+        result = hybrid_graph_search(
+            nodes,
+            edges,
+            query,
+            limit=limit,
+            entity_types=entity_types or None,
+        )
+        return {
+            "repositoryId": body.get("repositoryId"),
+            "graphSpace": graph_space,
+            "revision": revision,
+            **result,
+        }
+
+    def graph_communities(self, body_value: Any) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        graph_space, revision, nodes, edges = self._analysis_graph(body)
+        minimum_size = body.get("minimumSize", 1)
+        if (
+            isinstance(minimum_size, bool)
+            or not isinstance(minimum_size, int)
+            or not 1 <= minimum_size <= 100
+        ):
+            raise invalid("minimumSize 必须是 1 到 100 的整数")
+        result = detect_communities(nodes, edges, minimum_size=minimum_size)
+        return {
+            "repositoryId": body.get("repositoryId"),
+            "graphSpace": graph_space,
+            "revision": revision,
+            **result,
+        }
+
+    def graph_processes(self, body_value: Any) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        graph_space, revision, nodes, edges = self._analysis_graph(body)
+        max_depth = body.get("maxDepth", 6)
+        limit = body.get("limit", 100)
+        if (
+            isinstance(max_depth, bool)
+            or not isinstance(max_depth, int)
+            or not 1 <= max_depth <= 10
+        ):
+            raise invalid("maxDepth 必须是 1 到 10 的整数")
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 500
+        ):
+            raise invalid("limit 必须是 1 到 500 的整数")
+        result = detect_processes(
+            nodes, edges, max_depth=max_depth, limit=limit
+        )
+        return {
+            "repositoryId": body.get("repositoryId"),
+            "graphSpace": graph_space,
+            "revision": revision,
+            **result,
+        }
+
+    def contract_graph(self, body_value: Any) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        requested_repositories = {
+            string_value(value, "repositoryIds item")
+            for value in list_value(body.get("repositoryIds", []), "repositoryIds")
+        }
+        revisions = self.store.list_graph_revisions("current", 500)
+        selected: dict[str, dict[str, Any]] = {}
+        for item in revisions:
+            metadata = item.get("metadata", {})
+            repository_id = str(metadata.get("repositoryId") or "")
+            if not repository_id:
+                nodes, _ = self.store.read_graph("current", item["revision"])
+                repository_node = next(
+                    (
+                        node
+                        for node in nodes
+                        if str(node.get("type")) == "Repository"
+                    ),
+                    None,
+                )
+                if repository_node:
+                    repository_id = str(repository_node["id"]).split(":")[1]
+            if (
+                not repository_id
+                or repository_id in selected
+                or (
+                    requested_repositories
+                    and repository_id not in requested_repositories
+                )
+            ):
+                continue
+            nodes, edges = self.store.read_graph("current", item["revision"])
+            selected[repository_id] = {
+                "repositoryId": repository_id,
+                "revision": item["revision"],
+                "nodes": nodes,
+                "edges": edges,
+            }
+        missing = sorted(requested_repositories - selected.keys())
+        if missing:
+            raise not_found(f"以下仓库没有 Current Graph: {', '.join(missing)}")
+        return build_contract_graph(list(selected.values()))
+
     def graph_query(self, body_value: Any) -> dict[str, Any]:
         body = object_value(body_value, "request")
-        graph_space = enum_value(body.get("graphSpace"), "graphSpace", GRAPH_SPACES)
+        graph_space = enum_value(
+            body.get("graphSpace", "current"), "graphSpace", GRAPH_SPACES
+        )
         query_type = enum_value(body.get("queryType"), "queryType", QUERY_TYPES)
+        repository_id_value = body.get("repositoryId")
+        repository_id = (
+            string_value(repository_id_value, "repositoryId")
+            if repository_id_value is not None
+            else None
+        )
+        if repository_id is not None:
+            self.get_repository(repository_id)
         entity_id_value = body.get("entityId")
         entity_id = (
             string_value(entity_id_value, "entityId")
@@ -2487,13 +3200,28 @@ class PlatformService:
             raise invalid("limit 必须是 1 到 500 的整数")
 
         requested_revision = body.get("revision")
+        if (
+            repository_id is not None
+            and graph_space != "current"
+            and requested_revision is None
+        ):
+            raise invalid(
+                "非 Current Graph 使用 repositoryId 时必须显式提供 revision"
+            )
         revision = (
             string_value(requested_revision, "revision")
             if requested_revision is not None
-            else self.store.latest_graph_revision(graph_space)
+            else (
+                self._repository_current_revision(repository_id)
+                if repository_id is not None and graph_space == "current"
+                else self.store.latest_graph_revision(graph_space)
+            )
         )
         if revision is None:
             raise not_found(f"图空间 {graph_space} 尚无快照")
+        self._validate_repository_graph_scope(
+            repository_id, graph_space, revision
+        )
         nodes, edges = self.store.read_graph(graph_space, revision)
         nodes_by_id = {node["id"]: node for node in nodes}
         if query_type == "GRAPH_OVERVIEW":
@@ -2551,6 +3279,7 @@ class PlatformService:
                 relation = edge["relation"]
                 relation_counts[relation] = relation_counts.get(relation, 0) + 1
             return {
+                "repositoryId": repository_id,
                 "graphSpace": graph_space,
                 "queryType": query_type,
                 "revision": revision,
@@ -2649,6 +3378,7 @@ class PlatformService:
                     queue.append((neighbor, next_depth, next_path))
 
         return {
+            "repositoryId": repository_id,
             "graphSpace": graph_space,
             "queryType": query_type,
             "revision": revision,

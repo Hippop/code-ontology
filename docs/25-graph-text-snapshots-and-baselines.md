@@ -79,6 +79,8 @@ export CODE_ONTOLOGY_GRAPH_TEXT_ROOT=/var/lib/code-ontology/graphs
 
 ```text
 examples/expected-graphs/java-spring-sample.current.graph.json
+examples/expected-graphs/java-spring-sample.codegraph-1.5.0.graph.json
+examples/expected-graphs/java-spring-sample.codegraph-1.5.0.comparison.json
 ```
 
 当前基线覆盖：
@@ -103,6 +105,10 @@ Repository branch / remote / dirty
 ```
 
 源文件 Hash、相对证据位置和业务属性仍保留，因此真实代码变化会导致漂移。
+
+CodeGraph 快照是使用 1.5.0 对同一示例执行真实索引得到的 66 节点、70 关系结果；
+Comparison 文件保存它与平台 72/95 语义基线的稳定节点映射、类型覆盖、关系覆盖和
+差异清单。它们用于验证 Sidecar 适配器和模型边界，不替代平台预期语义图。
 
 ## 4. CLI
 

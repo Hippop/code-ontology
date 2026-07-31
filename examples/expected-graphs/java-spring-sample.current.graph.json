@@ -1,5 +1,5 @@
 {
-  "contentHash": "sha256:f4db9165ab4810726f21452d8ebd26849b9c0fe43f9b7769a50d6e4d0d826e07",
+  "contentHash": "sha256:84806db04a5d9c9cd65d558297f1887b87ee11091ea4c54b6be903cf7f19c97e",
   "edges": [
     {
       "relation": "code:hasSchemaField",
@@ -370,9 +370,32 @@
       "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()"
     },
     {
-      "relation": "code:declares",
-      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest",
-      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#field:service"
+      "confidence": 0.8,
+      "evidenceType": "StaticAST",
+      "relation": "code:verifies",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:verifies",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#status()"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:verifies",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)"
+    },
+    {
+      "confidence": 0.8,
+      "evidenceType": "StaticAST",
+      "relation": "code:verifies",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)"
     },
     {
       "confidence": 1.0,
@@ -380,11 +403,6 @@
       "relation": "code:verifies",
       "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
       "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)"
-    },
-    {
-      "relation": "code:hasFieldType",
-      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#field:service",
-      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService"
     },
     {
       "relation": "code:contains",
@@ -492,12 +510,12 @@
       "target": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult"
     }
   ],
-  "extractor": "extractor:java-tree-sitter-0.1.0",
+  "extractor": "extractor:java-tree-sitter-0.2.0",
   "graphSpace": "current",
   "nodes": [
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/openapi.yaml",
         "sourceHash": "sha256:6eb55772ed4b5ca3f77a452912c7a1cde0e8684a56df556d7507c61a0ed3ee40"
       },
@@ -510,7 +528,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/openapi.yaml",
         "sourceHash": "sha256:6eb55772ed4b5ca3f77a452912c7a1cde0e8684a56df556d7507c61a0ed3ee40"
       },
@@ -522,7 +540,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/openapi.yaml",
         "sourceHash": "sha256:6eb55772ed4b5ca3f77a452912c7a1cde0e8684a56df556d7507c61a0ed3ee40"
       },
@@ -568,7 +586,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
         "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618"
       },
@@ -581,7 +599,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/DeploymentResult.java",
         "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381"
       },
@@ -594,7 +612,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
         "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043"
       },
@@ -607,7 +625,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyController.java",
         "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788"
       },
@@ -620,7 +638,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
         "sourceHash": "sha256:a98f87810137e6ee36de71ceb9a736c7aa70aed7ae67dde23a0ca0eed8859a5a"
       },
@@ -633,7 +651,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
         "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb"
       },
@@ -646,7 +664,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRepository.java",
         "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3"
       },
@@ -659,7 +677,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe"
       },
@@ -672,9 +690,9 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/test/java/org/example/sdn/PolicyServiceTest.java",
-        "sourceHash": "sha256:c794704b94491bfc0f1cb2129fb3fc7111a84fc8d51eea92a1d03d0df0afa74b"
+        "sourceHash": "sha256:84cf1435851b90bad7cdc4de0f72884dc8c9b4edd858f0cd4efe82c5259c6a0f"
       },
       "id": "code:repo-sdn-sample:file:src/test/java/org/example/sdn/PolicyServiceTest.java",
       "label": "PolicyServiceTest.java",
@@ -689,7 +707,7 @@
       ],
       "evidence": {
         "endLine": 17,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
         "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
         "startLine": 7
@@ -708,7 +726,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 16,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
         "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
         "startLine": 12
@@ -724,7 +742,7 @@
     {
       "evidence": {
         "endLine": 12,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
         "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
         "startLine": 12
@@ -739,7 +757,7 @@
     {
       "evidence": {
         "endLine": 12,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
         "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
         "startLine": 12
@@ -757,7 +775,7 @@
       ],
       "evidence": {
         "endLine": 10,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
         "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
         "startLine": 9
@@ -772,7 +790,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 4,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/DeploymentResult.java",
         "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
         "startLine": 3
@@ -788,7 +806,7 @@
     {
       "evidence": {
         "endLine": 3,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/DeploymentResult.java",
         "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
         "startLine": 3
@@ -803,7 +821,7 @@
     {
       "evidence": {
         "endLine": 3,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/DeploymentResult.java",
         "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
         "startLine": 3
@@ -818,7 +836,7 @@
     {
       "evidence": {
         "endLine": 3,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/DeploymentResult.java",
         "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
         "startLine": 3
@@ -835,7 +853,7 @@
     {
       "evidence": {
         "endLine": 3,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/DeploymentResult.java",
         "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
         "startLine": 3
@@ -856,7 +874,7 @@
       ],
       "evidence": {
         "endLine": 22,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
         "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
         "startLine": 7
@@ -877,7 +895,7 @@
       ],
       "evidence": {
         "endLine": 11,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
         "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
         "startLine": 10
@@ -892,7 +910,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 13,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
         "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
         "startLine": 13
@@ -907,7 +925,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 17,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
         "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
         "startLine": 15
@@ -924,7 +942,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 21,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
         "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
         "startLine": 19
@@ -944,7 +962,7 @@
       ],
       "evidence": {
         "endLine": 24,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyController.java",
         "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
         "startLine": 9
@@ -963,7 +981,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 16,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyController.java",
         "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
         "startLine": 14
@@ -979,7 +997,7 @@
     {
       "evidence": {
         "endLine": 14,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyController.java",
         "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
         "startLine": 14
@@ -997,7 +1015,7 @@
       ],
       "evidence": {
         "endLine": 23,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyController.java",
         "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
         "startLine": 18
@@ -1013,7 +1031,7 @@
     {
       "evidence": {
         "endLine": 20,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyController.java",
         "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
         "startLine": 20
@@ -1028,7 +1046,7 @@
     {
       "evidence": {
         "endLine": 21,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyController.java",
         "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
         "startLine": 21
@@ -1044,7 +1062,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 12,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyController.java",
         "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
         "startLine": 12
@@ -1059,7 +1077,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 4,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
         "sourceHash": "sha256:a98f87810137e6ee36de71ceb9a736c7aa70aed7ae67dde23a0ca0eed8859a5a",
         "startLine": 3
@@ -1075,7 +1093,7 @@
     {
       "evidence": {
         "endLine": 3,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
         "sourceHash": "sha256:a98f87810137e6ee36de71ceb9a736c7aa70aed7ae67dde23a0ca0eed8859a5a",
         "startLine": 3
@@ -1090,7 +1108,7 @@
     {
       "evidence": {
         "endLine": 3,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
         "sourceHash": "sha256:a98f87810137e6ee36de71ceb9a736c7aa70aed7ae67dde23a0ca0eed8859a5a",
         "startLine": 3
@@ -1110,7 +1128,7 @@
       ],
       "evidence": {
         "endLine": 12,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
         "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb",
         "startLine": 6
@@ -1131,7 +1149,7 @@
       ],
       "evidence": {
         "endLine": 11,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
         "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb",
         "startLine": 8
@@ -1147,7 +1165,7 @@
     {
       "evidence": {
         "endLine": 9,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
         "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb",
         "startLine": 9
@@ -1165,7 +1183,7 @@
       ],
       "evidence": {
         "endLine": 11,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRepository.java",
         "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
         "startLine": 6
@@ -1184,7 +1202,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 8,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRepository.java",
         "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
         "startLine": 8
@@ -1200,7 +1218,7 @@
     {
       "evidence": {
         "endLine": 8,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRepository.java",
         "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
         "startLine": 8
@@ -1216,7 +1234,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 10,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRepository.java",
         "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
         "startLine": 10
@@ -1232,7 +1250,7 @@
     {
       "evidence": {
         "endLine": 10,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRepository.java",
         "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
         "startLine": 10
@@ -1250,7 +1268,7 @@
       ],
       "evidence": {
         "endLine": 23,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
         "startLine": 5
@@ -1269,7 +1287,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 15,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
         "startLine": 10
@@ -1285,7 +1303,7 @@
     {
       "evidence": {
         "endLine": 11,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
         "startLine": 11
@@ -1300,7 +1318,7 @@
     {
       "evidence": {
         "endLine": 12,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
         "startLine": 12
@@ -1316,7 +1334,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 22,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
         "startLine": 17
@@ -1332,7 +1350,7 @@
     {
       "evidence": {
         "endLine": 17,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
         "startLine": 17
@@ -1347,7 +1365,7 @@
     {
       "evidence": {
         "endLine": 17,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
         "startLine": 17
@@ -1363,7 +1381,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 8,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
         "startLine": 8
@@ -1378,7 +1396,7 @@
       "annotations": [],
       "evidence": {
         "endLine": 7,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyService.java",
         "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
         "startLine": 7
@@ -1392,11 +1410,11 @@
     {
       "annotations": [],
       "evidence": {
-        "endLine": 12,
-        "extractor": "java-tree-sitter-0.1.0",
+        "endLine": 26,
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/test/java/org/example/sdn/PolicyServiceTest.java",
-        "sourceHash": "sha256:c794704b94491bfc0f1cb2129fb3fc7111a84fc8d51eea92a1d03d0df0afa74b",
-        "startLine": 5
+        "sourceHash": "sha256:84cf1435851b90bad7cdc4de0f72884dc8c9b4edd858f0cd4efe82c5259c6a0f",
+        "startLine": 10
       },
       "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest",
       "label": "PolicyServiceTest",
@@ -1411,11 +1429,11 @@
         "Test"
       ],
       "evidence": {
-        "endLine": 11,
-        "extractor": "java-tree-sitter-0.1.0",
+        "endLine": 25,
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/test/java/org/example/sdn/PolicyServiceTest.java",
-        "sourceHash": "sha256:c794704b94491bfc0f1cb2129fb3fc7111a84fc8d51eea92a1d03d0df0afa74b",
-        "startLine": 8
+        "sourceHash": "sha256:84cf1435851b90bad7cdc4de0f72884dc8c9b4edd858f0cd4efe82c5259c6a0f",
+        "startLine": 11
       },
       "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
       "label": "org.example.sdn.PolicyServiceTest.deploysPolicyAfterConstraintEvaluation",
@@ -1424,21 +1442,6 @@
       "returnType": "void",
       "signature": "deploysPolicyAfterConstraintEvaluation()",
       "type": "UnitTest"
-    },
-    {
-      "annotations": [],
-      "evidence": {
-        "endLine": 6,
-        "extractor": "java-tree-sitter-0.1.0",
-        "source": "src/test/java/org/example/sdn/PolicyServiceTest.java",
-        "sourceHash": "sha256:c794704b94491bfc0f1cb2129fb3fc7111a84fc8d51eea92a1d03d0df0afa74b",
-        "startLine": 6
-      },
-      "fieldType": "PolicyService",
-      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#field:service",
-      "label": "service",
-      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#field:service",
-      "type": "Field"
     },
     {
       "artifactId": "sdn-policy-service",
@@ -1460,7 +1463,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/application.yml",
         "sourceHash": "sha256:e07e715ee0b24ff01d57476f3bf879045dc931fcb93f3ddb3bf0fc9baa73d73e"
       },
@@ -1472,7 +1475,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/application.yml",
         "sourceHash": "sha256:e07e715ee0b24ff01d57476f3bf879045dc931fcb93f3ddb3bf0fc9baa73d73e"
       },
@@ -1487,7 +1490,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/application.yml",
         "sourceHash": "sha256:e07e715ee0b24ff01d57476f3bf879045dc931fcb93f3ddb3bf0fc9baa73d73e"
       },
@@ -1503,7 +1506,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/application.yml",
         "sourceHash": "sha256:e07e715ee0b24ff01d57476f3bf879045dc931fcb93f3ddb3bf0fc9baa73d73e"
       },
@@ -1520,7 +1523,7 @@
     },
     {
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/db/migration/V1__create_network_policy.sql",
         "sourceHash": "sha256:a60da49442c72aca44a92401102bd655e2b131cabf8dccb71fbfc9ce2200a434"
       },
@@ -1534,7 +1537,7 @@
       "columnName": "id",
       "dataType": "BIGINT",
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/db/migration/V1__create_network_policy.sql",
         "sourceHash": "sha256:a60da49442c72aca44a92401102bd655e2b131cabf8dccb71fbfc9ce2200a434"
       },
@@ -1548,7 +1551,7 @@
       "columnName": "minimum_bandwidth_mbps",
       "dataType": "INTEGER",
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/db/migration/V1__create_network_policy.sql",
         "sourceHash": "sha256:a60da49442c72aca44a92401102bd655e2b131cabf8dccb71fbfc9ce2200a434"
       },
@@ -1562,7 +1565,7 @@
       "columnName": "status",
       "dataType": "VARCHAR(32)",
       "evidence": {
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/resources/db/migration/V1__create_network_policy.sql",
         "sourceHash": "sha256:a60da49442c72aca44a92401102bd655e2b131cabf8dccb71fbfc9ce2200a434"
       },
@@ -1576,7 +1579,7 @@
       "channel": "network-policy-rejected",
       "evidence": {
         "endLine": 11,
-        "extractor": "java-tree-sitter-0.1.0",
+        "extractor": "java-tree-sitter-0.2.0",
         "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
         "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb",
         "startLine": 8
@@ -1591,7 +1594,7 @@
   "repositoryId": "repo-sdn-sample",
   "schemaVersion": "code-ontology-graph-baseline/v1",
   "summary": {
-    "edgeCount": 95,
-    "nodeCount": 72
+    "edgeCount": 97,
+    "nodeCount": 71
   }
 }

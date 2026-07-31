@@ -447,6 +447,7 @@ class PlatformServiceTest(unittest.TestCase):
         self.assertEqual("Completed", run["status"])
         self.assertEqual(9, run["coverage"]["parsedJavaFiles"])
         self.assertEqual(0, run["coverage"]["unresolvedCallCount"])
+        self.assertEqual(7, run["coverage"]["externalCallCount"])
         self.assertTrue(run["revision"])
         self.assertIsNotNone(run["graphTextSnapshot"])
         sensitive = [
@@ -674,11 +675,23 @@ class PlatformServiceTest(unittest.TestCase):
         self.assertIn("ProposedBehaviorChange", change_types)
         self.assertIn("ProposedContractChange", change_types)
         self.assertIn("ProposedConfigurationChange", change_types)
-        self.assertIn("ProposedDataMigration", change_types)
+        self.assertNotIn("ProposedDataMigration", change_types)
         self.assertIn("ProposedTestChange", change_types)
         self.assertIn("ProposedDeploymentChange", change_types)
         self.assertTrue(
             any(item["role"] == "AddMessageSchema" for item in plan["proposals"])
+        )
+        self.assertTrue(
+            all(
+                item.get("desiredEntity", {}).get("label")
+                for item in plan["proposals"]
+            )
+        )
+        self.assertTrue(
+            any(
+                "不新增数据库表" in item
+                for item in plan["requirementContext"]["scope"]
+            )
         )
         self.assertEqual(len(plan["proposals"]), len(plan["implementationTasks"]))
         proposed_nodes, proposed_edges = self.service.store.read_graph(

@@ -9,6 +9,9 @@
 - [完整智能平台符合性审计](23-complete-platform-compliance-audit.md)
 - [核心功能完成矩阵](24-core-function-completion-matrix.md)
 - [图谱文本快照与预期基线](25-graph-text-snapshots-and-baselines.md)
+- [CodeGraph Sidecar 与图智能增强](26-codegraph-sidecar-and-graph-intelligence.md)
+- [本地 Codex 需求到代码图谱闭环](29-local-codex-requirement-workflow.md)
+- [语言与技术栈复核](30-technology-stack-review.md)
 - [总体架构](00-overall-architecture.md)
 - [OpenCode Agent + Skill AI 辅助架构](20-opencode-agent-skill-architecture.md)
 
@@ -40,6 +43,11 @@
 24. [完整智能平台符合性审计](23-complete-platform-compliance-audit.md)
 25. [核心功能完成矩阵](24-core-function-completion-matrix.md)
 26. [图谱文本快照与预期基线](25-graph-text-snapshots-and-baselines.md)
+27. [CodeGraph Sidecar 与图智能增强](26-codegraph-sidecar-and-graph-intelligence.md)
+28. [MCP 代码图谱 Server 与接入指南](27-mcp-code-graph-server.md)
+29. [产业图谱工具与竞品研究](28-industry-landscape-and-competitive-research.md)
+30. [本地 Codex 需求到代码图谱闭环](29-local-codex-requirement-workflow.md)
+31. [语言与技术栈复核](30-technology-stack-review.md)
 
 ## 业务语义与需求规划资产
 
@@ -52,7 +60,7 @@
 - [SDN 网络策略部署实例图](../examples/sdn-network-policy-deployment.ttl)
 - [SDN 需求到代码图变更实例](../examples/sdn-requirement-to-code-change-plan.ttl)
 
-## OpenCode Agent 与 Skill 资产
+## Codex / OpenCode Agent 与 Skill 资产
 
 - [OpenCode 项目配置](../opencode.json)
 - [Agent 定义](../.opencode/agents/)
@@ -60,6 +68,10 @@
 - [代码本体平台自定义工具](../.opencode/tools/ontology.ts)
 
 Agent 负责角色化执行与编排，Skill 负责稳定工作流与输出契约，自定义 Tool/MCP 负责受控事实访问和草案写入。AI 结果必须保存 Agent、Skill 版本、上下文 Hash、证据、假设和人工 Gate。
+
+本地 Codex 通过非交互 JSONL Adapter 接入；OpenCode 继续提供容器内回退运行时。
+两者的角色、人工 Gate、Worktree、Patch、测试、对账和审计语义一致。完整操作与
+五轮端到端证据见[本地 Codex 需求到代码图谱闭环](29-local-codex-requirement-workflow.md)。
 
 ## 统一写作结构
 

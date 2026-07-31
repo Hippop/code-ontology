@@ -75,7 +75,11 @@
     "code-ontology": {
       "type": "remote",
       "url": "http://127.0.0.1:8080/mcp",
-      "enabled": false,
+      "enabled": true,
+      "oauth": false,
+      "headers": {
+        "Authorization": "Bearer {env:CODE_ONTOLOGY_API_TOKEN}"
+      },
       "timeout": 10000
     }
   }

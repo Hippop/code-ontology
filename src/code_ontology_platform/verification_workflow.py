@@ -7,8 +7,20 @@ from typing import Any
 
 from .store import content_hash
 
-RECONCILIATION_ENGINE_VERSION = "approved-actual-reconciliation-0.1.0"
-IMPACT_ENGINE_VERSION = "relation-aware-impact-0.1.0"
+RECONCILIATION_ENGINE_VERSION = "approved-actual-reconciliation-0.6.0"
+IMPACT_ENGINE_VERSION = "relation-aware-impact-0.3.0"
+_CLAIM_MAX_DEPTH = 6
+_CLAIM_PROPAGATION_RELATIONS = frozenset(
+    {
+        "code:callsDirectly",
+        "code:contains",
+        "code:declares",
+        "code:hasFieldType",
+        "code:implementsOperation",
+        "code:usesPayloadType",
+        "code:verifies",
+    }
+)
 
 _VOLATILE_NODE_FIELDS = frozenset(
     {"createdAt", "revision", "revisionId", "path", "workspacePath"}
@@ -133,6 +145,28 @@ def reconcile_approved_actual(
         for entity_id in changed_ids
     }
     relation_changed = bool(delta["addedEdges"] or delta["removedEdges"])
+    test_status = agent_run.get("testReport", {}).get("status")
+    obligation_results = [
+        {
+            **obligation,
+            "status": "Satisfied" if test_status == "Passed" else "Unsatisfied",
+            "evidence": {
+                "agentRunId": agent_run["runId"],
+                "testReportStatus": test_status,
+            },
+        }
+        for obligation in plan["verificationObligations"]
+    ]
+    satisfied_obligation_ids = {
+        item["desiredEntityId"]
+        for item in obligation_results
+        if item["status"] == "Satisfied"
+    }
+    changed_test_ids = sorted(
+        entity_id
+        for entity_id, entity_type in changed_types.items()
+        if entity_type in _CHANGE_TYPE_NODE_TYPES["ProposedTestChange"]
+    )
     task_by_proposal = {
         item["proposalId"]: item for item in plan["implementationTasks"]
     }
@@ -149,6 +183,16 @@ def reconcile_approved_actual(
             if not compatible_types or changed_types[entity_id] in compatible_types
         ]
         matched = []
+        desired = proposal.get("desiredEntity")
+        design_tokens = (
+            [
+                str(value).lower()
+                for value in desired.get("designTokens", [])
+                if len(str(value).strip()) >= 3
+            ]
+            if isinstance(desired, dict)
+            else []
+        )
         if (
             target
             and target in changed_ids
@@ -171,8 +215,50 @@ def reconcile_approved_actual(
                 or (source is not None and source in suggested_files)
             ):
                 matched.append(entity_id)
+        if design_tokens:
+            for entity_id in sorted(changed_ids):
+                node = actual_by_id.get(entity_id) or current_by_id.get(entity_id) or {}
+                searchable = " ".join(
+                    (
+                        entity_id,
+                        str(node.get("label") or ""),
+                        str(
+                            node.get("evidence", {}).get("source")
+                            if isinstance(node.get("evidence"), dict)
+                            else ""
+                        ),
+                    )
+                ).lower()
+                entity_type = changed_types[entity_id]
+                token_compatible = (
+                    not compatible_types
+                    or entity_type in compatible_types
+                    or (
+                        proposal["changeType"] == "ProposedContractChange"
+                        and entity_type
+                        in {"Class", "Constructor", "Interface", "Method"}
+                    )
+                )
+                if (
+                    entity_id not in matched
+                    and token_compatible
+                    and any(token in searchable for token in design_tokens)
+                ):
+                    matched.append(entity_id)
         if proposal["changeType"] == "ProposedRelationAddition" and relation_changed:
             status = "Conformed"
+        elif (
+            proposal["changeType"] == "ProposedTestChange"
+            and proposal.get("desiredEntityId") in satisfied_obligation_ids
+            and changed_test_ids
+        ):
+            matched = sorted({*matched, *changed_test_ids})
+            status = "Conformed"
+        elif (
+            proposal["changeType"] == "ProposedDeploymentChange"
+            and not matched
+        ):
+            status = "DeferredToReleaseGate"
         else:
             status = "Conformed" if matched else "Missing"
         claimed_entities.update(matched)
@@ -187,23 +273,46 @@ def reconcile_approved_actual(
                 "reason": (
                     "Actual Graph contains a compatible approved change."
                     if status == "Conformed"
-                    else "No compatible structural change was found in Actual Graph."
+                    else (
+                        "No code-graph artifact is expected; the approved "
+                        "deployment action remains mandatory at the human "
+                        "release gate."
+                        if status == "DeferredToReleaseGate"
+                        else (
+                            "No compatible structural change was found in "
+                            "Actual Graph."
+                        )
+                    )
                 ),
             }
         )
-    unexpected = sorted(changed_ids - claimed_entities)
-    test_status = agent_run.get("testReport", {}).get("status")
-    obligation_results = [
-        {
-            **obligation,
-            "status": "Satisfied" if test_status == "Passed" else "Unsatisfied",
-            "evidence": {
-                "agentRunId": agent_run["runId"],
-                "testReportStatus": test_status,
-            },
-        }
-        for obligation in plan["verificationObligations"]
-    ]
+    direct_claimed_entities = set(claimed_entities)
+    changed_adjacency: dict[str, set[str]] = {}
+    for edge in [*current_edges, *actual_edges]:
+        if (
+            edge["relation"] not in _CLAIM_PROPAGATION_RELATIONS
+            or edge["source"] not in changed_ids
+            or edge["target"] not in changed_ids
+        ):
+            continue
+        changed_adjacency.setdefault(edge["source"], set()).add(edge["target"])
+        changed_adjacency.setdefault(edge["target"], set()).add(edge["source"])
+    queue = deque((entity_id, 0) for entity_id in sorted(claimed_entities))
+    while queue:
+        entity_id, depth = queue.popleft()
+        if depth >= _CLAIM_MAX_DEPTH:
+            continue
+        for neighbor in sorted(changed_adjacency.get(entity_id, set())):
+            if neighbor in claimed_entities:
+                continue
+            claimed_entities.add(neighbor)
+            queue.append((neighbor, depth + 1))
+    structurally_claimed_entities = claimed_entities - direct_claimed_entities
+    unexpected = sorted(
+        entity_id
+        for entity_id in changed_ids - claimed_entities
+        if changed_types[entity_id] not in {"Module", "Repository", "SourceFile"}
+    )
     deviations = []
     for result in proposal_results:
         if result["status"] == "Missing":
@@ -262,6 +371,12 @@ def reconcile_approved_actual(
         "graphDelta": delta,
         "proposalResults": proposal_results,
         "verificationResults": obligation_results,
+        "claimCoverage": {
+            "directEntityIds": sorted(direct_claimed_entities),
+            "graphClosureEntityIds": sorted(structurally_claimed_entities),
+            "propagationRelations": sorted(_CLAIM_PROPAGATION_RELATIONS),
+            "maxDepth": _CLAIM_MAX_DEPTH,
+        },
         "deviations": deviations,
     }
     result["resultHash"] = content_hash(result)
@@ -308,15 +423,32 @@ def build_impact_analysis(
     impacts: dict[str, dict[str, Any]] = {}
     impact_edges: dict[tuple[str, str, str], dict[str, Any]] = {}
     queue = deque()
+    removed_entity_ids = set(
+        reconciliation["graphDelta"]["removedEntityIds"]
+    )
     for entity_id in starts:
-        state = "Direct" if entity_id in nodes else "Unresolved"
+        change_kind = (
+            "Removed"
+            if entity_id in removed_entity_ids
+            else (
+                "Added"
+                if entity_id
+                in reconciliation["graphDelta"]["addedEntityIds"]
+                else "Modified"
+            )
+        )
         impacts[entity_id] = {
             "entityId": entity_id,
-            "state": state,
+            "state": "Direct",
+            "changeKind": change_kind,
             "depth": 0,
             "confidence": 1.0,
             "path": [entity_id],
-            "reason": "Changed by the implementation patch.",
+            "reason": (
+                "Removed by the implementation patch."
+                if change_kind == "Removed"
+                else "Changed by the implementation patch."
+            ),
         }
         if entity_id in nodes:
             queue.append((entity_id, 0, 1.0, [entity_id]))
@@ -381,6 +513,11 @@ def build_impact_analysis(
             }
         )
     change_types = {item["changeType"] for item in plan["proposals"]}
+    deferred_deployment = [
+        item
+        for item in reconciliation["proposalResults"]
+        if item["status"] == "DeferredToReleaseGate"
+    ]
     high_risk = bool(
         change_types
         & {
@@ -406,6 +543,11 @@ def build_impact_analysis(
         "preconditions": [
             "Reconciliation status is Conformed",
             "All selected tests pass",
+            *(
+                ["Complete deferred deployment actions at the release gate"]
+                if deferred_deployment
+                else []
+            ),
             "Release reviewer confirms rollback and observability",
         ],
         "rollout": (
@@ -439,16 +581,24 @@ def build_impact_analysis(
         }
         for entity_id, impact in sorted(impacts.items())
     ]
-    impact_graph_edges = [
-        {
-            "source": f"impact:{impact_run_id}:{source}",
-            "relation": "impact:propagatesVia",
-            "target": f"impact:{impact_run_id}:{target}",
-            "sourceRelation": relation,
-        }
-        for source, relation, target in sorted(impact_edges)
-        if source in impacts and target in impacts
-    ]
+    impact_graph_edge_relations: dict[tuple[str, str], set[str]] = {}
+    for source, relation, target in sorted(impact_edges):
+        if source in impacts and target in impacts:
+            impact_graph_edge_relations.setdefault((source, target), set()).add(
+                relation
+            )
+    impact_graph_edges = []
+    for (source, target), relations in sorted(impact_graph_edge_relations.items()):
+        source_relations = sorted(relations)
+        impact_graph_edges.append(
+            {
+                "source": f"impact:{impact_run_id}:{source}",
+                "relation": "impact:propagatesVia",
+                "target": f"impact:{impact_run_id}:{target}",
+                "sourceRelation": source_relations[0],
+                "sourceRelations": source_relations,
+            }
+        )
     result = {
         "runId": impact_run_id,
         "reconciliationRunId": reconciliation["runId"],

@@ -473,6 +473,24 @@ class SQLiteStore:
                 CREATE INDEX IF NOT EXISTS graph_edges_target_idx
                     ON graph_edges(graph_space, revision, target_id);
 
+                CREATE TABLE IF NOT EXISTS code_intelligence_indexes (
+                    provider TEXT NOT NULL,
+                    repository_id TEXT NOT NULL,
+                    revision TEXT NOT NULL,
+                    repository_path TEXT NOT NULL,
+                    index_path TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    fingerprint TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (provider, repository_id, revision)
+                );
+
+                CREATE INDEX IF NOT EXISTS code_intelligence_indexes_latest_idx
+                    ON code_intelligence_indexes(
+                        provider, repository_id, updated_at DESC
+                    );
+
                 CREATE TABLE IF NOT EXISTS agent_artifacts (
                     artifact_id TEXT PRIMARY KEY,
                     run_id TEXT NOT NULL,
@@ -620,6 +638,31 @@ class SQLiteStore:
             "updatedAt": row["updated_at"],
         }
 
+    def list_repositories(self, limit: int = 500) -> list[dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT repository_id, name, path, default_branch,
+                       metadata_json, created_at, updated_at
+                FROM repositories
+                ORDER BY updated_at DESC, repository_id
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [
+            {
+                "repositoryId": row["repository_id"],
+                "name": row["name"],
+                "path": row["path"],
+                "defaultBranch": row["default_branch"],
+                "metadata": json.loads(row["metadata_json"]),
+                "createdAt": row["created_at"],
+                "updatedAt": row["updated_at"],
+            }
+            for row in rows
+        ]
+
     def put_repository_snapshot(self, snapshot: Mapping[str, Any]) -> dict[str, Any]:
         now = utc_now()
         value = dict(snapshot)
@@ -739,7 +782,7 @@ class SQLiteStore:
                 LEFT JOIN graph_metadata g
                   ON g.graph_space = 'current' AND g.revision = r.revision
                 WHERE r.repository_id = ?
-                ORDER BY r.created_at DESC
+                ORDER BY r.created_at DESC, r.run_id DESC
                 """,
                 (repository_id,),
             ).fetchall()
@@ -1508,6 +1551,20 @@ class SQLiteStore:
             ).fetchone()
         return row["revision"] if row else None
 
+    def get_graph_metadata(
+        self, graph_space: str, revision: str
+    ) -> dict[str, Any] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT metadata_json
+                FROM graph_metadata
+                WHERE graph_space = ? AND revision = ?
+                """,
+                (graph_space, revision),
+            ).fetchone()
+        return json.loads(row["metadata_json"]) if row else None
+
     def list_graph_revisions(
         self, graph_space: str | None = None, limit: int = 500
     ) -> list[dict[str, Any]]:
@@ -1586,6 +1643,57 @@ class SQLiteStore:
             [json.loads(row["payload_json"]) for row in node_rows],
             [json.loads(row["payload_json"]) for row in edge_rows],
         )
+
+    def put_code_intelligence_index(
+        self, index: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        value = dict(index)
+        value["updatedAt"] = value.get("updatedAt") or utc_now()
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO code_intelligence_indexes(
+                    provider, repository_id, revision, repository_path,
+                    index_path, status, fingerprint, payload_json, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(provider, repository_id, revision)
+                DO UPDATE SET
+                    repository_path = excluded.repository_path,
+                    index_path = excluded.index_path,
+                    status = excluded.status,
+                    fingerprint = excluded.fingerprint,
+                    payload_json = excluded.payload_json,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    value["provider"],
+                    value["repositoryId"],
+                    value["revision"],
+                    value["repositoryPath"],
+                    value["indexPath"],
+                    value["status"],
+                    value["fingerprint"],
+                    canonical_json(value),
+                    value["updatedAt"],
+                ),
+            )
+        return value
+
+    def latest_code_intelligence_index(
+        self, provider: str, repository_id: str
+    ) -> dict[str, Any] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT payload_json
+                FROM code_intelligence_indexes
+                WHERE provider = ? AND repository_id = ?
+                ORDER BY updated_at DESC, revision DESC
+                LIMIT 1
+                """,
+                (provider, repository_id),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row else None
 
     def record_artifact(
         self,

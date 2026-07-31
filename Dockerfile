@@ -15,7 +15,9 @@ ENV PYTHONUNBUFFERED=1 \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        git openjdk-17-jre-headless python3 python3-pip \
-    && npm install --global opencode-ai@1.18.5 \
+    && npm install --global \
+       opencode-ai@1.18.5 \
+       @colbymchenry/codegraph@1.5.0 \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/code-ontology
 COPY pyproject.toml README.md ./

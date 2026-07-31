@@ -14,6 +14,7 @@ from .graph_baseline import (
     write_graph_baseline,
 )
 from .http_api import handler_for
+from .mcp_gateway import MCP_PROTOCOL_VERSION, ReadOnlyMcpGateway, serve_stdio
 from .models import list_value, object_value
 from .repository_scan import RepositoryScanner
 from .semantic_validation import validate_semantic_assets
@@ -113,6 +114,8 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path(os.environ.get("CODE_ONTOLOGY_WEB_ROOT", "web/dist")),
     )
+    commands.add_parser("mcp", help="通过 stdin/stdout 启动只读 MCP Server")
+    commands.add_parser("doctor", help="检查数据库、仓库、CodeGraph 和 MCP 能力")
 
     seed = commands.add_parser("seed", help="装载受控上下文和图快照")
     seed.add_argument("file", type=Path)
@@ -158,6 +161,46 @@ def build_parser() -> argparse.ArgumentParser:
     baseline_compare.add_argument("expected", type=Path)
     baseline_compare.add_argument("--repository-id")
     baseline_compare.add_argument("--limit", type=int, default=200)
+
+    codegraph = commands.add_parser(
+        "codegraph", help="管理 CodeGraph Sidecar 索引并执行只读查询"
+    )
+    codegraph_commands = codegraph.add_subparsers(
+        dest="codegraph_command", required=True
+    )
+    for name in ("index", "status", "explore", "impact", "affected", "compare"):
+        command = codegraph_commands.add_parser(name)
+        command.add_argument("path", type=Path)
+        command.add_argument("--repository-id")
+        if name == "explore":
+            command.add_argument("query")
+        elif name == "impact":
+            command.add_argument("symbol")
+            command.add_argument("--depth", type=int, default=3)
+        elif name == "affected":
+            command.add_argument("files", nargs="+")
+            command.add_argument("--depth", type=int, default=3)
+        elif name == "compare":
+            command.add_argument("expected", type=Path)
+            command.add_argument("--difference-limit", type=int, default=200)
+
+    analysis = commands.add_parser(
+        "analyze", help="执行混合检索、社区、流程和跨仓契约分析"
+    )
+    analysis_commands = analysis.add_subparsers(
+        dest="analysis_command", required=True
+    )
+    analysis_search = analysis_commands.add_parser("search")
+    analysis_search.add_argument("query")
+    analysis_search.add_argument("--graph-space", default="current")
+    analysis_search.add_argument("--revision")
+    analysis_search.add_argument("--limit", type=int, default=20)
+    for name in ("communities", "processes"):
+        command = analysis_commands.add_parser(name)
+        command.add_argument("--graph-space", default="current")
+        command.add_argument("--revision")
+    analysis_contracts = analysis_commands.add_parser("contracts")
+    analysis_contracts.add_argument("--repository-id", action="append", default=[])
     return parser
 
 
@@ -233,6 +276,53 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
 
+    if arguments.command == "doctor":
+        gateway = ReadOnlyMcpGateway(service)
+        repositories = service.list_repositories({"limit": 500})
+        describe_runtime = getattr(service.agent_adapter, "describe", None)
+        agent_runtime = (
+            describe_runtime()
+            if callable(describe_runtime)
+            else {
+                "runtime": type(service.agent_adapter).__name__,
+                "available": True,
+            }
+        )
+        print(
+            json.dumps(
+                {
+                    "status": "ok",
+                    "database": str(Path(arguments.database).resolve()),
+                    "rules": str(Path(arguments.rules).resolve()),
+                    "repositoryCount": repositories["count"],
+                    "repositories": [
+                        {
+                            "repositoryId": repository["repositoryId"],
+                            "name": repository["name"],
+                            "path": repository["path"],
+                        }
+                        for repository in repositories["repositories"]
+                    ],
+                    "codegraph": {
+                        "available": service.codegraph_sidecar.available(),
+                        "version": service.codegraph_sidecar.version(),
+                        "command": service.codegraph_sidecar.command,
+                    },
+                    "agentRuntime": agent_runtime,
+                    "mcp": {
+                        "protocolVersion": MCP_PROTOCOL_VERSION,
+                        "transports": ["stdio", "streamable-http"],
+                        "toolCount": len(gateway.tools),
+                        "tools": [tool["name"] for tool in gateway.tools],
+                        "readOnly": True,
+                    },
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0
+
     if arguments.command == "seed":
         document = json.loads(arguments.file.read_text(encoding="utf-8"))
         print(json.dumps(_seed(service, document), ensure_ascii=False, indent=2))
@@ -279,6 +369,68 @@ def main(argv: list[str] | None = None) -> int:
             and result["baselineComparison"]["status"] != "Matched"
             else 0
         )
+
+    if arguments.command == "codegraph":
+        path = arguments.path.resolve()
+        repository_id = arguments.repository_id or f"repo-{path.name}"
+        service.repository_roots = [path]
+        service.register_repository(
+            {"path": str(path), "repositoryId": repository_id}
+        )
+        operation = arguments.codegraph_command
+        if operation == "index":
+            result = service.codegraph_index(repository_id)
+        elif operation == "status":
+            result = service.codegraph_index_status(repository_id)
+        elif operation == "explore":
+            result = service.codegraph_explore(
+                repository_id, {"query": arguments.query}
+            )
+        elif operation == "impact":
+            result = service.codegraph_impact(
+                repository_id,
+                {"symbol": arguments.symbol, "depth": arguments.depth},
+            )
+        elif operation == "affected":
+            result = service.codegraph_affected_tests(
+                repository_id,
+                {"changedFiles": arguments.files, "depth": arguments.depth},
+            )
+        else:
+            expected = load_graph_baseline(arguments.expected)
+            result = service.codegraph_compare(
+                repository_id,
+                {
+                    "expectedGraph": expected,
+                    "differenceLimit": arguments.difference_limit,
+                },
+            )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+
+    if arguments.command == "analyze":
+        body = {}
+        if arguments.analysis_command in {"search", "communities", "processes"}:
+            body = {
+                "graphSpace": arguments.graph_space,
+                "revision": arguments.revision,
+            }
+        if arguments.analysis_command == "search":
+            body.update({"query": arguments.query, "limit": arguments.limit})
+            result = service.hybrid_search(body)
+        elif arguments.analysis_command == "communities":
+            result = service.graph_communities(body)
+        elif arguments.analysis_command == "processes":
+            result = service.graph_processes(body)
+        else:
+            result = service.contract_graph(
+                {"repositoryIds": arguments.repository_id}
+            )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+
+    if arguments.command == "mcp":
+        return serve_stdio(ReadOnlyMcpGateway(service))
 
     server = ThreadingHTTPServer(
         (arguments.host, arguments.port),
