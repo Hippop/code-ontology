@@ -10,13 +10,20 @@ import yaml
 from .errors import invalid
 from .store import content_hash
 
-EXTRACTOR_VERSION = "markdown-requirement-ir-0.1.0"
+EXTRACTOR_VERSION = "markdown-requirement-ir-0.2.0"
 _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 _LIST_ITEM = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+(.+?)\s*$")
 _EXPLICIT_ID = re.compile(r"^\[([A-Za-z0-9_.:-]+)]\s*(.*)$")
 _CODE_TOKEN = re.compile(r"`([^`]+)`")
 _HTTP_OPERATION = re.compile(
     r"\b(GET|POST|PUT|PATCH|DELETE)\s+(/[^\s`]+)", re.IGNORECASE
+)
+_NON_CHANGE_STATEMENT = re.compile(
+    r"(?:不新增|不增加|不添加|不创建|不引入|不修改|无需|无须|不需要|"
+    r"保持不变|维持不变)|"
+    r"\b(?:no new|do not add|does not add|will not add|without adding|"
+    r"no changes? to|remain(?:s)? unchanged)\b",
+    re.IGNORECASE,
 )
 
 
@@ -241,6 +248,12 @@ def extract_requirement_ir(
                         "evidenceRefs": [evidence_id],
                     }
                 )
+                continue
+            if _NON_CHANGE_STATEMENT.search(text):
+                # Preserve explicit non-goals as scope evidence. They constrain
+                # planning, but must not be inverted into a positive change
+                # proposal merely because they appear in a typed section.
+                scope.append(text)
                 continue
             desired_type = _desired_type(kind, text, explicit_id)
             if desired_type is None:

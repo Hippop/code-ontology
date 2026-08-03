@@ -10,7 +10,9 @@ import shlex
 import shutil
 import socket
 import subprocess
+import tempfile
 import time
+from collections import Counter
 from collections.abc import Callable, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -24,6 +26,7 @@ from .errors import PlatformError, conflict, invalid
 from .store import content_hash
 
 OPENCODE_API_VERSION = "server-v1"
+CODEX_API_VERSION = "exec-jsonl-v1"
 FORBIDDEN_COMMAND_PATTERNS = (
     "git commit*",
     "git push*",
@@ -44,6 +47,12 @@ READ_ONLY_GIT_PATTERNS = (
 )
 _TEST_EXECUTABLES = frozenset({"./mvnw", "mvn", "./gradlew", "gradle"})
 _TEST_GOALS = frozenset({"test", "check", "verify"})
+_UNTRACKED_BUILD_OUTPUTS = (
+    ".gradle/**",
+    "build/**",
+    "out/**",
+    "target/**",
+)
 
 
 def _message_summary(messages: list[dict[str, Any]]) -> dict[str, Any]:
@@ -233,7 +242,10 @@ def collect_worktree_diff(worktree: str | Path, base_commit: str) -> dict[str, A
         candidate = line[3:] if len(line) > 3 else ""
         if " -> " in candidate:
             candidate = candidate.split(" -> ", 1)[1]
-        if candidate:
+        is_untracked_build_output = line[:2] == "??" and any(
+            _matches(candidate, pattern) for pattern in _UNTRACKED_BUILD_OUTPUTS
+        )
+        if candidate and not is_untracked_build_output:
             changed_files.append(candidate)
     patch = _run_git(
         path,
@@ -686,6 +698,14 @@ class OpenCodeAdapter:
         ) as client:
             return self._execute(client, run_id, prompt, agent_name, skill_name)
 
+    def describe(self) -> dict[str, Any]:
+        return {
+            "runtime": "OpenCode",
+            "available": self.binary is not None and self.binary.is_file(),
+            "binary": str(self.binary) if self.binary is not None else None,
+            "apiVersion": OPENCODE_API_VERSION,
+        }
+
     def _execute(
         self,
         client: OpenCodeHttpClient,
@@ -796,8 +816,401 @@ class OpenCodeAdapter:
         return client.respond_permission(session_id, permission_id, response)
 
 
+def _codex_event_summary(raw_output: str) -> dict[str, Any]:
+    event_counts: Counter[str] = Counter()
+    thread_id: str | None = None
+    messages: list[str] = []
+    commands: list[dict[str, Any]] = []
+    file_changes: list[dict[str, Any]] = []
+    errors: list[dict[str, Any]] = []
+    usage: dict[str, Any] | None = None
+    invalid_lines = 0
+    turn_completed = False
+
+    for line in raw_output.splitlines():
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            invalid_lines += 1
+            continue
+        if not isinstance(event, dict):
+            invalid_lines += 1
+            continue
+        event_type = str(event.get("type") or "unknown")
+        event_counts[event_type] += 1
+        if event_type == "thread.started":
+            value = event.get("thread_id")
+            thread_id = str(value) if value is not None else thread_id
+        elif event_type == "turn.completed":
+            turn_completed = True
+            value = event.get("usage")
+            usage = dict(value) if isinstance(value, Mapping) else None
+        elif event_type in {"turn.failed", "error"}:
+            errors.append(
+                {
+                    "type": event_type,
+                    "message": str(
+                        event.get("message")
+                        or event.get("error")
+                        or event.get("detail")
+                        or "Codex execution failed"
+                    )[:2000],
+                }
+            )
+        if not event_type.startswith("item."):
+            continue
+        item = event.get("item")
+        if not isinstance(item, Mapping):
+            continue
+        item_type = str(item.get("type") or "")
+        if event_type == "item.completed" and item_type == "agent_message":
+            value = item.get("text")
+            if value is not None:
+                messages.append(str(value))
+        elif item_type == "command_execution" and len(commands) < 50:
+            commands.append(
+                {
+                    "id": item.get("id"),
+                    "command": str(item.get("command") or "")[:2000],
+                    "status": item.get("status"),
+                    "exitCode": item.get("exit_code"),
+                    "outputTail": str(item.get("aggregated_output") or "")[-2000:],
+                }
+            )
+        elif item_type == "file_change" and len(file_changes) < 100:
+            file_changes.append(
+                {
+                    "id": item.get("id"),
+                    "status": item.get("status"),
+                    "changes": item.get("changes"),
+                }
+            )
+
+    return {
+        "threadId": thread_id,
+        "turnCompleted": turn_completed,
+        "eventCounts": dict(sorted(event_counts.items())),
+        "invalidJsonLines": invalid_lines,
+        "messages": messages[-20:],
+        "finalMessage": messages[-1] if messages else None,
+        "commands": commands,
+        "fileChanges": file_changes,
+        "errors": errors,
+        "usage": usage,
+    }
+
+
+@contextmanager
+def _isolated_codex_read_worktree(repository: Path, run_id: str):
+    repository = repository.resolve()
+    root = Path(
+        _run_git(repository, "rev-parse", "--show-toplevel").stdout.strip()
+    ).resolve()
+    commit = _run_git(repository, "rev-parse", "HEAD").stdout.strip()
+    safe_run_id = re.sub(r"[^A-Za-z0-9._-]", "-", run_id)[:48] or "run"
+    temporary_root = Path(
+        tempfile.mkdtemp(prefix=f"code-ontology-{safe_run_id}-")
+    ).resolve()
+    isolated = temporary_root / "repository"
+    try:
+        _run_git(root, "worktree", "add", "--detach", str(isolated), commit)
+        yield isolated, commit
+    finally:
+        _run_git(
+            root,
+            "worktree",
+            "remove",
+            "--force",
+            str(isolated),
+            check=False,
+        )
+        shutil.rmtree(temporary_root, ignore_errors=True)
+
+
+class CodexAdapter:
+    """Non-interactive local Codex CLI adapter with JSONL event capture."""
+
+    def __init__(
+        self,
+        binary: str | Path | None = None,
+        *,
+        model: str | None = None,
+        sandbox_mode: str | None = None,
+        run_timeout_seconds: int = 900,
+        ignore_user_config: bool = True,
+        runner: Callable[..., subprocess.CompletedProcess[str]] | None = None,
+    ) -> None:
+        discovered = str(binary) if binary else shutil.which("codex")
+        self.binary = Path(discovered).resolve() if discovered else None
+        self.model = model or os.environ.get("CODE_ONTOLOGY_CODEX_MODEL")
+        self.sandbox_mode = (
+            sandbox_mode
+            or os.environ.get("CODE_ONTOLOGY_CODEX_SANDBOX")
+            or "workspace-write"
+        )
+        if self.sandbox_mode not in {
+            "read-only",
+            "workspace-write",
+            "danger-full-access",
+        }:
+            raise invalid(
+                "CODE_ONTOLOGY_CODEX_SANDBOX 必须是 read-only、"
+                "workspace-write 或 danger-full-access"
+            )
+        self.run_timeout_seconds = run_timeout_seconds
+        self.ignore_user_config = ignore_user_config
+        self.runner = runner or subprocess.run
+        self._sessions: set[str] = set()
+
+    def describe(self) -> dict[str, Any]:
+        version = None
+        if self.binary is not None and self.binary.is_file():
+            try:
+                result = subprocess.run(
+                    [str(self.binary), "--version"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    check=False,
+                )
+                if result.returncode == 0:
+                    version = result.stdout.strip() or result.stderr.strip()
+            except (OSError, subprocess.SubprocessError):
+                version = None
+        return {
+            "runtime": "Codex",
+            "available": self.binary is not None and self.binary.is_file(),
+            "binary": str(self.binary) if self.binary is not None else None,
+            "version": version,
+            "apiVersion": CODEX_API_VERSION,
+            "sandboxMode": self.sandbox_mode,
+            "ignoreUserConfig": self.ignore_user_config,
+        }
+
+    def execute(
+        self,
+        *,
+        worktree: Path,
+        run_id: str,
+        prompt: str,
+        agent_name: str,
+        allowed_files: list[str],
+        forbidden_files: list[str],
+        required_tests: list[str],
+        skill_name: str = "implement-approved-change",
+        read_only: bool = False,
+    ) -> dict[str, Any]:
+        if self.binary is None or not self.binary.is_file():
+            raise PlatformError(
+                503,
+                "CODEX_UNAVAILABLE",
+                "未找到 Codex CLI；请安装 Codex 或配置 CODEX_BINARY",
+            )
+        if read_only:
+            with _isolated_codex_read_worktree(
+                worktree, run_id
+            ) as (isolated, base_commit):
+                result = self._execute(
+                    worktree=isolated,
+                    run_id=run_id,
+                    prompt=prompt,
+                    agent_name=agent_name,
+                    skill_name=skill_name,
+                    read_only=True,
+                )
+                diff = collect_worktree_diff(isolated, base_commit)
+                if diff["changedFiles"] or not diff["headUnchanged"]:
+                    raise PlatformError(
+                        409,
+                        "CODEX_READ_ONLY_VIOLATION",
+                        "Codex 只读角色修改了隔离工作树，结果已拒绝并清理",
+                        {
+                            "sessionId": result.get("sessionId"),
+                            "changedFiles": diff["changedFiles"],
+                            "headUnchanged": diff["headUnchanged"],
+                        },
+                    )
+                result["readOnlyIsolation"] = {
+                    "status": "Passed",
+                    "headUnchanged": True,
+                    "changedFiles": [],
+                }
+                return result
+        return self._execute(
+            worktree=worktree,
+            run_id=run_id,
+            prompt=prompt,
+            agent_name=agent_name,
+            skill_name=skill_name,
+            read_only=False,
+        )
+
+    def _execute(
+        self,
+        *,
+        worktree: Path,
+        run_id: str,
+        prompt: str,
+        agent_name: str,
+        skill_name: str,
+        read_only: bool,
+    ) -> dict[str, Any]:
+        command = [str(self.binary), "exec"]
+        if self.ignore_user_config:
+            command.append("--ignore-user-config")
+        command.extend(
+            [
+                "--ephemeral",
+                "--sandbox",
+                self.sandbox_mode,
+                "-c",
+                'approval_policy="never"',
+                "--json",
+            ]
+        )
+        if self.model:
+            command.extend(["--model", self.model])
+        command.append("-")
+        governed_prompt = (
+            "You are executing a governed platform stage. The skill name below "
+            "is a workflow label; do not search for or install a SKILL.md. Use "
+            "only the supplied local repository and context. Do not use web "
+            "search, connectors, subagents, or external services. Never commit, "
+            "push, merge, rebase, tag, or deploy. "
+            + (
+                "This role is read-only; do not modify any file. "
+                if read_only
+                else "Modify only the approved files and leave changes uncommitted. "
+            )
+            + f"Role: {agent_name}. Skill label: {skill_name}. Run: {run_id}.\n\n"
+            + prompt
+        )
+        environment = {
+            **os.environ,
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_SSH_COMMAND": "false",
+        }
+        try:
+            completed = self.runner(
+                command,
+                cwd=worktree,
+                input=governed_prompt,
+                capture_output=True,
+                text=True,
+                timeout=self.run_timeout_seconds,
+                env=environment,
+                check=False,
+            )
+        except FileNotFoundError as error:
+            raise PlatformError(
+                503, "CODEX_UNAVAILABLE", "Codex CLI 可执行文件不存在"
+            ) from error
+        except subprocess.TimeoutExpired as error:
+            partial = (
+                error.stdout.decode(errors="replace")
+                if isinstance(error.stdout, bytes)
+                else (error.stdout or "")
+            )
+            summary = _codex_event_summary(partial)
+            raise PlatformError(
+                504,
+                "CODEX_RUN_TIMEOUT",
+                "Codex Agent Run 超过平台 Deadline，进程已中止",
+                {
+                    "sessionId": summary["threadId"],
+                    "timeoutSeconds": self.run_timeout_seconds,
+                    "eventCounts": summary["eventCounts"],
+                },
+            ) from error
+        summary = _codex_event_summary(completed.stdout)
+        if completed.returncode != 0:
+            raise PlatformError(
+                502,
+                "CODEX_EXEC_FAILED",
+                f"Codex CLI 退出码为 {completed.returncode}",
+                {
+                    "sessionId": summary["threadId"],
+                    "stderrTail": completed.stderr[-4000:],
+                    "eventCounts": summary["eventCounts"],
+                    "errors": summary["errors"],
+                },
+            )
+        if (
+            not summary["turnCompleted"]
+            or summary["errors"]
+            or summary["finalMessage"] is None
+        ):
+            raise PlatformError(
+                502,
+                "CODEX_INVALID_RESPONSE",
+                "Codex CLI 未返回完整的最终 Agent 消息",
+                {
+                    "sessionId": summary["threadId"],
+                    "turnCompleted": summary["turnCompleted"],
+                    "eventCounts": summary["eventCounts"],
+                    "errors": summary["errors"],
+                    "stderrTail": completed.stderr[-4000:],
+                },
+            )
+        session_id = str(summary["threadId"] or f"codex-{run_id}")
+        self._sessions.add(session_id)
+        return {
+            "runtime": "Codex",
+            "runtimeVersion": self.describe().get("version"),
+            "apiVersion": CODEX_API_VERSION,
+            "sessionId": session_id,
+            "message": {
+                "role": "assistant",
+                "text": summary["finalMessage"],
+                "messages": summary["messages"],
+            },
+            "events": {
+                "counts": summary["eventCounts"],
+                "commands": summary["commands"],
+                "fileChanges": summary["fileChanges"],
+                "invalidJsonLines": summary["invalidJsonLines"],
+            },
+            "usage": summary["usage"],
+            "stderrTail": completed.stderr[-4000:],
+            "connectedProviders": ["codex-auth"],
+            "agentName": agent_name,
+            "skillName": skill_name,
+            "readOnly": read_only,
+            "sandboxMode": self.sandbox_mode,
+            "statusHistory": [
+                value
+                for value in ("turn.started", "turn.completed")
+                if summary["eventCounts"].get(value)
+            ],
+        }
+
+    def respond_permission(
+        self, session_id: str, permission_id: str, response: str
+    ) -> bool:
+        if session_id not in self._sessions:
+            raise conflict("Codex Session 已结束或不属于当前运行时")
+        raise conflict("Codex 非交互运行固定使用 approval_policy=never，无待决权限请求")
+
+
+def default_agent_adapter(project_root: str | Path) -> AgentAdapter:
+    runtime = os.environ.get("CODE_ONTOLOGY_AGENT_RUNTIME", "auto").strip().lower()
+    if runtime not in {"auto", "codex", "opencode"}:
+        raise invalid(
+            "CODE_ONTOLOGY_AGENT_RUNTIME 必须是 auto、codex 或 opencode"
+        )
+    codex_binary = os.environ.get("CODEX_BINARY") or shutil.which("codex")
+    opencode_binary = os.environ.get("OPENCODE_BINARY") or shutil.which("opencode")
+    if runtime == "codex" or (runtime == "auto" and codex_binary):
+        return CodexAdapter(codex_binary)
+    if runtime == "opencode" or (runtime == "auto" and opencode_binary):
+        return OpenCodeAdapter(Path(project_root) / ".opencode", opencode_binary)
+    return CodexAdapter(codex_binary)
+
+
 class ScriptedAgentAdapter:
-    """Deterministic integration-test adapter; production uses OpenCodeAdapter."""
+    """Deterministic test adapter; production selects Codex or OpenCode."""
 
     def __init__(
         self,
@@ -846,6 +1259,8 @@ def build_agent_prompt(
         "changePlanId": plan["planId"],
         "requirementId": plan["changeSet"]["requirementId"],
         "baseRevision": plan["changeSet"]["currentRevision"],
+        "requirementContext": plan.get("requirementContext", {}),
+        "approvedProposals": plan["proposals"],
         "implementationTasks": plan["implementationTasks"],
         "verificationObligations": plan["verificationObligations"],
         "allowedFiles": implementation_context["allowedFiles"],
@@ -853,9 +1268,15 @@ def build_agent_prompt(
         "requiredTests": implementation_context["requiredTests"],
     }
     return (
-        "Load the `implement-approved-change` skill, then implement only the "
-        "approved tasks below. Do not commit, push, merge, rebase, tag, deploy, "
-        "or access production. Return the changed files, proposal IDs, tests, "
-        "results, unresolved issues, and deviations.\n\n"
+        "Load the `implement-approved-change` skill, then evaluate every "
+        "approved proposal and implement every applicable approved task below. "
+        "The desiredEntity label is the authoritative requirement text for its "
+        "proposal. Do not commit, push, merge, rebase, tag, deploy, or access "
+        "production. For every proposalId, return exactly one status from "
+        "Implemented, AlreadySatisfied, Blocked, or NotApplicable, together "
+        "with concrete file/graph evidence. Never claim a proposal was "
+        "implemented solely because the overall requirement or tests passed. "
+        "Also return changed files, tests and results, unresolved issues, and "
+        "deviations.\n\n"
         + json.dumps(payload, ensure_ascii=False, indent=2)
     )

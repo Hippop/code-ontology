@@ -1,0 +1,1600 @@
+{
+  "contentHash": "sha256:84806db04a5d9c9cd65d558297f1887b87ee11091ea4c54b6be903cf7f19c97e",
+  "edges": [
+    {
+      "relation": "code:hasSchemaField",
+      "source": "api:repo-sdn-sample:schema:PolicyDeployRequest",
+      "target": "api:repo-sdn-sample:schema:PolicyDeployRequest#field:minimumBandwidthMbps"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/ConstraintEvaluator.java",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/DeploymentResult.java",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/NetworkPolicy.java",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyController.java",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyController"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyDeployRequest.java",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRejectedListener.java",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRepository.java",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyService.java",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:file:src/test/java/org/example/sdn/PolicyServiceTest.java",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest"
+    },
+    {
+      "relation": "code:belongsToModule",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#field:bandwidthMaxAge"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:callsDirectly",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest#minimumBandwidthMbps()"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)#parameter:0:policy"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)#parameter:1:request"
+    },
+    {
+      "relation": "code:readsConfiguration",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#field:bandwidthMaxAge",
+      "target": "config:repo-sdn-sample:topology.bandwidth.max-age"
+    },
+    {
+      "relation": "code:belongsToModule",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#field:policyId"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#field:status"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#policyId()"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#status()"
+    },
+    {
+      "relation": "code:belongsToModule",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#field:id"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#field:minimumBandwidthMbps"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#getId()"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#getMinimumBandwidthMbps()"
+    },
+    {
+      "relation": "code:mappedToTable",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy",
+      "target": "db:repo-sdn-sample:table:network_policy"
+    },
+    {
+      "relation": "code:belongsToModule",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#PolicyController(PolicyService)"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#field:service"
+    },
+    {
+      "relation": "code:exposes",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController",
+      "target": "api:repo-sdn-sample:POST:/network-policies/{id}/deploy"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#PolicyController(PolicyService)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#PolicyController(PolicyService)#parameter:0:service"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:callsDirectly",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)#parameter:0:id"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)#parameter:1:request"
+    },
+    {
+      "relation": "code:implementsOperation",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)",
+      "target": "api:repo-sdn-sample:POST:/network-policies/{id}/deploy"
+    },
+    {
+      "relation": "code:hasFieldType",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#field:service",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService"
+    },
+    {
+      "relation": "code:belongsToModule",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest#field:minimumBandwidthMbps"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest#minimumBandwidthMbps()"
+    },
+    {
+      "relation": "code:belongsToModule",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)"
+    },
+    {
+      "listenerAnnotation": "KafkaListener",
+      "relation": "code:consumesEvent",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)",
+      "target": "message:repo-sdn-sample:kafka:network-policy-rejected"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)#parameter:0:result"
+    },
+    {
+      "relation": "code:belongsToModule",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:dataDependsOn",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)"
+    },
+    {
+      "relation": "code:readsTable",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository",
+      "target": "db:repo-sdn-sample:table:network_policy"
+    },
+    {
+      "relation": "code:writesTable",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository",
+      "target": "db:repo-sdn-sample:table:network_policy"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)#parameter:0:id"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)#parameter:0:policy"
+    },
+    {
+      "relation": "code:belongsToModule",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:evaluator"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:repository"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)#parameter:0:repository"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)#parameter:1:evaluator"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:callsDirectly",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:callsDirectly",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#getId()"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:callsDirectly",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:callsDirectly",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)#parameter:0:id"
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)#parameter:1:request"
+    },
+    {
+      "relation": "code:hasFieldType",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:evaluator",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator"
+    },
+    {
+      "relation": "code:hasFieldType",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:repository",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository"
+    },
+    {
+      "relation": "code:belongsToModule",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:declares",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()"
+    },
+    {
+      "confidence": 0.8,
+      "evidenceType": "StaticAST",
+      "relation": "code:verifies",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:verifies",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#status()"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:verifies",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)"
+    },
+    {
+      "confidence": 0.8,
+      "evidenceType": "StaticAST",
+      "relation": "code:verifies",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)"
+    },
+    {
+      "confidence": 1.0,
+      "evidenceType": "StaticAST",
+      "relation": "code:verifies",
+      "source": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/ConstraintEvaluator.java"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/DeploymentResult.java"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/NetworkPolicy.java"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyController.java"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyDeployRequest.java"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRejectedListener.java"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRepository.java"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyService.java"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "code:repo-sdn-sample:file:src/test/java/org/example/sdn/PolicyServiceTest.java"
+    },
+    {
+      "relation": "code:dependsOnArtifact",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "artifact:maven:org.springframework.boot:spring-boot-starter-data-jpa"
+    },
+    {
+      "relation": "code:dependsOnArtifact",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "artifact:maven:org.springframework.boot:spring-boot-starter-test"
+    },
+    {
+      "relation": "code:dependsOnArtifact",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "artifact:maven:org.springframework.boot:spring-boot-starter-web"
+    },
+    {
+      "relation": "code:dependsOnArtifact",
+      "source": "code:repo-sdn-sample:module:.",
+      "target": "artifact:maven:org.springframework.kafka:spring-kafka"
+    },
+    {
+      "relation": "code:contains",
+      "source": "code:repo-sdn-sample:repository",
+      "target": "code:repo-sdn-sample:module:."
+    },
+    {
+      "relation": "code:definesConfiguration",
+      "source": "config:repo-sdn-sample:source:src/main/resources/application.yml",
+      "target": "config:repo-sdn-sample:spring.datasource.password"
+    },
+    {
+      "relation": "code:definesConfiguration",
+      "source": "config:repo-sdn-sample:source:src/main/resources/application.yml",
+      "target": "config:repo-sdn-sample:spring.datasource.url"
+    },
+    {
+      "relation": "code:definesConfiguration",
+      "source": "config:repo-sdn-sample:source:src/main/resources/application.yml",
+      "target": "config:repo-sdn-sample:topology.bandwidth.max-age"
+    },
+    {
+      "relation": "code:contains",
+      "source": "db:repo-sdn-sample:table:network_policy",
+      "target": "db:repo-sdn-sample:table:network_policy#column:id"
+    },
+    {
+      "relation": "code:contains",
+      "source": "db:repo-sdn-sample:table:network_policy",
+      "target": "db:repo-sdn-sample:table:network_policy#column:minimum_bandwidth_mbps"
+    },
+    {
+      "relation": "code:contains",
+      "source": "db:repo-sdn-sample:table:network_policy",
+      "target": "db:repo-sdn-sample:table:network_policy#column:status"
+    },
+    {
+      "relation": "code:usesPayloadType",
+      "source": "message:repo-sdn-sample:kafka:network-policy-rejected",
+      "target": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult"
+    }
+  ],
+  "extractor": "extractor:java-tree-sitter-0.2.0",
+  "graphSpace": "current",
+  "nodes": [
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/openapi.yaml",
+        "sourceHash": "sha256:6eb55772ed4b5ca3f77a452912c7a1cde0e8684a56df556d7507c61a0ed3ee40"
+      },
+      "httpMethod": "POST",
+      "id": "api:repo-sdn-sample:POST:/network-policies/{id}/deploy",
+      "label": "POST /network-policies/{id}/deploy",
+      "logicalId": "api:repo-sdn-sample:POST:/network-policies/{id}/deploy",
+      "operationId": "deployNetworkPolicy",
+      "type": "APIOperation"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/openapi.yaml",
+        "sourceHash": "sha256:6eb55772ed4b5ca3f77a452912c7a1cde0e8684a56df556d7507c61a0ed3ee40"
+      },
+      "id": "api:repo-sdn-sample:schema:PolicyDeployRequest",
+      "label": "PolicyDeployRequest",
+      "logicalId": "api:repo-sdn-sample:schema:PolicyDeployRequest",
+      "schemaName": "PolicyDeployRequest",
+      "type": "Schema"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/openapi.yaml",
+        "sourceHash": "sha256:6eb55772ed4b5ca3f77a452912c7a1cde0e8684a56df556d7507c61a0ed3ee40"
+      },
+      "fieldName": "minimumBandwidthMbps",
+      "fieldType": "integer",
+      "id": "api:repo-sdn-sample:schema:PolicyDeployRequest#field:minimumBandwidthMbps",
+      "label": "minimumBandwidthMbps",
+      "logicalId": "api:repo-sdn-sample:schema:PolicyDeployRequest#field:minimumBandwidthMbps",
+      "required": false,
+      "type": "SchemaField"
+    },
+    {
+      "coordinate": "org.springframework.boot:spring-boot-starter-data-jpa",
+      "external": true,
+      "id": "artifact:maven:org.springframework.boot:spring-boot-starter-data-jpa",
+      "label": "org.springframework.boot:spring-boot-starter-data-jpa",
+      "logicalId": "artifact:maven:org.springframework.boot:spring-boot-starter-data-jpa",
+      "type": "BuildArtifact"
+    },
+    {
+      "coordinate": "org.springframework.boot:spring-boot-starter-test",
+      "external": true,
+      "id": "artifact:maven:org.springframework.boot:spring-boot-starter-test",
+      "label": "org.springframework.boot:spring-boot-starter-test",
+      "logicalId": "artifact:maven:org.springframework.boot:spring-boot-starter-test",
+      "type": "BuildArtifact"
+    },
+    {
+      "coordinate": "org.springframework.boot:spring-boot-starter-web",
+      "external": true,
+      "id": "artifact:maven:org.springframework.boot:spring-boot-starter-web",
+      "label": "org.springframework.boot:spring-boot-starter-web",
+      "logicalId": "artifact:maven:org.springframework.boot:spring-boot-starter-web",
+      "type": "BuildArtifact"
+    },
+    {
+      "coordinate": "org.springframework.kafka:spring-kafka",
+      "external": true,
+      "id": "artifact:maven:org.springframework.kafka:spring-kafka",
+      "label": "org.springframework.kafka:spring-kafka",
+      "logicalId": "artifact:maven:org.springframework.kafka:spring-kafka",
+      "type": "BuildArtifact"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618"
+      },
+      "id": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/ConstraintEvaluator.java",
+      "label": "ConstraintEvaluator.java",
+      "language": "Java",
+      "logicalId": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/ConstraintEvaluator.java",
+      "relativePath": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+      "type": "SourceFile"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/DeploymentResult.java",
+        "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381"
+      },
+      "id": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/DeploymentResult.java",
+      "label": "DeploymentResult.java",
+      "language": "Java",
+      "logicalId": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/DeploymentResult.java",
+      "relativePath": "src/main/java/org/example/sdn/DeploymentResult.java",
+      "type": "SourceFile"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043"
+      },
+      "id": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/NetworkPolicy.java",
+      "label": "NetworkPolicy.java",
+      "language": "Java",
+      "logicalId": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/NetworkPolicy.java",
+      "relativePath": "src/main/java/org/example/sdn/NetworkPolicy.java",
+      "type": "SourceFile"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyController.java",
+        "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788"
+      },
+      "id": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyController.java",
+      "label": "PolicyController.java",
+      "language": "Java",
+      "logicalId": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyController.java",
+      "relativePath": "src/main/java/org/example/sdn/PolicyController.java",
+      "type": "SourceFile"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
+        "sourceHash": "sha256:a98f87810137e6ee36de71ceb9a736c7aa70aed7ae67dde23a0ca0eed8859a5a"
+      },
+      "id": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyDeployRequest.java",
+      "label": "PolicyDeployRequest.java",
+      "language": "Java",
+      "logicalId": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyDeployRequest.java",
+      "relativePath": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
+      "type": "SourceFile"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
+        "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb"
+      },
+      "id": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRejectedListener.java",
+      "label": "PolicyRejectedListener.java",
+      "language": "Java",
+      "logicalId": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRejectedListener.java",
+      "relativePath": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
+      "type": "SourceFile"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRepository.java",
+        "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3"
+      },
+      "id": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRepository.java",
+      "label": "PolicyRepository.java",
+      "language": "Java",
+      "logicalId": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRepository.java",
+      "relativePath": "src/main/java/org/example/sdn/PolicyRepository.java",
+      "type": "SourceFile"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe"
+      },
+      "id": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyService.java",
+      "label": "PolicyService.java",
+      "language": "Java",
+      "logicalId": "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyService.java",
+      "relativePath": "src/main/java/org/example/sdn/PolicyService.java",
+      "type": "SourceFile"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/test/java/org/example/sdn/PolicyServiceTest.java",
+        "sourceHash": "sha256:84cf1435851b90bad7cdc4de0f72884dc8c9b4edd858f0cd4efe82c5259c6a0f"
+      },
+      "id": "code:repo-sdn-sample:file:src/test/java/org/example/sdn/PolicyServiceTest.java",
+      "label": "PolicyServiceTest.java",
+      "language": "Java",
+      "logicalId": "code:repo-sdn-sample:file:src/test/java/org/example/sdn/PolicyServiceTest.java",
+      "relativePath": "src/test/java/org/example/sdn/PolicyServiceTest.java",
+      "type": "SourceFile"
+    },
+    {
+      "annotations": [
+        "Service"
+      ],
+      "evidence": {
+        "endLine": 17,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
+        "startLine": 7
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator",
+      "label": "ConstraintEvaluator",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator",
+      "package": "org.example.sdn",
+      "qualifiedName": "org.example.sdn.ConstraintEvaluator",
+      "roles": [
+        "SpringService"
+      ],
+      "type": "Class"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 16,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
+        "startLine": 12
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)",
+      "label": "org.example.sdn.ConstraintEvaluator.evaluate",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)",
+      "methodName": "evaluate",
+      "returnType": "void",
+      "signature": "evaluate(NetworkPolicy,PolicyDeployRequest)",
+      "type": "Method"
+    },
+    {
+      "evidence": {
+        "endLine": 12,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
+        "startLine": 12
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)#parameter:0:policy",
+      "label": "policy",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)#parameter:0:policy",
+      "parameterType": "NetworkPolicy",
+      "position": 0,
+      "type": "Parameter"
+    },
+    {
+      "evidence": {
+        "endLine": 12,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
+        "startLine": 12
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)#parameter:1:request",
+      "label": "request",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)#parameter:1:request",
+      "parameterType": "PolicyDeployRequest",
+      "position": 1,
+      "type": "Parameter"
+    },
+    {
+      "annotations": [
+        "Value"
+      ],
+      "evidence": {
+        "endLine": 10,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "sourceHash": "sha256:a77df4b310dfae51847e562fde8907df9a50bb1c2743dcb27128a6d84d081618",
+        "startLine": 9
+      },
+      "fieldType": "Duration",
+      "id": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#field:bandwidthMaxAge",
+      "label": "bandwidthMaxAge",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#field:bandwidthMaxAge",
+      "type": "Field"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 4,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/DeploymentResult.java",
+        "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
+        "startLine": 3
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult",
+      "label": "DeploymentResult",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult",
+      "package": "org.example.sdn",
+      "qualifiedName": "org.example.sdn.DeploymentResult",
+      "roles": [],
+      "type": "Class"
+    },
+    {
+      "evidence": {
+        "endLine": 3,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/DeploymentResult.java",
+        "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
+        "startLine": 3
+      },
+      "fieldType": "long",
+      "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#field:policyId",
+      "label": "policyId",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#field:policyId",
+      "recordComponent": true,
+      "type": "Field"
+    },
+    {
+      "evidence": {
+        "endLine": 3,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/DeploymentResult.java",
+        "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
+        "startLine": 3
+      },
+      "fieldType": "String",
+      "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#field:status",
+      "label": "status",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#field:status",
+      "recordComponent": true,
+      "type": "Field"
+    },
+    {
+      "evidence": {
+        "endLine": 3,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/DeploymentResult.java",
+        "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
+        "startLine": 3
+      },
+      "generated": true,
+      "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#policyId()",
+      "label": "org.example.sdn.DeploymentResult.policyId",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#policyId()",
+      "methodName": "policyId",
+      "returnType": "long",
+      "signature": "policyId()",
+      "type": "Method"
+    },
+    {
+      "evidence": {
+        "endLine": 3,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/DeploymentResult.java",
+        "sourceHash": "sha256:dce8eeeb30a39d0c7f7d0c6fd829125dc85fb5650cbe9a2ee069fc27cb532381",
+        "startLine": 3
+      },
+      "generated": true,
+      "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#status()",
+      "label": "org.example.sdn.DeploymentResult.status",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#status()",
+      "methodName": "status",
+      "returnType": "String",
+      "signature": "status()",
+      "type": "Method"
+    },
+    {
+      "annotations": [
+        "Entity",
+        "Table"
+      ],
+      "evidence": {
+        "endLine": 22,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
+        "startLine": 7
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy",
+      "label": "NetworkPolicy",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy",
+      "package": "org.example.sdn",
+      "qualifiedName": "org.example.sdn.NetworkPolicy",
+      "roles": [
+        "PersistenceEntity"
+      ],
+      "type": "Class"
+    },
+    {
+      "annotations": [
+        "Id"
+      ],
+      "evidence": {
+        "endLine": 11,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
+        "startLine": 10
+      },
+      "fieldType": "long",
+      "id": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#field:id",
+      "label": "id",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#field:id",
+      "type": "Field"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 13,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
+        "startLine": 13
+      },
+      "fieldType": "int",
+      "id": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#field:minimumBandwidthMbps",
+      "label": "minimumBandwidthMbps",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#field:minimumBandwidthMbps",
+      "type": "Field"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 17,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
+        "startLine": 15
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#getId()",
+      "label": "org.example.sdn.NetworkPolicy.getId",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#getId()",
+      "methodName": "getId",
+      "returnType": "long",
+      "signature": "getId()",
+      "type": "Method"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 21,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "sourceHash": "sha256:35c6924145d5dcdf4c20001bfd4679c0f43ba20a736d6c9f8c6f94370e525043",
+        "startLine": 19
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#getMinimumBandwidthMbps()",
+      "label": "org.example.sdn.NetworkPolicy.getMinimumBandwidthMbps",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#getMinimumBandwidthMbps()",
+      "methodName": "getMinimumBandwidthMbps",
+      "returnType": "int",
+      "signature": "getMinimumBandwidthMbps()",
+      "type": "Method"
+    },
+    {
+      "annotations": [
+        "RequestMapping",
+        "RestController"
+      ],
+      "evidence": {
+        "endLine": 24,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyController.java",
+        "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
+        "startLine": 9
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController",
+      "label": "PolicyController",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyController",
+      "package": "org.example.sdn",
+      "qualifiedName": "org.example.sdn.PolicyController",
+      "roles": [
+        "SpringController"
+      ],
+      "type": "Class"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 16,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyController.java",
+        "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
+        "startLine": 14
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#PolicyController(PolicyService)",
+      "label": "org.example.sdn.PolicyController.PolicyController",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#PolicyController(PolicyService)",
+      "methodName": "PolicyController",
+      "returnType": "",
+      "signature": "PolicyController(PolicyService)",
+      "type": "Constructor"
+    },
+    {
+      "evidence": {
+        "endLine": 14,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyController.java",
+        "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
+        "startLine": 14
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#PolicyController(PolicyService)#parameter:0:service",
+      "label": "service",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#PolicyController(PolicyService)#parameter:0:service",
+      "parameterType": "PolicyService",
+      "position": 0,
+      "type": "Parameter"
+    },
+    {
+      "annotations": [
+        "PostMapping"
+      ],
+      "evidence": {
+        "endLine": 23,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyController.java",
+        "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
+        "startLine": 18
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)",
+      "label": "org.example.sdn.PolicyController.deploy",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)",
+      "methodName": "deploy",
+      "returnType": "DeploymentResult",
+      "signature": "deploy(long,PolicyDeployRequest)",
+      "type": "Method"
+    },
+    {
+      "evidence": {
+        "endLine": 20,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyController.java",
+        "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
+        "startLine": 20
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)#parameter:0:id",
+      "label": "id",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)#parameter:0:id",
+      "parameterType": "long",
+      "position": 0,
+      "type": "Parameter"
+    },
+    {
+      "evidence": {
+        "endLine": 21,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyController.java",
+        "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
+        "startLine": 21
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)#parameter:1:request",
+      "label": "request",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)#parameter:1:request",
+      "parameterType": "PolicyDeployRequest",
+      "position": 1,
+      "type": "Parameter"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 12,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyController.java",
+        "sourceHash": "sha256:b4fde85c6b29458447c559fc481485bc5257da19fe59bbfd1aa6599227e76788",
+        "startLine": 12
+      },
+      "fieldType": "PolicyService",
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#field:service",
+      "label": "service",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#field:service",
+      "type": "Field"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 4,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
+        "sourceHash": "sha256:a98f87810137e6ee36de71ceb9a736c7aa70aed7ae67dde23a0ca0eed8859a5a",
+        "startLine": 3
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest",
+      "label": "PolicyDeployRequest",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest",
+      "package": "org.example.sdn",
+      "qualifiedName": "org.example.sdn.PolicyDeployRequest",
+      "roles": [],
+      "type": "Class"
+    },
+    {
+      "evidence": {
+        "endLine": 3,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
+        "sourceHash": "sha256:a98f87810137e6ee36de71ceb9a736c7aa70aed7ae67dde23a0ca0eed8859a5a",
+        "startLine": 3
+      },
+      "fieldType": "Integer",
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest#field:minimumBandwidthMbps",
+      "label": "minimumBandwidthMbps",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest#field:minimumBandwidthMbps",
+      "recordComponent": true,
+      "type": "Field"
+    },
+    {
+      "evidence": {
+        "endLine": 3,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
+        "sourceHash": "sha256:a98f87810137e6ee36de71ceb9a736c7aa70aed7ae67dde23a0ca0eed8859a5a",
+        "startLine": 3
+      },
+      "generated": true,
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest#minimumBandwidthMbps()",
+      "label": "org.example.sdn.PolicyDeployRequest.minimumBandwidthMbps",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest#minimumBandwidthMbps()",
+      "methodName": "minimumBandwidthMbps",
+      "returnType": "Integer",
+      "signature": "minimumBandwidthMbps()",
+      "type": "Method"
+    },
+    {
+      "annotations": [
+        "Component"
+      ],
+      "evidence": {
+        "endLine": 12,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
+        "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb",
+        "startLine": 6
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener",
+      "label": "PolicyRejectedListener",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener",
+      "package": "org.example.sdn",
+      "qualifiedName": "org.example.sdn.PolicyRejectedListener",
+      "roles": [
+        "SpringComponent"
+      ],
+      "type": "Class"
+    },
+    {
+      "annotations": [
+        "KafkaListener"
+      ],
+      "evidence": {
+        "endLine": 11,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
+        "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb",
+        "startLine": 8
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)",
+      "label": "org.example.sdn.PolicyRejectedListener.onRejected",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)",
+      "methodName": "onRejected",
+      "returnType": "void",
+      "signature": "onRejected(DeploymentResult)",
+      "type": "Method"
+    },
+    {
+      "evidence": {
+        "endLine": 9,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
+        "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb",
+        "startLine": 9
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)#parameter:0:result",
+      "label": "result",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)#parameter:0:result",
+      "parameterType": "DeploymentResult",
+      "position": 0,
+      "type": "Parameter"
+    },
+    {
+      "annotations": [
+        "Repository"
+      ],
+      "evidence": {
+        "endLine": 11,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRepository.java",
+        "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
+        "startLine": 6
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository",
+      "label": "PolicyRepository",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository",
+      "package": "org.example.sdn",
+      "qualifiedName": "org.example.sdn.PolicyRepository",
+      "roles": [
+        "SpringRepository"
+      ],
+      "type": "Interface"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 8,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRepository.java",
+        "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
+        "startLine": 8
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)",
+      "label": "org.example.sdn.PolicyRepository.findPolicy",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)",
+      "methodName": "findPolicy",
+      "returnType": "NetworkPolicy",
+      "signature": "findPolicy(long)",
+      "type": "Method"
+    },
+    {
+      "evidence": {
+        "endLine": 8,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRepository.java",
+        "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
+        "startLine": 8
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)#parameter:0:id",
+      "label": "id",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)#parameter:0:id",
+      "parameterType": "long",
+      "position": 0,
+      "type": "Parameter"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 10,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRepository.java",
+        "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
+        "startLine": 10
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)",
+      "label": "org.example.sdn.PolicyRepository.savePolicy",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)",
+      "methodName": "savePolicy",
+      "returnType": "NetworkPolicy",
+      "signature": "savePolicy(NetworkPolicy)",
+      "type": "Method"
+    },
+    {
+      "evidence": {
+        "endLine": 10,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRepository.java",
+        "sourceHash": "sha256:3707467410b8e121a326eadfa47c1e6351cd6ea669b5887567fe79ff3d30b1c3",
+        "startLine": 10
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)#parameter:0:policy",
+      "label": "policy",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)#parameter:0:policy",
+      "parameterType": "NetworkPolicy",
+      "position": 0,
+      "type": "Parameter"
+    },
+    {
+      "annotations": [
+        "Service"
+      ],
+      "evidence": {
+        "endLine": 23,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
+        "startLine": 5
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService",
+      "label": "PolicyService",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyService",
+      "package": "org.example.sdn",
+      "qualifiedName": "org.example.sdn.PolicyService",
+      "roles": [
+        "SpringService"
+      ],
+      "type": "Class"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 15,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
+        "startLine": 10
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)",
+      "label": "org.example.sdn.PolicyService.PolicyService",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)",
+      "methodName": "PolicyService",
+      "returnType": "",
+      "signature": "PolicyService(PolicyRepository,ConstraintEvaluator)",
+      "type": "Constructor"
+    },
+    {
+      "evidence": {
+        "endLine": 11,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
+        "startLine": 11
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)#parameter:0:repository",
+      "label": "repository",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)#parameter:0:repository",
+      "parameterType": "PolicyRepository",
+      "position": 0,
+      "type": "Parameter"
+    },
+    {
+      "evidence": {
+        "endLine": 12,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
+        "startLine": 12
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)#parameter:1:evaluator",
+      "label": "evaluator",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)#parameter:1:evaluator",
+      "parameterType": "ConstraintEvaluator",
+      "position": 1,
+      "type": "Parameter"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 22,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
+        "startLine": 17
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)",
+      "label": "org.example.sdn.PolicyService.deploy",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)",
+      "methodName": "deploy",
+      "returnType": "DeploymentResult",
+      "signature": "deploy(long,PolicyDeployRequest)",
+      "type": "Method"
+    },
+    {
+      "evidence": {
+        "endLine": 17,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
+        "startLine": 17
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)#parameter:0:id",
+      "label": "id",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)#parameter:0:id",
+      "parameterType": "long",
+      "position": 0,
+      "type": "Parameter"
+    },
+    {
+      "evidence": {
+        "endLine": 17,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
+        "startLine": 17
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)#parameter:1:request",
+      "label": "request",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)#parameter:1:request",
+      "parameterType": "PolicyDeployRequest",
+      "position": 1,
+      "type": "Parameter"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 8,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
+        "startLine": 8
+      },
+      "fieldType": "ConstraintEvaluator",
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:evaluator",
+      "label": "evaluator",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:evaluator",
+      "type": "Field"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 7,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyService.java",
+        "sourceHash": "sha256:f1c1e437a7b608fbec3733d5fd4cf27aefbf397c4025245296f82255b6eda8fe",
+        "startLine": 7
+      },
+      "fieldType": "PolicyRepository",
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:repository",
+      "label": "repository",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:repository",
+      "type": "Field"
+    },
+    {
+      "annotations": [],
+      "evidence": {
+        "endLine": 26,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/test/java/org/example/sdn/PolicyServiceTest.java",
+        "sourceHash": "sha256:84cf1435851b90bad7cdc4de0f72884dc8c9b4edd858f0cd4efe82c5259c6a0f",
+        "startLine": 10
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest",
+      "label": "PolicyServiceTest",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest",
+      "package": "org.example.sdn",
+      "qualifiedName": "org.example.sdn.PolicyServiceTest",
+      "roles": [],
+      "type": "Class"
+    },
+    {
+      "annotations": [
+        "Test"
+      ],
+      "evidence": {
+        "endLine": 25,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/test/java/org/example/sdn/PolicyServiceTest.java",
+        "sourceHash": "sha256:84cf1435851b90bad7cdc4de0f72884dc8c9b4edd858f0cd4efe82c5259c6a0f",
+        "startLine": 11
+      },
+      "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "label": "org.example.sdn.PolicyServiceTest.deploysPolicyAfterConstraintEvaluation",
+      "logicalId": "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()",
+      "methodName": "deploysPolicyAfterConstraintEvaluation",
+      "returnType": "void",
+      "signature": "deploysPolicyAfterConstraintEvaluation()",
+      "type": "UnitTest"
+    },
+    {
+      "artifactId": "sdn-policy-service",
+      "buildSystem": "Maven",
+      "groupId": "org.example",
+      "id": "code:repo-sdn-sample:module:.",
+      "label": "java-spring-sample",
+      "logicalId": "code:repo-sdn-sample:module:.",
+      "packaging": "jar",
+      "relativePath": ".",
+      "type": "Module",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "id": "code:repo-sdn-sample:repository",
+      "label": "java-spring-sample",
+      "logicalId": "code:repo-sdn-sample:repository",
+      "type": "Repository"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/application.yml",
+        "sourceHash": "sha256:e07e715ee0b24ff01d57476f3bf879045dc931fcb93f3ddb3bf0fc9baa73d73e"
+      },
+      "id": "config:repo-sdn-sample:source:src/main/resources/application.yml",
+      "label": "application.yml",
+      "logicalId": "config:repo-sdn-sample:source:src/main/resources/application.yml",
+      "relativePath": "src/main/resources/application.yml",
+      "type": "ConfigurationSource"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/application.yml",
+        "sourceHash": "sha256:e07e715ee0b24ff01d57476f3bf879045dc931fcb93f3ddb3bf0fc9baa73d73e"
+      },
+      "id": "config:repo-sdn-sample:spring.datasource.password",
+      "key": "spring.datasource.password",
+      "label": "spring.datasource.password",
+      "logicalId": "config:repo-sdn-sample:spring.datasource.password",
+      "redacted": true,
+      "sensitive": true,
+      "type": "ConfigurationKey",
+      "valueType": "str"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/application.yml",
+        "sourceHash": "sha256:e07e715ee0b24ff01d57476f3bf879045dc931fcb93f3ddb3bf0fc9baa73d73e"
+      },
+      "id": "config:repo-sdn-sample:spring.datasource.url",
+      "key": "spring.datasource.url",
+      "label": "spring.datasource.url",
+      "logicalId": "config:repo-sdn-sample:spring.datasource.url",
+      "redacted": false,
+      "sensitive": false,
+      "type": "ConfigurationKey",
+      "value": "jdbc:postgresql://localhost/sdn",
+      "valueType": "str"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/application.yml",
+        "sourceHash": "sha256:e07e715ee0b24ff01d57476f3bf879045dc931fcb93f3ddb3bf0fc9baa73d73e"
+      },
+      "id": "config:repo-sdn-sample:topology.bandwidth.max-age",
+      "key": "topology.bandwidth.max-age",
+      "label": "topology.bandwidth.max-age",
+      "logicalId": "config:repo-sdn-sample:topology.bandwidth.max-age",
+      "redacted": false,
+      "sensitive": false,
+      "sourceKind": "@Value",
+      "type": "ConfigurationKey",
+      "value": "PT30S",
+      "valueType": "str"
+    },
+    {
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/db/migration/V1__create_network_policy.sql",
+        "sourceHash": "sha256:a60da49442c72aca44a92401102bd655e2b131cabf8dccb71fbfc9ce2200a434"
+      },
+      "id": "db:repo-sdn-sample:table:network_policy",
+      "label": "network_policy",
+      "logicalId": "db:repo-sdn-sample:table:network_policy",
+      "tableName": "network_policy",
+      "type": "Table"
+    },
+    {
+      "columnName": "id",
+      "dataType": "BIGINT",
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/db/migration/V1__create_network_policy.sql",
+        "sourceHash": "sha256:a60da49442c72aca44a92401102bd655e2b131cabf8dccb71fbfc9ce2200a434"
+      },
+      "id": "db:repo-sdn-sample:table:network_policy#column:id",
+      "label": "id",
+      "logicalId": "db:repo-sdn-sample:table:network_policy#column:id",
+      "position": 0,
+      "type": "Column"
+    },
+    {
+      "columnName": "minimum_bandwidth_mbps",
+      "dataType": "INTEGER",
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/db/migration/V1__create_network_policy.sql",
+        "sourceHash": "sha256:a60da49442c72aca44a92401102bd655e2b131cabf8dccb71fbfc9ce2200a434"
+      },
+      "id": "db:repo-sdn-sample:table:network_policy#column:minimum_bandwidth_mbps",
+      "label": "minimum_bandwidth_mbps",
+      "logicalId": "db:repo-sdn-sample:table:network_policy#column:minimum_bandwidth_mbps",
+      "position": 1,
+      "type": "Column"
+    },
+    {
+      "columnName": "status",
+      "dataType": "VARCHAR(32)",
+      "evidence": {
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/resources/db/migration/V1__create_network_policy.sql",
+        "sourceHash": "sha256:a60da49442c72aca44a92401102bd655e2b131cabf8dccb71fbfc9ce2200a434"
+      },
+      "id": "db:repo-sdn-sample:table:network_policy#column:status",
+      "label": "status",
+      "logicalId": "db:repo-sdn-sample:table:network_policy#column:status",
+      "position": 2,
+      "type": "Column"
+    },
+    {
+      "channel": "network-policy-rejected",
+      "evidence": {
+        "endLine": 11,
+        "extractor": "java-tree-sitter-0.2.0",
+        "source": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
+        "sourceHash": "sha256:1a0dee832cd524045fd3811bceab7a10d5338e0b517a7feb896343a27ca698fb",
+        "startLine": 8
+      },
+      "id": "message:repo-sdn-sample:kafka:network-policy-rejected",
+      "label": "network-policy-rejected",
+      "logicalId": "message:repo-sdn-sample:kafka:network-policy-rejected",
+      "technology": "Kafka",
+      "type": "EventType"
+    }
+  ],
+  "repositoryId": "repo-sdn-sample",
+  "schemaVersion": "code-ontology-graph-baseline/v1",
+  "summary": {
+    "edgeCount": 97,
+    "nodeCount": 71
+  }
+}

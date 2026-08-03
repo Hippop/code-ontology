@@ -415,6 +415,25 @@ def build_change_plan(
 
     proposal_by_id = {item["proposalId"]: item for item in proposals}
     proposals = [proposal_by_id[item] for item in sorted(proposal_by_id)]
+    desired_by_id = {
+        item["entityId"]: item for item in requirement["ir"]["desiredEntities"]
+    }
+    for proposal in proposals:
+        desired = desired_by_id.get(proposal.get("desiredEntityId"))
+        if desired is not None:
+            proposal["desiredEntity"] = {
+                key: desired[key]
+                for key in (
+                    "entityId",
+                    "entityType",
+                    "canonicalId",
+                    "label",
+                    "designTokens",
+                    "httpMethod",
+                    "path",
+                )
+                if key in desired
+            }
     acceptance = [
         item
         for item in requirement["ir"]["desiredEntities"]
@@ -490,6 +509,12 @@ def build_change_plan(
         "compatibilityAssessments": assessments,
         "verificationObligations": obligations,
         "implementationTasks": tasks,
+        "requirementContext": {
+            "scope": requirement["ir"].get("scope", []),
+            "implementationSuggestions": requirement["ir"].get(
+                "implementationSuggestions", []
+            ),
+        },
         "unresolvedQuestions": unresolved_questions,
         "architectureReview": None,
         "approval": None,

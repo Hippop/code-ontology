@@ -17,9 +17,10 @@ from tree_sitter import Language, Node, Parser
 
 from .errors import invalid
 
-EXTRACTOR_VERSION = "java-tree-sitter-0.1.0"
+EXTRACTOR_VERSION = "java-tree-sitter-0.2.0"
 _IGNORED_PARTS = frozenset(
     {
+        ".codegraph",
         ".git",
         ".gradle",
         ".idea",
@@ -154,7 +155,13 @@ def inspect_repository(
     branch = _safe_git(repository, "branch", "--show-current")
     workspace_revision = _workspace_revision(repository)
     git_status = _safe_git(
-        repository, "status", "--porcelain", "--untracked-files=all", "--", "."
+        repository,
+        "status",
+        "--porcelain",
+        "--untracked-files=all",
+        "--",
+        ".",
+        ":(exclude).codegraph/**",
     )
     dirty = bool(git_status)
     revision = (
@@ -191,6 +198,7 @@ class TypeInfo:
     fqn: str
     package: str
     imports: dict[str, str]
+    static_imports: dict[str, str]
     fields: dict[str, str] = field(default_factory=dict)
     methods: list[MethodInfo] = field(default_factory=list)
     extends: list[str] = field(default_factory=list)
@@ -209,6 +217,7 @@ class RepositoryScanner:
         self.methods: list[MethodInfo] = []
         self.failures: list[dict[str, str]] = []
         self.unresolved_calls: list[dict[str, str]] = []
+        self.external_calls: list[dict[str, str]] = []
         self.repository: Path
         self.repository_id: str
         self.revision: str
@@ -292,15 +301,18 @@ class RepositoryScanner:
             "nodeCount": len(self.nodes),
             "edgeCount": len(self.edges),
             "unresolvedCallCount": len(self.unresolved_calls),
+            "externalCallCount": len(self.external_calls),
             "relationCounts": dict(sorted(relation_counts.items())),
             "failures": self.failures,
             "unresolvedCalls": self.unresolved_calls[:200],
+            "externalCalls": self.external_calls[:200],
         }
         return {
             "repository": identity,
             "graph": {
                 "graphSpace": "current",
                 "revision": self.revision,
+                "repositoryId": self.repository_id,
                 "graphId": f"urn:graph:current:{self.repository_id}:{self.revision}",
                 "graphType": "Current",
                 "baseRevision": self.revision,
@@ -501,19 +513,21 @@ class RepositoryScanner:
             )
         package = ""
         imports: dict[str, str] = {}
+        static_imports: dict[str, str] = {}
         for child in tree.root_node.named_children:
             if child.type == "package_declaration":
                 text = _node_text(child, source)
                 package = text.removeprefix("package").rstrip(";").strip()
             elif child.type == "import_declaration":
                 text = _node_text(child, source)
-                imported = (
-                    text.removeprefix("import")
-                    .removeprefix("static")
-                    .rstrip(";")
-                    .strip()
-                )
-                imports[imported.rsplit(".", 1)[-1]] = imported
+                declaration = text.removeprefix("import").rstrip(";").strip()
+                is_static = declaration.startswith("static ")
+                imported = declaration.removeprefix("static ").strip()
+                key = imported.rsplit(".", 1)[-1]
+                if is_static:
+                    static_imports[key] = imported
+                else:
+                    imports[key] = imported
 
         relative = path.relative_to(self.repository).as_posix()
         file_id = f"code:{self.repository_id}:file:{relative}"
@@ -534,6 +548,7 @@ class RepositoryScanner:
                     path,
                     package,
                     imports,
+                    static_imports,
                     file_id,
                     None,
                 )
@@ -545,6 +560,7 @@ class RepositoryScanner:
         path: Path,
         package: str,
         imports: dict[str, str],
+        static_imports: dict[str, str],
         file_id: str,
         enclosing_fqn: str | None,
     ) -> None:
@@ -578,7 +594,7 @@ class RepositoryScanner:
         )
         self._add_edge(file_id, "code:declares", entity_id)
         self._add_edge(entity_id, "code:belongsToModule", self._module_for(path))
-        info = TypeInfo(entity_id, fqn, package, imports)
+        info = TypeInfo(entity_id, fqn, package, imports, static_imports)
         self.types[entity_id] = info
         self.type_by_simple_name.setdefault(name, []).append(entity_id)
 
@@ -626,6 +642,7 @@ class RepositoryScanner:
                     path,
                     package,
                     imports,
+                    static_imports,
                     file_id,
                     fqn,
                 )
@@ -981,6 +998,50 @@ class RepositoryScanner:
                                 edge["target"],
                             )
 
+    def _is_external_call(
+        self,
+        owner: TypeInfo,
+        method: MethodInfo,
+        invoked_object: str | None,
+        name: str,
+    ) -> bool:
+        def static_import_is_external(imported_name: str) -> bool:
+            imported = (
+                owner.static_imports.get(imported_name)
+                or owner.static_imports.get("*")
+            )
+            if not imported:
+                return False
+            imported_owner = (
+                imported.removesuffix(".*")
+                if imported.endswith(".*")
+                else imported.rsplit(".", 1)[0]
+            )
+            return not any(
+                candidate.fqn == imported_owner for candidate in self.types.values()
+            )
+
+        if not invoked_object or invoked_object == "this":
+            return static_import_is_external(name)
+
+        root_object = invoked_object.split(".", 1)[0]
+        raw_type = owner.fields.get(root_object) or method.variables.get(root_object)
+        if raw_type:
+            simple_type = _normalize_type(raw_type).rsplit(".", 1)[-1]
+            imported_type = owner.imports.get(simple_type)
+            if imported_type and self._resolve_type_id(raw_type, owner) is None:
+                return True
+        else:
+            imported_type = owner.imports.get(root_object)
+            if imported_type and self._resolve_type_id(imported_type, owner) is None:
+                return True
+
+        chained_static_call = re.match(r"([A-Za-z_$][\w$]*)\s*\(", invoked_object)
+        return bool(
+            chained_static_call
+            and static_import_is_external(chained_static_call.group(1))
+        )
+
     def _resolve_calls(self) -> None:
         method_index: dict[tuple[str, str, int], list[str]] = {}
         global_index: dict[tuple[str, int], list[str]] = {}
@@ -1026,15 +1087,17 @@ class RepositoryScanner:
                         evidenceType="StaticAST",
                     )
                 else:
-                    self.unresolved_calls.append(
-                        {
-                            "caller": method.entity_id,
-                            "object": invoked_object or "",
-                            "method": name,
-                            "arity": str(arity),
-                            "candidateCount": str(len(candidates)),
-                        }
-                    )
+                    call = {
+                        "caller": method.entity_id,
+                        "object": invoked_object or "",
+                        "method": name,
+                        "arity": str(arity),
+                        "candidateCount": str(len(candidates)),
+                    }
+                    if self._is_external_call(owner, method, invoked_object, name):
+                        self.external_calls.append(call)
+                    else:
+                        self.unresolved_calls.append(call)
 
     def _add_configuration_key(
         self, key: str, reader_id: str, path: Path, *, source_kind: str

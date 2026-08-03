@@ -1,6 +1,6 @@
 # Code Ontology
 
-面向代码知识图谱、语义变更识别、需求变更规划、OpenCode Agent 辅助实现与全链路波及分析的本体和系统设计。
+面向代码知识图谱、语义变更识别、需求变更规划、Codex/OpenCode Agent 辅助实现与全链路波及分析的本体和系统设计。
 
 本仓库建立从源码、调用、类型、字段数据流、数据库、API、消息、配置、测试、业务语义，到需求详细设计、Agent 实现、构建、部署和运行版本的统一模型。设计目标不是进行无约束图遍历，也不是让设计文档或 AI 候选直接污染当前代码事实，而是根据变更类型、关系语义、兼容边界、运行证据和规划规则，生成可解释、可评审、可实现、可对账的变更结论。
 
@@ -10,6 +10,11 @@
 - [可执行 Agent Gateway 与规划规则 MVP](docs/22-executable-agent-gateway-mvp.md)
 - [完整智能平台符合性审计与证据](docs/23-complete-platform-compliance-audit.md)
 - [核心功能完成矩阵](docs/24-core-function-completion-matrix.md)
+- [图谱文本快照与预期基线](docs/25-graph-text-snapshots-and-baselines.md)
+- [CodeGraph Sidecar 与图智能增强](docs/26-codegraph-sidecar-and-graph-intelligence.md)
+- [MCP 代码图谱 Server 与接入指南](docs/27-mcp-code-graph-server.md)
+- [本地 Codex 需求到代码图谱闭环](docs/29-local-codex-requirement-workflow.md)
+- [语言与技术栈复核](docs/30-technology-stack-review.md)
 - [正式设计文档目录](docs/README.md)
 - [总体架构](docs/00-overall-architecture.md)
 
@@ -30,7 +35,7 @@ Current + Desired
 → Approved Change Graph
 
 Approved Change
-→ OpenCode Agent + Skill
+→ Codex / OpenCode Agent
 → 代码和测试 Patch
 → Actual Graph
 → Reconciliation
@@ -70,10 +75,40 @@ python3 -m venv .venv
 .venv/bin/code-ontology-platform validate
 .venv/bin/code-ontology-platform scan examples/java-spring-sample \
   --repository-id repo-sdn-sample --include-graph
+.venv/bin/code-ontology-platform baseline compare \
+  examples/java-spring-sample \
+  examples/expected-graphs/java-spring-sample.current.graph.json
+.venv/bin/code-ontology-platform codegraph index examples/java-spring-sample \
+  --repository-id repo-sdn-sample
+.venv/bin/code-ontology-platform codegraph impact examples/java-spring-sample \
+  PolicyService --repository-id repo-sdn-sample
+.venv/bin/code-ontology-platform doctor
+.venv/bin/code-ontology-platform mcp
 .venv/bin/code-ontology-platform serve
 ```
 
 默认 API 为 `http://127.0.0.1:8080`。设置 `CODE_ONTOLOGY_API_TOKEN` 后，除 Health 和静态工作台外的 API 都需要 Bearer Token。
+
+每次发布图谱时都会同时写入 SQLite 和规范化 JSON 文本快照。默认文本目录为
+`<数据库文件名>.graphs/`，可通过 `CODE_ONTOLOGY_GRAPH_TEXT_ROOT` 修改。文本快照
+包含完整 Metadata、稳定排序的 Nodes/Edges、数量和内容 Hash。
+CodeGraph Sidecar 每次显式索引后也会在该目录的 `codegraph/` 子目录写出完整、
+带内容 Hash 的只读 JSON 图快照。
+
+示例代码库的预期语义图位于
+[`examples/expected-graphs/java-spring-sample.current.graph.json`](examples/expected-graphs/java-spring-sample.current.graph.json)。
+它排除了 Commit、时间戳和绝对路径等环境噪声，可用于后续自动扫描回归：
+
+```bash
+code-ontology-platform baseline generate \
+  examples/java-spring-sample \
+  examples/expected-graphs/java-spring-sample.current.graph.json \
+  --repository-id repo-sdn-sample
+
+code-ontology-platform scan examples/java-spring-sample \
+  --repository-id repo-sdn-sample \
+  --expected-graph examples/expected-graphs/java-spring-sample.current.graph.json
+```
 
 工作台：
 
@@ -92,6 +127,9 @@ code-ontology-platform serve --web-root web/dist
 ```text
 Repository / Snapshot / Scan / Graph Revision
 Graph Catalog / Bounded Query / Cross-Graph Compare
+CodeGraph Explore / Symbol Impact / Affected Tests / Index Freshness
+Hybrid Search / Community / Process / Cross-Repository Contract Graph
+Read-only stdio / Streamable HTTP MCP Server
 Design Document / Revision / Requirement IR / Review
 Persistent Requirement Workflow / Human Gate Resume / Failed-Stage Retry
 Alignment Candidate / Confirm / Reject / ImplementationSlice
@@ -103,7 +141,9 @@ Runtime Evidence
 Audit Event / Requirement Replay
 ```
 
-## OpenCode Agent + Skill
+## Codex / OpenCode Agent Runtime
+
+- [本地 Codex 需求到代码图谱闭环](docs/29-local-codex-requirement-workflow.md)
 
 - [OpenCode 项目权限与 MCP 配置](opencode.json)
 - [Agent 定义](.opencode/agents/)
@@ -113,7 +153,7 @@ Audit Event / Requirement Replay
 AI 层采用：
 
 ```text
-OpenCode Agent
+Codex / OpenCode Agent
 → 按角色编排任务
 
 SKILL.md
@@ -126,7 +166,19 @@ Custom Tool / MCP
 → 确认业务语义、关键映射、架构方案、破坏性变化、合并和发布
 ```
 
-项目提供需求编排、需求文档分析、代码图对齐、变更规划、独立架构复核、批准后实现和实现对账 Agent，以及八个窄职责 Skill。平台持久化调度各角色，在 Requirement、Alignment、Architecture 和 Change Approval Gate 暂停；失败后可只重试失败阶段。实现 Agent 只能在 Approved Change、独立 Worktree 和文件白名单存在时编辑代码，且禁止 Git Commit、Push、Merge 和生产部署。
+平台提供需求编排、需求文档分析、代码图对齐、变更规划、独立架构复核、批准后实现和实现对账角色。运行时 `auto` 优先选择本地 Codex CLI，没有 Codex 时使用 OpenCode；两者共用同一持久化状态机和治理契约。流程在 Requirement、Alignment、Architecture 和 Change Approval Gate 暂停，失败后可只重试失败阶段。实现 Agent 只能在 Approved Change、独立 Worktree 和文件白名单存在时编辑代码，且禁止 Git Commit、Push、Merge 和生产部署。
+
+本地 Codex 完整示例：
+
+```bash
+python3 scripts/run_codex_requirement_workflow.py \
+  --repository /absolute/path/to/clean/repository \
+  --design examples/designs/sdn-minimum-bandwidth.md \
+  --database /tmp/code-ontology-workflow.db \
+  --worktree-root /tmp/code-ontology-worktrees \
+  --rules rules/requirement-change-planning-rules.yaml \
+  --approve-gates
+```
 
 ## 核心原则
 
@@ -151,13 +203,17 @@ Custom Tool / MCP
 ```text
 src/code_ontology_platform/
   repository_scan.py       Java/Spring 和相邻工程资产抽取
+  graph_baseline.py        可移植预期图谱生成、校验和漂移对比
+  code_intelligence.py     CodeGraph Sidecar、陈旧协议和双图语义对比
+  graph_analysis.py        混合检索、社区、流程和跨仓契约图
+  mcp_gateway.py           只读 stdio / Streamable HTTP MCP Server
   document_ingestion.py    Design Revision 与 Requirement IR
   analysis_workflow.py     Alignment、ImplementationSlice、Diff、Plan
-  agent_runtime.py         OpenCode、Worktree、Policy、Patch、Test
+  agent_runtime.py         Codex/OpenCode、Worktree、Policy、Patch、Test
   verification_workflow.py Actual、Reconciliation、Impact、Release
   workflow_orchestration.py 多角色持久化状态机、人工 Gate 与失败恢复
   service.py               Gate 与应用工作流
-  store.py                 持久化、Artifact、审计链和重放
+  store.py                 SQLite/JSON 图双写、Artifact、审计链和重放
   http_api.py              平台 REST API 与 Web 静态资源
 
 web/                       React/TypeScript/Cytoscape 图谱工作台

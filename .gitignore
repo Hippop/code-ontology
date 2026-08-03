@@ -1,11 +1,14 @@
 __pycache__/
 *.py[cod]
+*.tsbuildinfo
 .pytest_cache/
 .venv/
 build/
 dist/
 node_modules/
+target/
 *.egg-info/
 data/*.db
 data/*.db-shm
 data/*.db-wal
+data/*.graphs/

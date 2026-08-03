@@ -1,0 +1,785 @@
+{
+  "actual": {
+    "edgeCount": 70,
+    "indexFingerprint": "sha256:85f890e66bfdc254731d8fbc28056ec49d430f59bfa0506a0a7ee12ca31099c2",
+    "nodeCount": 66
+  },
+  "contentHash": "sha256:08640a8d519ba72a5b7679ee9f1c1cf7a18c50cc88e7c162752e1b98f477019f",
+  "delta": {
+    "edgeCount": -25,
+    "nodeCount": -6
+  },
+  "differences": {
+    "missingExpectedNodes": [
+      {
+        "id": "api:repo-sdn-sample:schema:PolicyDeployRequest",
+        "label": "PolicyDeployRequest",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Schema"
+      },
+      {
+        "id": "api:repo-sdn-sample:schema:PolicyDeployRequest#field:minimumBandwidthMbps",
+        "label": "minimumBandwidthMbps",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "SchemaField"
+      },
+      {
+        "id": "artifact:maven:org.springframework.boot:spring-boot-starter-data-jpa",
+        "label": "org.springframework.boot:spring-boot-starter-data-jpa",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "BuildArtifact"
+      },
+      {
+        "id": "artifact:maven:org.springframework.boot:spring-boot-starter-test",
+        "label": "org.springframework.boot:spring-boot-starter-test",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "BuildArtifact"
+      },
+      {
+        "id": "artifact:maven:org.springframework.boot:spring-boot-starter-web",
+        "label": "org.springframework.boot:spring-boot-starter-web",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "BuildArtifact"
+      },
+      {
+        "id": "artifact:maven:org.springframework.kafka:spring-kafka",
+        "label": "org.springframework.kafka:spring-kafka",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "BuildArtifact"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)#parameter:0:policy",
+        "label": "policy",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)#parameter:1:request",
+        "label": "request",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult",
+        "label": "DeploymentResult",
+        "reason": "not-matched",
+        "type": "Class"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#field:policyId",
+        "label": "policyId",
+        "reason": "not-matched",
+        "type": "Field"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#field:status",
+        "label": "status",
+        "reason": "not-matched",
+        "type": "Field"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#policyId()",
+        "label": "org.example.sdn.DeploymentResult.policyId",
+        "reason": "not-matched",
+        "type": "Method"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.DeploymentResult#status()",
+        "label": "org.example.sdn.DeploymentResult.status",
+        "reason": "not-matched",
+        "type": "Method"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#PolicyController(PolicyService)#parameter:0:service",
+        "label": "service",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)#parameter:0:id",
+        "label": "id",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)#parameter:1:request",
+        "label": "request",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest",
+        "label": "PolicyDeployRequest",
+        "reason": "not-matched",
+        "type": "Class"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest#field:minimumBandwidthMbps",
+        "label": "minimumBandwidthMbps",
+        "reason": "not-matched",
+        "type": "Field"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyDeployRequest#minimumBandwidthMbps()",
+        "label": "org.example.sdn.PolicyDeployRequest.minimumBandwidthMbps",
+        "reason": "not-matched",
+        "type": "Method"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)#parameter:0:result",
+        "label": "result",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)#parameter:0:id",
+        "label": "id",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)#parameter:0:policy",
+        "label": "policy",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)#parameter:0:repository",
+        "label": "repository",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)#parameter:1:evaluator",
+        "label": "evaluator",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)#parameter:0:id",
+        "label": "id",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)#parameter:1:request",
+        "label": "request",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Parameter"
+      },
+      {
+        "id": "code:repo-sdn-sample:module:.",
+        "label": "java-spring-sample",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Module"
+      },
+      {
+        "id": "code:repo-sdn-sample:repository",
+        "label": "java-spring-sample",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Repository"
+      },
+      {
+        "id": "config:repo-sdn-sample:source:src/main/resources/application.yml",
+        "label": "application.yml",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "ConfigurationSource"
+      },
+      {
+        "id": "config:repo-sdn-sample:spring.datasource.password",
+        "label": "spring.datasource.password",
+        "reason": "not-matched",
+        "type": "ConfigurationKey"
+      },
+      {
+        "id": "config:repo-sdn-sample:spring.datasource.url",
+        "label": "spring.datasource.url",
+        "reason": "not-matched",
+        "type": "ConfigurationKey"
+      },
+      {
+        "id": "config:repo-sdn-sample:topology.bandwidth.max-age",
+        "label": "topology.bandwidth.max-age",
+        "reason": "not-matched",
+        "type": "ConfigurationKey"
+      },
+      {
+        "id": "db:repo-sdn-sample:table:network_policy",
+        "label": "network_policy",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Table"
+      },
+      {
+        "id": "db:repo-sdn-sample:table:network_policy#column:id",
+        "label": "id",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Column"
+      },
+      {
+        "id": "db:repo-sdn-sample:table:network_policy#column:minimum_bandwidth_mbps",
+        "label": "minimum_bandwidth_mbps",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Column"
+      },
+      {
+        "id": "db:repo-sdn-sample:table:network_policy#column:status",
+        "label": "status",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "Column"
+      },
+      {
+        "id": "message:repo-sdn-sample:kafka:network-policy-rejected",
+        "label": "network-policy-rejected",
+        "reason": "unsupported-by-codegraph-model",
+        "type": "EventType"
+      }
+    ],
+    "truncated": false,
+    "unmatchedSidecarNodes": [
+      {
+        "filePath": "pom.xml",
+        "id": "file:26b09b4a96deab05851cfeaf3213b2dc",
+        "kind": "file",
+        "name": "pom.xml"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyController.java",
+        "id": "import:047e02740291c005008950592de83612",
+        "kind": "import",
+        "name": "org.springframework.web.bind.annotation.RequestMapping"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyRepository.java",
+        "id": "import:0da40d28a8f8452129f75b06bbb349f9",
+        "kind": "import",
+        "name": "org.springframework.data.jpa.repository.JpaRepository"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
+        "id": "import:312887dce64a52f68b269064393e2cc9",
+        "kind": "import",
+        "name": "org.springframework.kafka.annotation.KafkaListener"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyRepository.java",
+        "id": "import:43a32c90fab4ce87cded52077423ce13",
+        "kind": "import",
+        "name": "org.springframework.stereotype.Repository"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyController.java",
+        "id": "import:5528f1a6c4c70496f6505a513ab113fd",
+        "kind": "import",
+        "name": "org.springframework.web.bind.annotation.PostMapping"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyService.java",
+        "id": "import:57dd074fa6d7c2847bfd313901d13d6c",
+        "kind": "import",
+        "name": "org.springframework.stereotype.Service"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyController.java",
+        "id": "import:71edfb1cda7c813445e837250e61faa2",
+        "kind": "import",
+        "name": "org.springframework.web.bind.annotation.RestController"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "id": "import:7eccfd963b4329c67d8ea9de8e6a7030",
+        "kind": "import",
+        "name": "jakarta.persistence.Id"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyController.java",
+        "id": "import:aca7c3f866aaa4ab16962478f59d3c9b",
+        "kind": "import",
+        "name": "org.springframework.web.bind.annotation.PathVariable"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "id": "import:ba36dc85ee7d3e74538906a71d3143b6",
+        "kind": "import",
+        "name": "jakarta.persistence.Entity"
+      },
+      {
+        "filePath": "src/test/java/org/example/sdn/PolicyServiceTest.java",
+        "id": "import:bec32ae0dd1506ea1c99fddc9b7f9eac",
+        "kind": "import",
+        "name": "org.junit.jupiter.api.Test"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
+        "id": "import:cbda72e162f0555c02a61f41b748e444",
+        "kind": "import",
+        "name": "org.springframework.stereotype.Component"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "id": "import:cc9081e4c82375102da96c28a34efdd9",
+        "kind": "import",
+        "name": "jakarta.persistence.Table"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyController.java",
+        "id": "import:d53cba88bde9a69b1988a7032560974d",
+        "kind": "import",
+        "name": "org.springframework.web.bind.annotation.RequestBody"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "id": "import:e489f63bc4c630d614dc98d39a0d4c55",
+        "kind": "import",
+        "name": "java.time.Duration"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "id": "import:f15285f81f363139117b4790e47877d3",
+        "kind": "import",
+        "name": "org.springframework.beans.factory.annotation.Value"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "id": "import:febd3e2e9d11b6dace4f0d4703340929",
+        "kind": "import",
+        "name": "org.springframework.stereotype.Service"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "id": "namespace:1faae45a7e6b41b0bf75a323c7e0aae9",
+        "kind": "namespace",
+        "name": "org.example.sdn"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyRepository.java",
+        "id": "namespace:5f5d66d59e7b72b2a32f0acfcff7d073",
+        "kind": "namespace",
+        "name": "org.example.sdn"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyDeployRequest.java",
+        "id": "namespace:6203d1e4abe71c4038adf01d4e567def",
+        "kind": "namespace",
+        "name": "org.example.sdn"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyService.java",
+        "id": "namespace:74c2ee6bb25ca68f452151acbdc8364a",
+        "kind": "namespace",
+        "name": "org.example.sdn"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/DeploymentResult.java",
+        "id": "namespace:82fceeb68ed0538e2829b32df7707f78",
+        "kind": "namespace",
+        "name": "org.example.sdn"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/NetworkPolicy.java",
+        "id": "namespace:86933099c11f26710318a01994f3136c",
+        "kind": "namespace",
+        "name": "org.example.sdn"
+      },
+      {
+        "filePath": "src/test/java/org/example/sdn/PolicyServiceTest.java",
+        "id": "namespace:982a0ce664446c12c7608ba590550256",
+        "kind": "namespace",
+        "name": "org.example.sdn"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyRejectedListener.java",
+        "id": "namespace:9bba2516fc99060ec8bee04960c8ad20",
+        "kind": "namespace",
+        "name": "org.example.sdn"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/PolicyController.java",
+        "id": "namespace:a8563928fbf262a0234acacda8cc038c",
+        "kind": "namespace",
+        "name": "org.example.sdn"
+      },
+      {
+        "filePath": "src/main/resources/application.yml",
+        "id": "spring-config:src/main/resources/application.yml:3:topology.bandwidth.max-age",
+        "kind": "constant",
+        "name": "max-age"
+      },
+      {
+        "filePath": "src/main/resources/application.yml",
+        "id": "spring-config:src/main/resources/application.yml:6:spring.datasource.url",
+        "kind": "constant",
+        "name": "url"
+      },
+      {
+        "filePath": "src/main/resources/application.yml",
+        "id": "spring-config:src/main/resources/application.yml:7:spring.datasource.password",
+        "kind": "constant",
+        "name": "password"
+      },
+      {
+        "filePath": "src/main/java/org/example/sdn/ConstraintEvaluator.java",
+        "id": "spring-value:src/main/java/org/example/sdn/ConstraintEvaluator.java:9:topology.bandwidth.max-age",
+        "kind": "constant",
+        "name": "topology.bandwidth.max-age"
+      }
+    ]
+  },
+  "expected": {
+    "contentHash": "sha256:f4db9165ab4810726f21452d8ebd26849b9c0fe43f9b7769a50d6e4d0d826e07",
+    "edgeCount": 95,
+    "nodeCount": 72
+  },
+  "mapping": {
+    "expectedToSidecar": {
+      "api:repo-sdn-sample:POST:/network-policies/{id}/deploy": "route:src/main/java/org/example/sdn/PolicyController.java:18:POST:/network-policies/{id}/deploy",
+      "code:repo-sdn-sample:file:src/main/java/org/example/sdn/ConstraintEvaluator.java": "file:src/main/java/org/example/sdn/ConstraintEvaluator.java",
+      "code:repo-sdn-sample:file:src/main/java/org/example/sdn/DeploymentResult.java": "file:src/main/java/org/example/sdn/DeploymentResult.java",
+      "code:repo-sdn-sample:file:src/main/java/org/example/sdn/NetworkPolicy.java": "file:src/main/java/org/example/sdn/NetworkPolicy.java",
+      "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyController.java": "file:src/main/java/org/example/sdn/PolicyController.java",
+      "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyDeployRequest.java": "file:src/main/java/org/example/sdn/PolicyDeployRequest.java",
+      "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRejectedListener.java": "file:src/main/java/org/example/sdn/PolicyRejectedListener.java",
+      "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyRepository.java": "file:src/main/java/org/example/sdn/PolicyRepository.java",
+      "code:repo-sdn-sample:file:src/main/java/org/example/sdn/PolicyService.java": "file:src/main/java/org/example/sdn/PolicyService.java",
+      "code:repo-sdn-sample:file:src/test/java/org/example/sdn/PolicyServiceTest.java": "file:src/test/java/org/example/sdn/PolicyServiceTest.java",
+      "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator": "class:455f1605f06c52e35e750ebec4469f20",
+      "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#evaluate(NetworkPolicy,PolicyDeployRequest)": "method:bba2d21fdf70da1438d161e65a0e7350",
+      "code:repo-sdn-sample:java:org.example.sdn.ConstraintEvaluator#field:bandwidthMaxAge": "field:df40a52e14cc45bb694f48ac8b5f4e35",
+      "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy": "class:175fa2970fa0e00dc97f297887a0dde4",
+      "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#field:id": "field:6cbd33a8df443c1c702b99714a5d6e93",
+      "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#field:minimumBandwidthMbps": "field:dc42b04d39bc930ed01ce9a105bf6557",
+      "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#getId()": "method:f77ed20ccb9a364232f0dbc0d32d8f03",
+      "code:repo-sdn-sample:java:org.example.sdn.NetworkPolicy#getMinimumBandwidthMbps()": "method:937f32ebc01a547733214c5b1906ee5d",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyController": "class:6b808a7fedbc7e46cc6a91f6c2baab4a",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyController#PolicyController(PolicyService)": "method:d0fcd0b5391a9b38404ac34724bfc292",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyController#deploy(long,PolicyDeployRequest)": "method:71208f56e52ca08bacae930efe6c94a6",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyController#field:service": "field:d781272fca405b4060950aa949e861c6",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener": "class:99358190ad191f60cc773f9f8c0df3ba",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyRejectedListener#onRejected(DeploymentResult)": "method:0abf20bd9021501064e651285475ad16",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository": "interface:09ce1bb1b49ade480bd8ad877d20b6f2",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#findPolicy(long)": "method:48438450c32a0963b7da0450b501e6ef",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyRepository#savePolicy(NetworkPolicy)": "method:6a5b1d9b7391dfbe01c3aaab66f368e6",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyService": "class:96125c272f028d08321653bd1f257255",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyService#PolicyService(PolicyRepository,ConstraintEvaluator)": "method:46404ecc5510eae32d5d8b73d31e1756",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyService#deploy(long,PolicyDeployRequest)": "method:21fba825f3f439ffde792eb3229ef0eb",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:evaluator": "field:018af692015f6e84a5dda7b0c9f0190a",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyService#field:repository": "field:f58efaf90dffa49b41e28ea1d6d4a90f",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest": "class:06917213d36f46037e2a2468f693a6de",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#deploysPolicyAfterConstraintEvaluation()": "method:79fd50b175e123e54434620090e3a893",
+      "code:repo-sdn-sample:java:org.example.sdn.PolicyServiceTest#field:service": "field:71b8c6430a71bb059fad048ea03fc3a8"
+    },
+    "modelNote": "CodeGraph 聚焦源码符号/调用；平台基线还包含参数、构建依赖、配置、API Schema、表列、事件等业务与契约实体。"
+  },
+  "provider": "codegraph",
+  "providerVersion": "1.5.0",
+  "relationCoverage": [
+    {
+      "coverage": 0.0,
+      "expected": 9,
+      "matched": 0,
+      "relation": "code:belongsToModule",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.833333,
+      "expected": 6,
+      "matched": 5,
+      "relation": "code:callsDirectly",
+      "sidecarKinds": [
+        "calls"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:consumesEvent",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "expected": 13,
+      "matched": 0,
+      "relation": "code:contains",
+      "sidecarKinds": [
+        "contains"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:dataDependsOn",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.4,
+      "expected": 45,
+      "matched": 18,
+      "relation": "code:declares",
+      "sidecarKinds": [
+        "contains"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "expected": 3,
+      "matched": 0,
+      "relation": "code:definesConfiguration",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "expected": 4,
+      "matched": 0,
+      "relation": "code:dependsOnArtifact",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:exposes",
+      "sidecarKinds": [
+        "contains",
+        "references"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "expected": 4,
+      "matched": 0,
+      "relation": "code:hasFieldType",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:hasSchemaField",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 1.0,
+      "expected": 1,
+      "matched": 1,
+      "relation": "code:implementsOperation",
+      "sidecarKinds": [
+        "contains",
+        "references"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:mappedToTable",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:readsConfiguration",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:readsTable",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:usesPayloadType",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:verifies",
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "expected": 1,
+      "matched": 0,
+      "relation": "code:writesTable",
+      "sidecarKinds": []
+    }
+  ],
+  "repositoryId": "repo-sdn-sample",
+  "schemaVersion": "codegraph-baseline-comparison/v1",
+  "semanticCoverage": {
+    "expectedEdgeCoverage": 0.252632,
+    "expectedNodeCoverage": 0.486111,
+    "matchedExpectedEdges": 24,
+    "matchedExpectedNodes": 35,
+    "matchedSidecarNodes": 35,
+    "sidecarNodeCoverage": 0.530303
+  },
+  "status": "Compared",
+  "typeCoverage": [
+    {
+      "coverage": 1.0,
+      "entityType": "APIOperation",
+      "expected": 1,
+      "matched": 1,
+      "sidecarKinds": [
+        "route"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "BuildArtifact",
+      "expected": 4,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.75,
+      "entityType": "Class",
+      "expected": 8,
+      "matched": 6,
+      "sidecarKinds": [
+        "class",
+        "enum",
+        "struct"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "Column",
+      "expected": 3,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "ConfigurationKey",
+      "expected": 3,
+      "matched": 0,
+      "sidecarKinds": [
+        "constant"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "ConfigurationSource",
+      "expected": 1,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 1.0,
+      "entityType": "Constructor",
+      "expected": 2,
+      "matched": 2,
+      "sidecarKinds": [
+        "function",
+        "method"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "EventType",
+      "expected": 1,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.7,
+      "entityType": "Field",
+      "expected": 10,
+      "matched": 7,
+      "sidecarKinds": [
+        "field",
+        "property"
+      ]
+    },
+    {
+      "coverage": 1.0,
+      "entityType": "Interface",
+      "expected": 1,
+      "matched": 1,
+      "sidecarKinds": [
+        "interface",
+        "trait"
+      ]
+    },
+    {
+      "coverage": 0.727273,
+      "entityType": "Method",
+      "expected": 11,
+      "matched": 8,
+      "sidecarKinds": [
+        "function",
+        "method"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "Module",
+      "expected": 1,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "Parameter",
+      "expected": 12,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "Repository",
+      "expected": 1,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "Schema",
+      "expected": 1,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "SchemaField",
+      "expected": 1,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 1.0,
+      "entityType": "SourceFile",
+      "expected": 9,
+      "matched": 9,
+      "sidecarKinds": [
+        "file"
+      ]
+    },
+    {
+      "coverage": 0.0,
+      "entityType": "Table",
+      "expected": 1,
+      "matched": 0,
+      "sidecarKinds": []
+    },
+    {
+      "coverage": 1.0,
+      "entityType": "UnitTest",
+      "expected": 1,
+      "matched": 1,
+      "sidecarKinds": [
+        "function",
+        "method"
+      ]
+    }
+  ]
+}

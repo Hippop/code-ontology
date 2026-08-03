@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "code-ontology-platform"
-version = "0.1.0"
+version = "0.3.0"
 description = "Executable Agent Gateway and deterministic change-planning slice for Code Ontology"
 readme = "README.md"
 requires-python = ">=3.11"

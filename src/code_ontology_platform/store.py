@@ -2,14 +2,19 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import re
 import sqlite3
+import tempfile
 import uuid
 from collections.abc import Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .errors import conflict
+from .errors import PlatformError, conflict
+
+GRAPH_TEXT_SCHEMA_VERSION = "code-ontology-graph-snapshot/v1"
 
 
 def canonical_json(value: Any) -> str:
@@ -24,14 +29,179 @@ def utc_now() -> str:
     return datetime.now(UTC).isoformat()
 
 
+def _safe_graph_filename(revision: str) -> str:
+    readable = re.sub(r"[^A-Za-z0-9._-]+", "-", revision).strip("-._")
+    readable = readable[:80] or "revision"
+    digest = hashlib.sha256(revision.encode("utf-8")).hexdigest()[:16]
+    return f"{readable}--{digest}.graph.json"
+
+
+def build_graph_text_snapshot(
+    *,
+    graph_space: str,
+    revision: str,
+    nodes: Iterable[Mapping[str, Any]],
+    edges: Iterable[Mapping[str, Any]],
+    metadata: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    node_values = sorted(
+        (dict(node) for node in nodes),
+        key=lambda item: item["id"],
+    )
+    edge_values = sorted(
+        (dict(edge) for edge in edges),
+        key=lambda item: (
+            item["source"],
+            item["relation"],
+            item["target"],
+        ),
+    )
+    snapshot = {
+        "schemaVersion": GRAPH_TEXT_SCHEMA_VERSION,
+        "graphSpace": graph_space,
+        "revision": revision,
+        "metadata": dict(metadata or {}),
+        "summary": {
+            "nodeCount": len(node_values),
+            "edgeCount": len(edge_values),
+        },
+        "nodes": node_values,
+        "edges": edge_values,
+    }
+    snapshot["contentHash"] = content_hash(snapshot)
+    return snapshot
+
+
 class SQLiteStore:
     """Small durable store that keeps graph spaces and Agent artifacts separate."""
 
-    def __init__(self, database: str | Path) -> None:
+    def __init__(
+        self,
+        database: str | Path,
+        graph_text_root: str | Path | None = None,
+    ) -> None:
         self.database = str(database)
         if self.database != ":memory:":
-            Path(self.database).parent.mkdir(parents=True, exist_ok=True)
+            database_path = Path(self.database).resolve()
+            database_path.parent.mkdir(parents=True, exist_ok=True)
+            configured_root = graph_text_root or os.environ.get(
+                "CODE_ONTOLOGY_GRAPH_TEXT_ROOT"
+            )
+            self.graph_text_root = (
+                Path(configured_root).resolve()
+                if configured_root is not None
+                else database_path.parent / f"{database_path.stem}.graphs"
+            )
+            self.graph_text_root.mkdir(parents=True, exist_ok=True)
+        else:
+            self.graph_text_root = (
+                Path(graph_text_root).resolve() if graph_text_root is not None else None
+            )
+            if self.graph_text_root is not None:
+                self.graph_text_root.mkdir(parents=True, exist_ok=True)
         self.initialize()
+
+    def graph_text_snapshot_path(self, graph_space: str, revision: str) -> Path | None:
+        if self.graph_text_root is None:
+            return None
+        return (
+            self.graph_text_root
+            / re.sub(r"[^A-Za-z0-9._-]+", "-", graph_space)
+            / _safe_graph_filename(revision)
+        )
+
+    def graph_text_snapshot_info(
+        self, graph_space: str, revision: str
+    ) -> dict[str, Any] | None:
+        path = self.graph_text_snapshot_path(graph_space, revision)
+        if path is None or not path.is_file():
+            return None
+        document = self._load_graph_text_document(path, graph_space, revision)
+        return {
+            "format": "application/json",
+            "schemaVersion": document["schemaVersion"],
+            "relativePath": path.relative_to(self.graph_text_root).as_posix(),
+            "contentHash": document["contentHash"],
+        }
+
+    def read_graph_text_snapshot(
+        self, graph_space: str, revision: str
+    ) -> dict[str, Any] | None:
+        path = self.graph_text_snapshot_path(graph_space, revision)
+        if path is None or not path.is_file():
+            return None
+        document = self._load_graph_text_document(path, graph_space, revision)
+        expected_hash = document.get("contentHash")
+        value_without_hash = {
+            key: value for key, value in document.items() if key != "contentHash"
+        }
+        if expected_hash != content_hash(value_without_hash):
+            raise PlatformError(
+                409,
+                "GRAPH_TEXT_INTEGRITY_ERROR",
+                f"图文本快照内容 Hash 校验失败: {graph_space}/{revision}",
+            )
+        return document
+
+    @staticmethod
+    def _load_graph_text_document(
+        path: Path,
+        graph_space: str,
+        revision: str,
+    ) -> dict[str, Any]:
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            raise PlatformError(
+                409,
+                "GRAPH_TEXT_INTEGRITY_ERROR",
+                f"无法读取图文本快照: {graph_space}/{revision}",
+            ) from error
+        if not isinstance(document, dict):
+            raise PlatformError(
+                409,
+                "GRAPH_TEXT_INTEGRITY_ERROR",
+                f"图文本快照根节点不是 JSON Object: {graph_space}/{revision}",
+            )
+        return document
+
+    def _write_graph_text_snapshot(
+        self,
+        document: Mapping[str, Any],
+    ) -> dict[str, Any] | None:
+        graph_space = str(document["graphSpace"])
+        revision = str(document["revision"])
+        path = self.graph_text_snapshot_path(graph_space, revision)
+        if path is None:
+            return None
+        path.parent.mkdir(parents=True, exist_ok=True)
+        serialized = (
+            json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        )
+        temporary_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                "w",
+                encoding="utf-8",
+                dir=path.parent,
+                prefix=f".{path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as temporary:
+                temporary.write(serialized)
+                temporary.flush()
+                os.fsync(temporary.fileno())
+                temporary_path = Path(temporary.name)
+            os.replace(temporary_path, path)
+        finally:
+            if temporary_path is not None and temporary_path.exists():
+                temporary_path.unlink()
+        return {
+            "format": "application/json",
+            "schemaVersion": document["schemaVersion"],
+            "relativePath": path.relative_to(self.graph_text_root).as_posix(),
+            "contentHash": document["contentHash"],
+        }
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.database, timeout=10)
@@ -303,6 +473,24 @@ class SQLiteStore:
                 CREATE INDEX IF NOT EXISTS graph_edges_target_idx
                     ON graph_edges(graph_space, revision, target_id);
 
+                CREATE TABLE IF NOT EXISTS code_intelligence_indexes (
+                    provider TEXT NOT NULL,
+                    repository_id TEXT NOT NULL,
+                    revision TEXT NOT NULL,
+                    repository_path TEXT NOT NULL,
+                    index_path TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    fingerprint TEXT NOT NULL,
+                    payload_json TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (provider, repository_id, revision)
+                );
+
+                CREATE INDEX IF NOT EXISTS code_intelligence_indexes_latest_idx
+                    ON code_intelligence_indexes(
+                        provider, repository_id, updated_at DESC
+                    );
+
                 CREATE TABLE IF NOT EXISTS agent_artifacts (
                     artifact_id TEXT PRIMARY KEY,
                     run_id TEXT NOT NULL,
@@ -450,6 +638,31 @@ class SQLiteStore:
             "updatedAt": row["updated_at"],
         }
 
+    def list_repositories(self, limit: int = 500) -> list[dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT repository_id, name, path, default_branch,
+                       metadata_json, created_at, updated_at
+                FROM repositories
+                ORDER BY updated_at DESC, repository_id
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [
+            {
+                "repositoryId": row["repository_id"],
+                "name": row["name"],
+                "path": row["path"],
+                "defaultBranch": row["default_branch"],
+                "metadata": json.loads(row["metadata_json"]),
+                "createdAt": row["created_at"],
+                "updatedAt": row["updated_at"],
+            }
+            for row in rows
+        ]
+
     def put_repository_snapshot(self, snapshot: Mapping[str, Any]) -> dict[str, Any]:
         now = utc_now()
         value = dict(snapshot)
@@ -569,7 +782,7 @@ class SQLiteStore:
                 LEFT JOIN graph_metadata g
                   ON g.graph_space = 'current' AND g.revision = r.revision
                 WHERE r.repository_id = ?
-                ORDER BY r.created_at DESC
+                ORDER BY r.created_at DESC, r.run_id DESC
                 """,
                 (repository_id,),
             ).fetchall()
@@ -1243,9 +1456,22 @@ class SQLiteStore:
         nodes: Iterable[Mapping[str, Any]],
         edges: Iterable[Mapping[str, Any]],
         metadata: Mapping[str, Any] | None = None,
-    ) -> None:
+    ) -> dict[str, Any] | None:
         node_values = [dict(node) for node in nodes]
         edge_values = [dict(edge) for edge in edges]
+        snapshot_metadata = dict(metadata or {})
+        snapshot_metadata.pop("textSnapshot", None)
+        text_document = build_graph_text_snapshot(
+            graph_space=graph_space,
+            revision=revision,
+            nodes=node_values,
+            edges=edge_values,
+            metadata=snapshot_metadata,
+        )
+        text_snapshot = self._write_graph_text_snapshot(text_document)
+        stored_metadata = dict(snapshot_metadata)
+        if text_snapshot is not None:
+            stored_metadata["textSnapshot"] = text_snapshot
         with self._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             connection.execute(
@@ -1269,14 +1495,14 @@ class SQLiteStore:
                 "DELETE FROM graph_metadata WHERE graph_space = ? AND revision = ?",
                 (graph_space, revision),
             )
-            if metadata is not None:
+            if stored_metadata:
                 connection.execute(
                     """
                     INSERT INTO graph_metadata(
                         graph_space, revision, metadata_json
                     ) VALUES (?, ?, ?)
                     """,
-                    (graph_space, revision, canonical_json(metadata)),
+                    (graph_space, revision, canonical_json(stored_metadata)),
                 )
             for node in node_values:
                 connection.execute(
@@ -1309,6 +1535,7 @@ class SQLiteStore:
                         canonical_json(edge),
                     ),
                 )
+        return text_snapshot
 
     def latest_graph_revision(self, graph_space: str) -> str | None:
         with self._connect() as connection:
@@ -1323,6 +1550,20 @@ class SQLiteStore:
                 (graph_space,),
             ).fetchone()
         return row["revision"] if row else None
+
+    def get_graph_metadata(
+        self, graph_space: str, revision: str
+    ) -> dict[str, Any] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT metadata_json
+                FROM graph_metadata
+                WHERE graph_space = ? AND revision = ?
+                """,
+                (graph_space, revision),
+            ).fetchone()
+        return json.loads(row["metadata_json"]) if row else None
 
     def list_graph_revisions(
         self, graph_space: str | None = None, limit: int = 500
@@ -1402,6 +1643,57 @@ class SQLiteStore:
             [json.loads(row["payload_json"]) for row in node_rows],
             [json.loads(row["payload_json"]) for row in edge_rows],
         )
+
+    def put_code_intelligence_index(
+        self, index: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        value = dict(index)
+        value["updatedAt"] = value.get("updatedAt") or utc_now()
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO code_intelligence_indexes(
+                    provider, repository_id, revision, repository_path,
+                    index_path, status, fingerprint, payload_json, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(provider, repository_id, revision)
+                DO UPDATE SET
+                    repository_path = excluded.repository_path,
+                    index_path = excluded.index_path,
+                    status = excluded.status,
+                    fingerprint = excluded.fingerprint,
+                    payload_json = excluded.payload_json,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    value["provider"],
+                    value["repositoryId"],
+                    value["revision"],
+                    value["repositoryPath"],
+                    value["indexPath"],
+                    value["status"],
+                    value["fingerprint"],
+                    canonical_json(value),
+                    value["updatedAt"],
+                ),
+            )
+        return value
+
+    def latest_code_intelligence_index(
+        self, provider: str, repository_id: str
+    ) -> dict[str, Any] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT payload_json
+                FROM code_intelligence_indexes
+                WHERE provider = ? AND repository_id = ?
+                ORDER BY updated_at DESC, revision DESC
+                LIMIT 1
+                """,
+                (provider, repository_id),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row else None
 
     def record_artifact(
         self,

@@ -10,7 +10,13 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 
 from code_ontology_platform.errors import PlatformError
+from code_ontology_platform.graph_baseline import (
+    compare_graph_baseline,
+    load_graph_baseline,
+)
 from code_ontology_platform.http_api import handler_for
+from code_ontology_platform.models import GRAPH_SPACES
+from code_ontology_platform.repository_scan import RepositoryScanner
 from code_ontology_platform.semantic_validation import validate_semantic_assets
 from code_ontology_platform.service import PlatformService
 from code_ontology_platform.store import SQLiteStore
@@ -19,6 +25,9 @@ ROOT = Path(__file__).resolve().parents[1]
 RULES = ROOT / "rules" / "requirement-change-planning-rules.yaml"
 JAVA_SAMPLE = ROOT / "examples" / "java-spring-sample"
 DESIGN_SAMPLE = ROOT / "examples" / "designs" / "sdn-minimum-bandwidth.md"
+EXPECTED_JAVA_GRAPH = (
+    ROOT / "examples" / "expected-graphs" / "java-spring-sample.current.graph.json"
+)
 
 
 class PlatformServiceTest(unittest.TestCase):
@@ -115,6 +124,84 @@ class PlatformServiceTest(unittest.TestCase):
         self.assertEqual(3, overview["summary"]["totalNodes"])
         self.assertEqual(2, overview["summary"]["totalEdges"])
         self.assertEqual([], overview["paths"])
+
+    def test_graph_publish_dual_writes_database_and_text_snapshot(self) -> None:
+        nodes = [
+            {"id": "service", "type": "Class", "label": "PolicyService"},
+            {"id": "controller", "type": "Class", "label": "PolicyController"},
+        ]
+        edges = [
+            {
+                "source": "controller",
+                "relation": "code:callsDirectly",
+                "target": "service",
+            }
+        ]
+        text_snapshot = self.service.replace_graph(
+            "current",
+            "commit:text/snapshot",
+            list(reversed(nodes)),
+            edges,
+            metadata={"graphId": "urn:graph:current:text"},
+        )
+
+        self.assertIsNotNone(text_snapshot)
+        self.assertEqual("application/json", text_snapshot["format"])
+        self.assertTrue(text_snapshot["relativePath"].endswith(".graph.json"))
+        document = self.service.store.read_graph_text_snapshot(
+            "current", "commit:text/snapshot"
+        )
+        self.assertEqual(
+            ["controller", "service"],
+            [node["id"] for node in document["nodes"]],
+        )
+        self.assertEqual(2, document["summary"]["nodeCount"])
+        self.assertEqual(1, document["summary"]["edgeCount"])
+        database_nodes, database_edges = self.service.store.read_graph(
+            "current", "commit:text/snapshot"
+        )
+        self.assertEqual(database_nodes, document["nodes"])
+        self.assertEqual(database_edges, document["edges"])
+        catalog = self.service.graph_catalog("current")
+        self.assertEqual(
+            text_snapshot,
+            catalog["revisions"][0]["metadata"]["textSnapshot"],
+        )
+
+        path = self.service.store.graph_text_root / text_snapshot["relativePath"]
+        first_bytes = path.read_bytes()
+        self.service.replace_graph(
+            "current",
+            "commit:text/snapshot",
+            nodes,
+            edges,
+            metadata={"graphId": "urn:graph:current:text"},
+        )
+        self.assertEqual(first_bytes, path.read_bytes())
+        for graph_space in GRAPH_SPACES - {"current"}:
+            other_snapshot = self.service.replace_graph(
+                graph_space,
+                f"{graph_space}-text-revision",
+                [{"id": f"{graph_space}:entity", "type": "GraphEntity"}],
+                [],
+            )
+            self.assertTrue(
+                (
+                    self.service.store.graph_text_root / other_snapshot["relativePath"]
+                ).is_file()
+            )
+
+        tampered = json.loads(path.read_text(encoding="utf-8"))
+        tampered["nodes"][0]["label"] = "Tampered"
+        path.write_text(
+            json.dumps(tampered, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        with self.assertRaises(PlatformError) as raised:
+            self.service.store.read_graph_text_snapshot(
+                "current", "commit:text/snapshot"
+            )
+        self.assertEqual("GRAPH_TEXT_INTEGRITY_ERROR", raised.exception.code)
 
     def test_graph_compare_returns_entity_relation_and_field_differences(self) -> None:
         self.service.replace_graph(
@@ -360,7 +447,9 @@ class PlatformServiceTest(unittest.TestCase):
         self.assertEqual("Completed", run["status"])
         self.assertEqual(9, run["coverage"]["parsedJavaFiles"])
         self.assertEqual(0, run["coverage"]["unresolvedCallCount"])
-        self.assertIn("workspace:", run["revision"])
+        self.assertEqual(7, run["coverage"]["externalCallCount"])
+        self.assertTrue(run["revision"])
+        self.assertIsNotNone(run["graphTextSnapshot"])
         sensitive = [
             node for node in run["graph"]["nodes"] if node.get("sensitive") is True
         ]
@@ -400,6 +489,37 @@ class PlatformServiceTest(unittest.TestCase):
         )
         revisions = self.service.repository_graph_revisions(repository["repositoryId"])
         self.assertEqual(run["runId"], revisions["revisions"][0]["runId"])
+
+    def test_expected_example_graph_matches_fresh_scan_and_detects_drift(
+        self,
+    ) -> None:
+        expected = load_graph_baseline(EXPECTED_JAVA_GRAPH)
+        actual = RepositoryScanner().scan(
+            JAVA_SAMPLE,
+            str(expected["repositoryId"]),
+        )["graph"]
+        comparison = compare_graph_baseline(expected, actual)
+
+        self.assertEqual("Matched", comparison["status"])
+        self.assertEqual(0, comparison["summary"]["differenceCount"])
+        serialized = json.dumps(expected, ensure_ascii=False)
+        self.assertNotIn(str(JAVA_SAMPLE.resolve()), serialized)
+        self.assertNotIn('"revision"', serialized)
+
+        drifted = json.loads(json.dumps(actual))
+        policy_service = next(
+            node
+            for node in drifted["nodes"]
+            if node["id"].endswith("java:org.example.sdn.PolicyService")
+        )
+        policy_service["label"] = "ChangedPolicyService"
+        drift = compare_graph_baseline(expected, drifted)
+        self.assertEqual("Drifted", drift["status"])
+        self.assertEqual(1, drift["summary"]["differenceCount"])
+        self.assertEqual(
+            ["label"],
+            drift["nodeDifferences"][0]["changedFields"],
+        )
 
     def test_design_document_to_confirmed_requirement_and_desired_graph(
         self,
@@ -555,11 +675,23 @@ class PlatformServiceTest(unittest.TestCase):
         self.assertIn("ProposedBehaviorChange", change_types)
         self.assertIn("ProposedContractChange", change_types)
         self.assertIn("ProposedConfigurationChange", change_types)
-        self.assertIn("ProposedDataMigration", change_types)
+        self.assertNotIn("ProposedDataMigration", change_types)
         self.assertIn("ProposedTestChange", change_types)
         self.assertIn("ProposedDeploymentChange", change_types)
         self.assertTrue(
             any(item["role"] == "AddMessageSchema" for item in plan["proposals"])
+        )
+        self.assertTrue(
+            all(
+                item.get("desiredEntity", {}).get("label")
+                for item in plan["proposals"]
+            )
+        )
+        self.assertTrue(
+            any(
+                "不新增数据库表" in item
+                for item in plan["requirementContext"]["scope"]
+            )
         )
         self.assertEqual(len(plan["proposals"]), len(plan["implementationTasks"]))
         proposed_nodes, proposed_edges = self.service.store.read_graph(

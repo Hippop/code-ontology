@@ -561,6 +561,10 @@ class RequirementWorkflowOrchestrator:
             self._run_architecture_review(workflow, plan, correlation_id, actor)
         elif failed_stage == "Implementation":
             self._run_implementation_and_verification(workflow, correlation_id, actor)
+        elif failed_stage == "Reconciliation":
+            self._run_reconciliation_and_verification(
+                workflow, correlation_id, actor
+            )
         elif failed_stage == "verification-agent":
             self._run_verification_agent(workflow, correlation_id, actor)
         else:
@@ -966,6 +970,7 @@ class RequirementWorkflowOrchestrator:
             status=agent_run["status"],
             resource={"agentRunId": agent_run["runId"]},
         )
+        self.store.put_workflow_run(workflow)
         if agent_run["status"] != "Completed":
             workflow.update(
                 {
@@ -981,20 +986,94 @@ class RequirementWorkflowOrchestrator:
                 }
             )
             return
-        reconciliation = self.platform.create_reconciliation_run(
-            {"agentRunId": agent_run["runId"], "actor": "verification-agent"},
-            correlation_id,
+        self._run_reconciliation_and_verification(
+            workflow, correlation_id, actor
         )
-        workflow["resourceIds"]["reconciliationRunId"] = reconciliation["runId"]
-        impact = self.platform.create_impact_run(
+
+    def _run_reconciliation_and_verification(
+        self,
+        workflow: dict[str, Any],
+        correlation_id: str | None,
+        actor: str,
+    ) -> None:
+        agent_run_id = workflow["resourceIds"]["agentRunId"]
+        workflow.update(
             {
-                "reconciliationRunId": reconciliation["runId"],
-                "actor": "verification-agent",
-            },
-            correlation_id,
+                "status": "Running",
+                "stage": "Reconciliation",
+                "pendingGate": None,
+                "nextActions": [],
+            }
         )
-        workflow["resourceIds"]["impactRunId"] = impact["runId"]
-        self._run_verification_agent(workflow, correlation_id, actor)
+        self._step(
+            workflow,
+            stage="Reconciliation",
+            status="Running",
+            resource={"agentRunId": agent_run_id},
+        )
+        self.store.put_workflow_run(workflow)
+        failure: dict[str, Any] | None = None
+        try:
+            reconciliation = self.platform.create_reconciliation_run(
+                {
+                    "agentRunId": agent_run_id,
+                    "actor": "verification-agent",
+                },
+                correlation_id,
+            )
+            workflow["resourceIds"]["reconciliationRunId"] = reconciliation[
+                "runId"
+            ]
+            impact = self.platform.create_impact_run(
+                {
+                    "reconciliationRunId": reconciliation["runId"],
+                    "actor": "verification-agent",
+                },
+                correlation_id,
+            )
+            workflow["resourceIds"]["impactRunId"] = impact["runId"]
+            self._step(
+                workflow,
+                stage="Reconciliation",
+                status="Completed",
+                resource={
+                    "reconciliationRunId": reconciliation["runId"],
+                    "impactRunId": impact["runId"],
+                },
+            )
+            self.store.put_workflow_run(workflow)
+            self._run_verification_agent(workflow, correlation_id, actor)
+        except PlatformError as error:
+            failure = {
+                "code": error.code,
+                "message": error.message,
+                "details": error.details,
+            }
+        except Exception as error:  # noqa: BLE001 - persist orchestration boundary.
+            failure = {
+                "code": "RECONCILIATION_FAILED",
+                "message": str(error)[:1000],
+            }
+        if failure is not None:
+            workflow.update(
+                {
+                    "status": "Failed",
+                    "stage": "Reconciliation",
+                    "pendingGate": None,
+                    "error": failure,
+                    "nextActions": [
+                        "InspectAgentRun",
+                        "RetryFailedStage",
+                    ],
+                }
+            )
+            self._step(
+                workflow,
+                stage="Reconciliation",
+                status="Failed",
+                resource={"agentRunId": agent_run_id},
+                detail=workflow["error"],
+            )
 
     def _run_verification_agent(
         self,
