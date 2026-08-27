@@ -1,0 +1,81 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix eng:  <https://example.org/code-ontology/engineering#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://example.org/code-ontology/engineering>
+    a owl:Ontology ;
+    owl:imports <https://example.org/code-ontology> ;
+    rdfs:label "Engineering intent, contract and verification ontology"@en ;
+    rdfs:label "工程意图、契约与验证本体"@zh .
+
+eng:EngineeringRequirement a owl:Class ; rdfs:subClassOf code:Requirement .
+
+eng:RequirementContract a owl:Class ; rdfs:subClassOf code:ContractEntity .
+eng:SpecificationContract a owl:Class ; rdfs:subClassOf eng:RequirementContract .
+eng:BehaviorContract a owl:Class ; rdfs:subClassOf eng:RequirementContract .
+eng:ConstraintContract a owl:Class ; rdfs:subClassOf eng:RequirementContract .
+eng:StateContract a owl:Class ; rdfs:subClassOf eng:RequirementContract .
+eng:InputOutputContract a owl:Class ; rdfs:subClassOf eng:RequirementContract .
+
+eng:OntologyAsset a owl:Class ; rdfs:subClassOf code:ImpactAnalysisEntity .
+eng:SemanticContract a owl:Class ; rdfs:subClassOf code:ContractEntity .
+
+eng:VerificationObjective a owl:Class ; rdfs:subClassOf code:VerificationEntity .
+eng:VerificationMethod a owl:Class ; rdfs:subClassOf code:VerificationEntity .
+eng:TestVerification a owl:Class ; rdfs:subClassOf eng:VerificationMethod .
+eng:FormalProofVerification a owl:Class ; rdfs:subClassOf eng:VerificationMethod .
+eng:AnalysisVerification a owl:Class ; rdfs:subClassOf eng:VerificationMethod .
+eng:InspectionVerification a owl:Class ; rdfs:subClassOf eng:VerificationMethod .
+eng:DemonstrationVerification a owl:Class ; rdfs:subClassOf eng:VerificationMethod .
+
+eng:VerificationEvidence a owl:Class ; rdfs:subClassOf code:ImpactEvidence .
+eng:TestExecutionEvidence a owl:Class ; rdfs:subClassOf eng:VerificationEvidence .
+eng:ProofEvidence a owl:Class ; rdfs:subClassOf eng:VerificationEvidence .
+eng:AnalysisEvidence a owl:Class ; rdfs:subClassOf eng:VerificationEvidence .
+
+eng:EngineeringSubmodel a owl:Class ; rdfs:subClassOf code:ImpactAnalysisEntity .
+
+eng:specifiesCapability a owl:ObjectProperty ;
+    rdfs:domain eng:EngineeringRequirement ; rdfs:range code:BusinessCapability ;
+    owl:inverseOf eng:capabilitySpecifiedBy .
+eng:capabilitySpecifiedBy a owl:ObjectProperty .
+
+eng:derivesRequirement a owl:ObjectProperty ;
+    rdfs:domain eng:EngineeringRequirement ; rdfs:range eng:EngineeringRequirement ;
+    owl:inverseOf eng:derivedFromRequirement .
+eng:derivedFromRequirement a owl:ObjectProperty .
+
+eng:definesContract a owl:ObjectProperty ;
+    rdfs:domain eng:EngineeringRequirement ; rdfs:range eng:RequirementContract ;
+    owl:inverseOf eng:contractDefinedBy .
+eng:contractDefinedBy a owl:ObjectProperty .
+
+eng:constrainedBy a owl:ObjectProperty ;
+    rdfs:domain eng:EngineeringRequirement ; rdfs:range eng:SemanticContract ;
+    owl:inverseOf eng:constrainsRequirement .
+eng:constrainsRequirement a owl:ObjectProperty .
+
+eng:usesOntology a owl:ObjectProperty ;
+    rdfs:domain eng:SemanticContract ; rdfs:range eng:OntologyAsset .
+
+eng:derivedFromObjective a owl:ObjectProperty ;
+    rdfs:domain eng:VerificationMethod ; rdfs:range eng:VerificationObjective ;
+    owl:inverseOf eng:hasVerificationMethod .
+eng:hasVerificationMethod a owl:ObjectProperty .
+
+eng:verifiesRequirement a owl:ObjectProperty ;
+    rdfs:domain eng:VerificationMethod ; rdfs:range eng:EngineeringRequirement ;
+    owl:inverseOf eng:verifiedByMethod .
+eng:verifiedByMethod a owl:ObjectProperty .
+
+eng:satisfiedByEvidence a owl:ObjectProperty ;
+    rdfs:domain eng:VerificationMethod ; rdfs:range eng:VerificationEvidence ;
+    owl:inverseOf eng:evidenceSatisfiesVerification .
+eng:evidenceSatisfiesVerification a owl:ObjectProperty .
+
+eng:evidenceArtifact a owl:ObjectProperty ;
+    rdfs:domain eng:VerificationEvidence ; rdfs:range code:ImpactAnalysisEntity .
+
+eng:rootCapability a owl:ObjectProperty ;
+    rdfs:domain eng:EngineeringSubmodel ; rdfs:range code:BusinessCapability .
