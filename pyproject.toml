@@ -18,6 +18,7 @@ dependencies = [
 
 [project.scripts]
 code-ontology-platform = "code_ontology_platform.cli:main"
+code-ontology-engineering = "code_ontology_platform.engineering_semantics:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
