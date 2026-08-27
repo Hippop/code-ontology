@@ -23,6 +23,7 @@ EngineeringRequirement
 - `ontology/engineering-semantics.ttl`：工程语义本体。
 - `shapes/engineering-semantics-shapes.ttl`：所有权和验证闭环 SHACL 约束。
 - `src/code_ontology_platform/engineering_semantics.py`：确定性 validation、coverage、context collect 和 typed impact 引擎。
+- `src/code_ontology_platform/engineering_mcp_gateway.py`：在现有只读 MCP Gateway 上扩展工程语义工具。
 - `examples/engineering-semantic-closed-loop.ttl`：RDF 示例。
 - `examples/engineering-semantic-closed-loop.graph.json`：平台 JSON Graph 示例。
 - `tests/test_engineering_semantics.py`：传播与约束回归测试。
@@ -219,6 +220,26 @@ python3 -m venv .venv
   examples/engineering-semantic-closed-loop.graph.json code:validator --depth 4
 ```
 
-## 11. 下一接入点
+## 11. MCP 接入
 
-`EngineeringSemantics` 是无状态、只读、确定性的纯分析层，可以直接由现有 `PlatformService` / MCP Gateway 包装为 engineering validation、coverage、collect 和 impact 工具，不需要改变算法语义。当前 CLI 已可用于本地、CI 和 Agent shell/tool workflow；SHACL 已直接进入现有 `code-ontology-platform validate` 流程。
+工程语义 MCP 不是第二套平台，它继承现有 `ReadOnlyMcpGateway`，并通过现有 `PlatformService._analysis_graph` 读取相同的 SQLite graph snapshot。
+
+启动：
+
+```bash
+code-ontology-engineering-mcp \
+  --database data/code-ontology.db
+```
+
+新增 4 个只读工具：
+
+```text
+engineering_validate
+engineering_coverage
+engineering_collect
+engineering_impact
+```
+
+它们都支持现有 graph scope：`repositoryId / graphSpace / revision`。`engineering_collect` 接收 `entityId + depth`，`engineering_impact` 接收 `entityIds + depth`。
+
+MCP 层只负责参数校验、图快照解析和结果裁剪；所有工程语义算法仍由同一个 `EngineeringSemantics` 确定性实现提供，因此 CLI、CI 与 Agent 得到同一种结果语义。
