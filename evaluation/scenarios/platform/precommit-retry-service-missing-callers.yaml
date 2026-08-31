@@ -1,0 +1,26 @@
+schemaVersion: evaluation-scenario/v1
+scenarioId: PRECOMMIT-PLATFORM-RETRY-MISSING-CALLERS
+workflow: precommit
+tags:
+  - platform
+  - micro
+  - precommit
+  - missing-caller
+  - negative
+fixture:
+  id: retry-service
+  path: ../../fixtures/micro/retry-service
+  revision: HEAD
+  level: micro
+input:
+  workingTreePatch: ../../fixtures/micro/retry-service/patches/service-body-only.patch
+  requirementId: REQ-EVAL-RETRY-MISSING-CALLERS
+  testReport:
+    status: Passed
+    executions: []
+expected:
+  preCommitReview:
+    path: ../../fixtures/micro/retry-service/expected/precommit-block.json
+    oracle: deterministic
+    compare: constraint
+expectedDecision: BlockCommit
