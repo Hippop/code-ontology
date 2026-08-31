@@ -18,6 +18,7 @@ dependencies = [
 
 [project.scripts]
 code-ontology-platform = "code_ontology_platform.cli:main"
+code-ontology-eval = "code_ontology_platform.evaluation.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
