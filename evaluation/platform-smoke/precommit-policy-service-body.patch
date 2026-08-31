@@ -1,0 +1,11 @@
+diff --git a/examples/java-spring-sample/src/main/java/org/example/sdn/PolicyService.java b/examples/java-spring-sample/src/main/java/org/example/sdn/PolicyService.java
+--- a/examples/java-spring-sample/src/main/java/org/example/sdn/PolicyService.java
++++ b/examples/java-spring-sample/src/main/java/org/example/sdn/PolicyService.java
+@@ -19,6 +19,6 @@ public class PolicyService {
+         NetworkPolicy policy = repository.findPolicy(id);
+         evaluator.evaluate(policy, request);
+         repository.savePolicy(policy);
+-        return new DeploymentResult(policy.getId(), "READY");
++        return new DeploymentResult(policy.getId(), "READY_RETRY");
+     }
+ }
