@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -9,6 +10,7 @@ import yaml
 from ..errors import invalid
 from .models import (
     EvaluationScenario,
+    ExecutionConfig,
     ExpectedArtifactRef,
     MutationRef,
     RepositoryFixtureRef,
@@ -96,13 +98,22 @@ class EvaluationLoader:
         if document.get("mutation") is not None:
             mutation_value = self._mapping(document["mutation"], "mutation")
             mutation_path = mutation_value.get("path")
+            resolved_mutation_path = (
+                self._resolve(source.parent, mutation_path)
+                if mutation_path is not None
+                else None
+            )
+            if resolved_mutation_path is not None and not resolved_mutation_path.is_file():
+                raise invalid(
+                    "Mutation 文件不存在",
+                    {
+                        "scenarioId": scenario_id,
+                        "path": str(resolved_mutation_path),
+                    },
+                )
             mutation = MutationRef(
                 mutation_id=self._string(mutation_value.get("id"), "mutation.id"),
-                path=(
-                    str(self._resolve(source.parent, mutation_path))
-                    if mutation_path is not None
-                    else None
-                ),
+                path=(str(resolved_mutation_path) if resolved_mutation_path else None),
             )
 
         return EvaluationScenario(
@@ -127,6 +138,53 @@ class EvaluationLoader:
             source_path=str(source.resolve()),
         )
 
+    def load_execution_config(self, path: str | Path) -> ExecutionConfig:
+        source = Path(path).resolve()
+        document = self._load_mapping(source)
+        if document.get("schemaVersion", "evaluation-config/v1") != "evaluation-config/v1":
+            raise invalid("ExecutionConfig schemaVersion 不受支持")
+        rule_set_value = document.get("ruleSetPath")
+        rule_set_path = (
+            self._resolve(source.parent, rule_set_value)
+            if rule_set_value is not None
+            else None
+        )
+        if rule_set_path is not None and not rule_set_path.is_file():
+            raise invalid("ExecutionConfig ruleSetPath 不存在", {"path": str(rule_set_path)})
+        rule_set_hash = (
+            "sha256:" + hashlib.sha256(rule_set_path.read_bytes()).hexdigest()
+            if rule_set_path is not None
+            else None
+        )
+        return ExecutionConfig(
+            config_id=self._string(document.get("configId", "default"), "configId"),
+            agent_versions=self._string_mapping(
+                document.get("agentVersions", {}), "agentVersions"
+            ),
+            skill_versions=self._string_mapping(
+                document.get("skillVersions", {}), "skillVersions"
+            ),
+            subagent_versions=self._string_mapping(
+                document.get("subagentVersions", {}), "subagentVersions"
+            ),
+            rule_set_path=str(rule_set_path) if rule_set_path is not None else None,
+            rule_set_hash=rule_set_hash,
+            model=(
+                self._string(document.get("model"), "model")
+                if document.get("model") is not None
+                else None
+            ),
+            mcp_version=(
+                self._string(document.get("mcpVersion"), "mcpVersion")
+                if document.get("mcpVersion") is not None
+                else None
+            ),
+            semantic_judge=bool(document.get("semanticJudge", False)),
+            environment=self._string_mapping(
+                document.get("environment", {}), "environment"
+            ),
+        )
+
     def load_artifact(self, path: str | Path) -> Any:
         source = Path(path)
         if source.suffix.lower() in {".yaml", ".yml"}:
@@ -145,6 +203,19 @@ class EvaluationLoader:
         if not isinstance(value, dict):
             raise invalid(f"{name} 必须是 object")
         return dict(value)
+
+    @staticmethod
+    def _string_mapping(value: Any, name: str) -> dict[str, str]:
+        if not isinstance(value, dict):
+            raise invalid(f"{name} 必须是 object")
+        result: dict[str, str] = {}
+        for key, item in value.items():
+            if not isinstance(key, str) or not key.strip():
+                raise invalid(f"{name} key 必须是非空字符串")
+            if not isinstance(item, str) or not item.strip():
+                raise invalid(f"{name}.{key} 必须是非空字符串")
+            result[key.strip()] = item.strip()
+        return result
 
     @staticmethod
     def _string(value: Any, name: str) -> str:
