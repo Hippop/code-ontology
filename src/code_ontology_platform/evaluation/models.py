@@ -122,10 +122,16 @@ class EvaluationScenario:
             raise invalid("expected 至少包含一个 Artifact")
         if self.workflow == "planning" and "workingTreePatch" in self.input:
             raise invalid("Planning Scenario 不允许 workingTreePatch")
-        if self.workflow == "precommit" and not any(
-            key in self.input for key in ("workingTreePatch", "actualArtifacts")
+        if (
+            self.workflow == "precommit"
+            and not any(
+                key in self.input for key in ("workingTreePatch", "actualArtifacts")
+            )
+            and self.mutation is None
         ):
-            raise invalid("PreCommit Scenario 必须提供 workingTreePatch 或 actualArtifacts")
+            raise invalid(
+                "PreCommit Scenario 必须提供 workingTreePatch、actualArtifacts 或 source mutation"
+            )
 
 
 @dataclass(frozen=True)
