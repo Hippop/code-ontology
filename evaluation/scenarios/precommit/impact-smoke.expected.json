@@ -1,0 +1,13 @@
+{
+  "nodes": [
+    {"id": "deploy-service"},
+    {"id": "deploy-controller"}
+  ],
+  "edges": [
+    {
+      "source": "deploy-controller",
+      "relation": "calls",
+      "target": "deploy-service"
+    }
+  ]
+}
