@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from code_ontology_platform.evaluation.loader import EvaluationLoader
+from code_ontology_platform.evaluation.platform_backends import PlatformWorkflowBackend
 from code_ontology_platform.evaluation.reports import (
     compare_run_sets,
     load_run_set,
@@ -27,9 +28,20 @@ def build_parser() -> argparse.ArgumentParser:
 
     run = commands.add_parser(
         "run",
-        help="judge actual artifacts against scenario goldens",
+        help="execute or judge change-workflow scenarios against goldens",
     )
     run.add_argument("path", type=Path)
+    run.add_argument(
+        "--backend",
+        choices=("file", "platform"),
+        default="file",
+        help="file judges pre-produced artifacts; platform executes real workflows",
+    )
+    run.add_argument(
+        "--rules",
+        type=Path,
+        help="planning rules path used by the platform backend",
+    )
     run.add_argument(
         "--output",
         type=Path,
@@ -70,7 +82,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if arguments.command == "run":
         scenarios = loader.load_scenarios(arguments.path)
-        runner = BatchEvaluationRunner(FileArtifactBackend(loader), loader)
+        backend = (
+            FileArtifactBackend(loader)
+            if arguments.backend == "file"
+            else PlatformWorkflowBackend(rules_path=arguments.rules, loader=loader)
+        )
+        runner = BatchEvaluationRunner(backend, loader)
         document = runner.run_many(scenarios)
         output = write_run_set(document, arguments.output)
         document["output"] = str(output)
