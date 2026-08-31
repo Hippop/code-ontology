@@ -1,0 +1,27 @@
+schemaVersion: evaluation-scenario/v1
+scenarioId: PRECOMMIT-IMPACT-SMOKE-001
+workflow: precommit
+
+tags:
+  - micro
+  - impact
+  - smoke
+
+fixture:
+  id: impact-smoke
+  path: ../../fixtures/micro/impact-smoke
+  revision: base-v1
+  level: micro
+
+input:
+  actualArtifacts:
+    actualImpactGraph: impact-smoke.actual.json
+  actualDecision: ReadyToCommit
+
+expected:
+  actualImpactGraph:
+    path: impact-smoke.expected.json
+    oracle: rule-derived
+    compare: graph
+
+expectedDecision: ReadyToCommit
