@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from .loader import EvaluationLoader
+from .models import ExecutionConfig
 from .platform_backends import PlatformWorkflowBackend
 from .reports import compare_run_sets, load_run_set
 from .runner import BatchEvaluationRunner, FileArtifactBackend, write_run_set
@@ -29,9 +30,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="file judges pre-produced artifacts; platform executes real workflows",
     )
     run.add_argument(
+        "--config",
+        type=Path,
+        help="versioned evaluation execution config",
+    )
+    run.add_argument(
         "--rules",
         type=Path,
-        help="planning rules path used by the platform backend",
+        help="planning rules override used by the platform backend",
     )
     run.add_argument(
         "--output",
@@ -72,12 +78,33 @@ def main(argv: list[str] | None = None) -> int:
 
     if arguments.command == "run":
         scenarios = loader.load_scenarios(arguments.path)
+        config = (
+            loader.load_execution_config(arguments.config)
+            if arguments.config is not None
+            else ExecutionConfig()
+        )
+        if arguments.rules is not None:
+            config = ExecutionConfig(
+                config_id=config.config_id,
+                agent_versions=config.agent_versions,
+                skill_versions=config.skill_versions,
+                subagent_versions=config.subagent_versions,
+                rule_set_path=str(arguments.rules.resolve()),
+                rule_set_hash=config.rule_set_hash,
+                model=config.model,
+                mcp_version=config.mcp_version,
+                semantic_judge=config.semantic_judge,
+                environment=config.environment,
+            )
         backend = (
             FileArtifactBackend(loader)
             if arguments.backend == "file"
             else PlatformWorkflowBackend(rules_path=arguments.rules, loader=loader)
         )
-        document = BatchEvaluationRunner(backend, loader).run_many(scenarios)
+        document = BatchEvaluationRunner(backend, loader).run_many(
+            scenarios, config
+        )
+        document["executionConfig"] = config.manifest()
         output = write_run_set(document, arguments.output)
         document["output"] = str(output)
         print(json.dumps(document["summary"], ensure_ascii=False, indent=2))
