@@ -80,7 +80,11 @@ def _git(repository: Path, *args: str, check: bool = True) -> subprocess.Complet
 def _prepare_git_base(repository: Path, requested_revision: str) -> str:
     probe = _git(repository, "rev-parse", "--is-inside-work-tree", check=False)
     if probe.returncode != 0 or probe.stdout.strip() != "true":
-        raise invalid("Platform workflow evaluation 需要 Git fixture")
+        _git(repository, "init")
+        _git(repository, "config", "user.email", "evaluation@code-ontology.local")
+        _git(repository, "config", "user.name", "Code Ontology Evaluation")
+        _git(repository, "add", "--all")
+        _git(repository, "commit", "-m", "evaluation fixture baseline")
     resolved = _git(repository, "rev-parse", f"{requested_revision}^{{commit}}", check=False)
     if resolved.returncode != 0:
         resolved = _git(repository, "rev-parse", "HEAD")
