@@ -1,0 +1,23 @@
+schemaVersion: evaluation-scenario/v1
+scenarioId: PLANNING-PLATFORM-SDN-SMOKE
+workflow: planning
+tags:
+  - platform
+  - smoke
+  - planning
+fixture:
+  id: code-ontology-root
+  path: ../..
+  revision: HEAD
+  level: architecture
+input:
+  requirementId: REQ-EVAL-PLANNING-SMOKE
+  designDocument: ../../examples/designs/sdn-minimum-bandwidth.md
+  acceptUnresolved: true
+  autoConfirmTopCandidate: true
+expected:
+  changePlanReview:
+    path: expected-planning-review.json
+    oracle: deterministic
+    compare: constraint
+expectedDecision: NeedsReview
