@@ -26,6 +26,7 @@ from ..store import SQLiteStore, content_hash
 from ..verification_workflow import reconcile_approved_actual
 from .loader import EvaluationLoader
 from .models import EvaluationScenario, ExecutionConfig, StageRun
+from .mutations import MutationRegistry
 from .runner import BackendResult, utc_now
 
 
@@ -468,6 +469,7 @@ class PlanningWorkflowBackend:
 class PreCommitWorkflowBackend:
     def __init__(self, loader: EvaluationLoader | None = None) -> None:
         self.loader = loader or EvaluationLoader()
+        self.mutations = MutationRegistry()
 
     def _load_input_document(
         self, scenario: EvaluationScenario, value: Any
@@ -540,6 +542,29 @@ class PreCommitWorkflowBackend:
                         "无法应用 Evaluation workingTreePatch: "
                         + completed.stderr[-500:]
                     )
+
+            mutation_metadata = None
+            if scenario.mutation is not None:
+                if scenario.mutation.path is None:
+                    raise invalid("Platform PreCommit mutation 必须提供 path")
+                mutation = self.mutations.load(scenario.mutation.path)
+                if mutation.mutation_id != scenario.mutation.mutation_id:
+                    raise invalid(
+                        "Scenario mutation.id 与 Mutation 文件不一致",
+                        {
+                            "scenarioMutationId": scenario.mutation.mutation_id,
+                            "fileMutationId": mutation.mutation_id,
+                        },
+                    )
+                if mutation.kind != "source":
+                    raise invalid("Platform PreCommit backend 只允许 source mutation")
+                mutation_result = self.mutations.apply_source(mutation, repository)
+                mutation_metadata = {
+                    "mutationId": mutation.mutation_id,
+                    "operation": mutation.operation,
+                    "changed": mutation_result.changed,
+                    **mutation_result.details,
+                }
 
             diff = collect_worktree_diff(repository, base_commit)
             git_snapshot = build_git_diff_snapshot(diff)
@@ -678,6 +703,7 @@ class PreCommitWorkflowBackend:
                     "workspace": str(workspace),
                     "baseCommit": base_commit,
                     "workingTreeHash": git_snapshot["snapshotHash"],
+                    "mutation": mutation_metadata,
                 },
             )
         finally:
