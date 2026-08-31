@@ -1,0 +1,20 @@
+schemaVersion: evaluation-config/v1
+configId: deterministic-platform-v1
+agentVersions:
+  planner: platform-service
+  precommitVerifier: platform-service
+skillVersions:
+  understandChange: design-v1
+  analyzeImpact: impact-engine-v1
+  buildChangePlan: plan-v1
+  extractActualChange: precommit-v1
+  verifyImpactClosure: precommit-v1
+  reviewPrecommitCompleteness: precommit-v1
+subagentVersions:
+  changeAnalyst: deterministic-alignment
+  preCommitReviewer: deterministic-gate
+ruleSetPath: ../../rules/requirement-change-planning-rules.yaml
+mcpVersion: read-only-mcp-v1
+semanticJudge: false
+environment:
+  evaluationMode: deterministic
