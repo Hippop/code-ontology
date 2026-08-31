@@ -1,0 +1,94 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix eng:  <https://example.org/code-ontology/engineering#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+
+eng:RequirementOwnershipShape
+    a sh:NodeShape ;
+    sh:targetClass eng:EngineeringRequirement ;
+    sh:property [
+        sh:path eng:specifiesCapability ;
+        sh:maxCount 1 ;
+        sh:class code:BusinessCapability ;
+        sh:message "EngineeringRequirement 最多显式指定一个 Capability owner；子需求可从父 Requirement 继承。"@zh
+    ] ;
+    sh:or (
+        [ sh:property [
+            sh:path eng:specifiesCapability ;
+            sh:minCount 1 ;
+            sh:class code:BusinessCapability
+        ] ]
+        [ sh:property [
+            sh:path [ sh:inversePath eng:derivesRequirement ] ;
+            sh:minCount 1 ;
+            sh:class eng:EngineeringRequirement
+        ] ]
+    ) .
+
+eng:RequirementContractShape
+    a sh:NodeShape ;
+    sh:targetClass eng:RequirementContract ;
+    sh:property [
+        sh:path [ sh:inversePath eng:definesContract ] ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class eng:EngineeringRequirement ;
+        sh:message "Requirement-owned Contract 必须且只能由一个 EngineeringRequirement 拥有。"@zh
+    ] .
+
+eng:SemanticContractShape
+    a sh:NodeShape ;
+    sh:targetClass eng:SemanticContract ;
+    sh:property [
+        sh:path eng:usesOntology ;
+        sh:minCount 1 ;
+        sh:class eng:OntologyAsset ;
+        sh:message "SemanticContract 必须引用至少一个 OntologyAsset。"@zh
+    ] ;
+    sh:property [
+        sh:path [ sh:inversePath eng:constrainedBy ] ;
+        sh:minCount 1 ;
+        sh:class eng:EngineeringRequirement ;
+        sh:message "SemanticContract 必须实际约束至少一个 EngineeringRequirement。"@zh
+    ] .
+
+eng:VerificationMethodShape
+    a sh:NodeShape ;
+    sh:targetClass eng:VerificationMethod ;
+    sh:property [
+        sh:path eng:derivedFromObjective ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class eng:VerificationObjective ;
+        sh:message "VerificationMethod 必须且只能来自一个 VerificationObjective。"@zh
+    ] ;
+    sh:property [
+        sh:path eng:verifiesRequirement ;
+        sh:minCount 1 ;
+        sh:class eng:EngineeringRequirement ;
+        sh:message "VerificationMethod 必须验证至少一个 EngineeringRequirement。"@zh
+    ] ;
+    sh:property [
+        sh:path eng:satisfiedByEvidence ;
+        sh:minCount 1 ;
+        sh:class eng:VerificationEvidence ;
+        sh:message "VerificationMethod 必须有具体 Evidence。"@zh
+    ] .
+
+eng:VerificationObjectiveShape
+    a sh:NodeShape ;
+    sh:targetClass eng:VerificationObjective ;
+    sh:property [
+        sh:path eng:satisfiedByEvidence ;
+        sh:maxCount 0 ;
+        sh:message "VerificationObjective 只表达验证意图，不能直接拥有执行证据。"@zh
+    ] .
+
+eng:VerificationEvidenceShape
+    a sh:NodeShape ;
+    sh:targetClass eng:VerificationEvidence ;
+    sh:property [
+        sh:path eng:evidenceArtifact ;
+        sh:minCount 1 ;
+        sh:class code:ImpactAnalysisEntity ;
+        sh:message "VerificationEvidence 必须指向可审计的工程 Artifact。"@zh
+    ] .

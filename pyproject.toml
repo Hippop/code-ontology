@@ -18,6 +18,8 @@ dependencies = [
 
 [project.scripts]
 code-ontology-platform = "code_ontology_platform.cli:main"
+code-ontology-engineering = "code_ontology_platform.engineering_semantics:main"
+code-ontology-engineering-mcp = "code_ontology_platform.engineering_mcp_gateway:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

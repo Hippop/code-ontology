@@ -1,0 +1,32 @@
+{
+  "graphId": "urn:graph:example:engineering-semantic-closed-loop",
+  "graphType": "EngineeringSemanticExample",
+  "revision": "example-v1",
+  "nodes": [
+    {"id": "cap:auth", "type": "BusinessCapability", "label": "API Authentication"},
+    {"id": "req:token", "type": "EngineeringRequirement", "label": "Reject invalid access tokens"},
+    {"id": "contract:spec", "type": "SpecificationContract", "label": "Validate issuer, audience, expiry and signature"},
+    {"id": "contract:semantic", "type": "SemanticContract", "label": "Access token semantic invariants"},
+    {"id": "ontology:auth", "type": "OntologyAsset", "label": "Authentication Ontology"},
+    {"id": "verification:objective", "type": "VerificationObjective", "label": "Prove invalid tokens are rejected"},
+    {"id": "verification:test", "type": "TestVerification", "label": "Invalid access token verification"},
+    {"id": "evidence:test-run", "type": "TestExecutionEvidence", "label": "Passing token validation test run"},
+    {"id": "code:validator", "type": "Method", "label": "TokenValidator.validate"},
+    {"id": "code:middleware", "type": "Method", "label": "AuthMiddleware.authenticate"},
+    {"id": "test:token", "type": "UnitTest", "label": "TokenValidatorTest.rejectsInvalidToken"}
+  ],
+  "edges": [
+    {"source": "req:token", "relation": "eng:specifiesCapability", "target": "cap:auth"},
+    {"source": "req:token", "relation": "eng:definesContract", "target": "contract:spec"},
+    {"source": "req:token", "relation": "eng:constrainedBy", "target": "contract:semantic"},
+    {"source": "contract:semantic", "relation": "eng:usesOntology", "target": "ontology:auth"},
+    {"source": "code:validator", "relation": "code:implementsRequirement", "target": "req:token"},
+    {"source": "code:middleware", "relation": "code:callsDirectly", "target": "code:validator"},
+    {"source": "verification:test", "relation": "eng:derivedFromObjective", "target": "verification:objective"},
+    {"source": "verification:test", "relation": "eng:verifiesRequirement", "target": "req:token"},
+    {"source": "verification:test", "relation": "eng:satisfiedByEvidence", "target": "evidence:test-run"},
+    {"source": "evidence:test-run", "relation": "eng:evidenceArtifact", "target": "test:token"},
+    {"source": "test:token", "relation": "code:verifies", "target": "req:token"},
+    {"source": "test:token", "relation": "code:covers", "target": "code:validator"}
+  ]
+}

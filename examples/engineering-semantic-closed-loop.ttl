@@ -1,0 +1,33 @@
+@prefix code: <https://example.org/code-ontology#> .
+@prefix eng:  <https://example.org/code-ontology/engineering#> .
+@prefix ex:   <https://example.org/code-ontology/example/auth#> .
+
+ex:apiAuthentication a code:BusinessCapability .
+
+ex:tokenValidation a eng:EngineeringRequirement ;
+    eng:specifiesCapability ex:apiAuthentication ;
+    eng:definesContract ex:tokenValidationSpec ;
+    eng:constrainedBy ex:tokenSemanticContract .
+
+ex:tokenValidationSpec a eng:SpecificationContract .
+ex:authOntology a eng:OntologyAsset .
+
+ex:tokenSemanticContract a eng:SemanticContract ;
+    eng:usesOntology ex:authOntology .
+
+ex:tokenValidator a code:Method ;
+    code:implementsRequirement ex:tokenValidation .
+
+ex:verificationObjective a eng:VerificationObjective .
+
+ex:tokenVerification a eng:TestVerification ;
+    eng:derivedFromObjective ex:verificationObjective ;
+    eng:verifiesRequirement ex:tokenValidation ;
+    eng:satisfiedByEvidence ex:tokenTestExecution .
+
+ex:tokenTestExecution a eng:TestExecutionEvidence ;
+    eng:evidenceArtifact ex:tokenTest .
+
+ex:tokenTest a code:UnitTest ;
+    code:verifies ex:tokenValidation ;
+    code:covers ex:tokenValidator .
