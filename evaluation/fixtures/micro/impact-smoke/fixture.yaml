@@ -1,0 +1,9 @@
+schemaVersion: evaluation-fixture/v1
+fixtureId: impact-smoke
+level: micro
+language: synthetic
+repositoryId: eval-impact-smoke
+baseRevision: base-v1
+features:
+  - calls
+  - impact
