@@ -71,8 +71,10 @@ def _precision_recall(
     expected: set[str], actual: set[str]
 ) -> tuple[float, float, set[str], set[str]]:
     overlap = expected & actual
-    precision = len(overlap) / max(len(actual), 1)
-    recall = len(overlap) / max(len(expected), 1)
+    if not expected and not actual:
+        return 1.0, 1.0, set(), set()
+    precision = len(overlap) / len(actual) if actual else 0.0
+    recall = len(overlap) / len(expected) if expected else 1.0
     return precision, recall, expected - actual, actual - expected
 
 
