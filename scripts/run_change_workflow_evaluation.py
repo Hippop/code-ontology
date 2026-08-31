@@ -80,7 +80,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         if arguments.fail_on_false_ready and false_ready_rate > 0:
             return 2
-        return 0 if document["summary"]["errors"] == 0 else 1
+        if document["summary"]["errors"] > 0 or document["summary"]["failed"] > 0:
+            return 1
+        return 0
 
     if arguments.command == "compare":
         document = compare_run_sets(
