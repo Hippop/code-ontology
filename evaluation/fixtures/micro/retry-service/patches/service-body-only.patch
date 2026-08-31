@@ -1,0 +1,11 @@
+diff --git a/src/main/java/eval/retry/DeployService.java b/src/main/java/eval/retry/DeployService.java
+--- a/src/main/java/eval/retry/DeployService.java
++++ b/src/main/java/eval/retry/DeployService.java
+@@ -2,6 +2,6 @@ package eval.retry;
+ 
+ public class DeployService {
+     public String deploy(String policy) {
+-        return "READY";
++        return "READY_RETRY";
+     }
+ }
