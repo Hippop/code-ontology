@@ -21,6 +21,7 @@ from .models import (
     WorkflowRun,
     content_hash,
 )
+from .mutations import MutationRegistry
 
 
 def utc_now() -> str:
@@ -47,13 +48,14 @@ class WorkflowBackend(Protocol):
 class FileArtifactBackend:
     """Deterministic backend for stage/regression evaluation.
 
-    The scenario points to already produced actual artifacts. This lets the
-    judging, metrics and lineage layers run before formal Planning/PreCommit
-    workflow adapters are connected.
+    The scenario points to already produced actual artifacts. Optional artifact
+    mutations are applied after loading so downstream judges/gates can be
+    regression-tested without executing the full workflow.
     """
 
     def __init__(self, loader: EvaluationLoader | None = None) -> None:
         self.loader = loader or EvaluationLoader()
+        self.mutations = MutationRegistry()
 
     def execute(
         self,
@@ -94,6 +96,47 @@ class FileArtifactBackend:
                     artifact_refs=[str(path)],
                 )
             )
+
+        mutation_metadata = None
+        if scenario.mutation is not None:
+            if scenario.mutation.path is None:
+                raise invalid("FileArtifactBackend 的 mutation 必须提供 path")
+            mutation = self.mutations.load(scenario.mutation.path)
+            if mutation.mutation_id != scenario.mutation.mutation_id:
+                raise invalid(
+                    "Scenario mutation.id 与 Mutation 文件不一致",
+                    {
+                        "scenarioMutationId": scenario.mutation.mutation_id,
+                        "fileMutationId": mutation.mutation_id,
+                    },
+                )
+            if mutation.kind != "artifact":
+                raise invalid("FileArtifactBackend 只允许 artifact mutation")
+            artifact_type = mutation.target.get("artifactType")
+            if artifact_type is None:
+                if len(artifacts) != 1:
+                    raise invalid(
+                        "Artifact Mutation 必须指定 target.artifactType",
+                        {"availableArtifacts": sorted(artifacts)},
+                    )
+                artifact_type = next(iter(artifacts))
+            if not isinstance(artifact_type, str) or artifact_type not in artifacts:
+                raise invalid(
+                    "Artifact Mutation target.artifactType 不存在",
+                    {"artifactType": artifact_type},
+                )
+            result = self.mutations.apply_artifact(
+                mutation, artifacts[artifact_type]
+            )
+            artifacts[artifact_type] = result.details["artifact"]
+            mutation_metadata = {
+                "mutationId": result.mutation_id,
+                "kind": mutation.kind,
+                "operation": mutation.operation,
+                "artifactType": artifact_type,
+                "changed": result.changed,
+            }
+
         decision = scenario.input.get("actualDecision")
         if decision is not None and not isinstance(decision, str):
             raise invalid("input.actualDecision 必须是字符串")
@@ -101,7 +144,10 @@ class FileArtifactBackend:
             artifacts=artifacts,
             decision=decision,
             stages=stages,
-            metadata={"backend": "file-artifact"},
+            metadata={
+                "backend": "file-artifact",
+                "mutation": mutation_metadata,
+            },
         )
 
 
@@ -154,12 +200,25 @@ class BatchEvaluationRunner:
                     "input": scenario.input,
                     "fixture": scenario.fixture.fixture_id,
                     "revision": scenario.fixture.revision,
+                    "mutation": (
+                        scenario.mutation.mutation_id
+                        if scenario.mutation is not None
+                        else None
+                    ),
                 }
             ),
             expected_decision=scenario.expected_decision,
             manifest={
                 "executionConfig": config.manifest(),
                 "scenarioSource": scenario.source_path,
+                "mutation": (
+                    {
+                        "mutationId": scenario.mutation.mutation_id,
+                        "path": scenario.mutation.path,
+                    }
+                    if scenario.mutation is not None
+                    else None
+                ),
             },
         )
         try:
@@ -248,6 +307,7 @@ class BatchEvaluationRunner:
         runs = [self.run_scenario(scenario, config) for scenario in scenarios]
         return {
             "schemaVersion": "evaluation-run-set/v1",
+            "executionConfig": (config or ExecutionConfig()).manifest(),
             "runs": [run.to_dict() for run in runs],
             "summary": {
                 "count": len(runs),
