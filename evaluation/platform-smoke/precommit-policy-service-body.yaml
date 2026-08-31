@@ -1,0 +1,25 @@
+schemaVersion: evaluation-scenario/v1
+scenarioId: PRECOMMIT-PLATFORM-POLICY-SERVICE-BODY
+workflow: precommit
+tags:
+  - platform
+  - smoke
+  - precommit
+  - negative
+fixture:
+  id: code-ontology-root
+  path: ../..
+  revision: HEAD
+  level: architecture
+input:
+  workingTreePatch: precommit-policy-service-body.patch
+  requirementId: REQ-EVAL-PRECOMMIT-SMOKE
+  testReport:
+    status: Passed
+    executions: []
+expected:
+  preCommitReview:
+    path: expected-precommit-block.json
+    oracle: deterministic
+    compare: constraint
+expectedDecision: BlockCommit
