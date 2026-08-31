@@ -130,13 +130,16 @@ class ArtifactJudge:
             missing_ids = expected_map.keys() - actual_map.keys()
             extra_ids = actual_map.keys() - expected_map.keys()
             intersection = expected_map.keys() & actual_map.keys()
-            precision = len(intersection) / max(len(actual_map), 1)
-            recall = len(intersection) / max(len(expected_map), 1)
-            score = (
-                2 * precision * recall / (precision + recall)
-                if precision + recall
-                else 0.0
-            )
+            if not expected_map and not actual_map:
+                precision = recall = score = 1.0
+            else:
+                precision = len(intersection) / len(actual_map) if actual_map else 0.0
+                recall = len(intersection) / len(expected_map) if expected_map else 1.0
+                score = (
+                    2 * precision * recall / (precision + recall)
+                    if precision + recall
+                    else 0.0
+                )
             passed = not missing_ids and not extra_ids
             return JudgeResult(
                 judge="ArtifactJudge",
