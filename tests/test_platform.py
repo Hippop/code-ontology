@@ -598,6 +598,9 @@ class PlatformServiceTest(unittest.TestCase):
         self.assertIn("BusinessProcess", business_types)
         self.assertIn("BusinessProcessStep", business_types)
         self.assertIn("BusinessRule", business_types)
+        self.assertIn("EngineeringRequirement", business_types)
+        self.assertIn("SpecificationContract", business_types)
+        self.assertIn("TestVerification", business_types)
         self.assertTrue(
             any(edge["relation"] == "business:nextStep" for edge in business_edges)
         )
@@ -693,6 +696,9 @@ class PlatformServiceTest(unittest.TestCase):
                 for item in plan["requirementContext"]["scope"]
             )
         )
+        self.assertIn("ontologyVersion", plan["changeSet"])
+        self.assertIn("engineeringContext", plan["requirementContext"])
+        self.assertIn("engineeringCoverage", plan["requirementContext"])
         self.assertEqual(len(plan["proposals"]), len(plan["implementationTasks"]))
         proposed_nodes, proposed_edges = self.service.store.read_graph(
             "proposed", plan["planId"]
@@ -763,9 +769,9 @@ class SemanticAssetsTest(unittest.TestCase):
             result["conforms"],
             "\n\n".join(item.get("report", "") for item in result["results"]),
         )
-        self.assertEqual(4, len(result["ontologyFiles"]))
-        self.assertEqual(2, len(result["shapeFiles"]))
-        self.assertEqual(2, len(result["results"]))
+        self.assertEqual(5, len(result["ontologyFiles"]))
+        self.assertEqual(3, len(result["shapeFiles"]))
+        self.assertEqual(3, len(result["results"]))
 
 
 class HttpContractTest(unittest.TestCase):
@@ -810,6 +816,60 @@ class HttpContractTest(unittest.TestCase):
         self.assertIn("business", payload["graphSpaces"])
         self.assertIn("proposed", payload["graphSpaces"])
         self.assertEqual([], payload["revisions"])
+
+    def test_engineering_workbench_analysis_and_generation_preview_contracts(self) -> None:
+        with urllib.request.urlopen(
+            f"{self.base_url}/api/engineering-workbench", timeout=2
+        ) as response:
+            workbench = json.loads(response.read())
+        model = workbench["model"]
+        self.assertEqual("EngineeringSemanticModel", model["graphType"])
+        self.assertIn("OntologyModel", workbench["lifecycle"])
+
+        analyze_request = urllib.request.Request(
+            f"{self.base_url}/api/engineering-semantics/analyze",
+            data=json.dumps(
+                {
+                    "model": model,
+                    "entityId": "req:platform-access",
+                    "changedEntityIds": ["code:http-api"],
+                }
+            ).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(analyze_request, timeout=2) as response:
+            analysis = json.loads(response.read())
+        self.assertTrue(analysis["validation"]["conforms"])
+        self.assertEqual(1.0, analysis["coverage"]["implementation"]["ratio"])
+        self.assertEqual("req:platform-access", analysis["context"]["entityId"])
+        self.assertGreater(analysis["impact"]["impactCount"], 0)
+
+        self.service.store.put_repository(
+            {
+                "repositoryId": "repo-http-generation",
+                "name": "HTTP generation target",
+                "path": self.temporary_directory.name,
+                "defaultBranch": "main",
+                "metadata": {},
+            }
+        )
+        preview_request = urllib.request.Request(
+            f"{self.base_url}/api/ontology-code-generation/preview",
+            data=json.dumps(
+                {
+                    "repositoryId": "repo-http-generation",
+                    "model": model,
+                }
+            ).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(preview_request, timeout=2) as response:
+            preview = json.loads(response.read())
+        self.assertFalse(preview["applied"])
+        self.assertEqual(1, preview["artifactCount"])
+        self.assertIn("source", preview["artifacts"][0])
 
     def test_graph_compare_and_workflow_http_routes_are_supported(self) -> None:
         self.service.replace_graph(

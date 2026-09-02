@@ -104,7 +104,7 @@ h1 {
 
 .view-tabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1px;
   margin: 34px 0 16px;
   border: 1px solid #203448;

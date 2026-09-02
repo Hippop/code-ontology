@@ -109,6 +109,36 @@ def handler_for(
                     self._json(HTTPStatus.OK, result, request_id)
                     return
 
+                if method == "GET" and path == "/api/repositories":
+                    result = service.list_repositories()
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if method == "GET" and path == "/api/engineering-workbench":
+                    result = service.engineering_workbench()
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if method == "POST" and path == "/api/engineering-semantics/analyze":
+                    result = service.analyze_engineering_model(self._body())
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if method == "POST" and path in {
+                    "/api/ontology-code-generation/preview",
+                    "/api/ontology-code-generation/apply",
+                }:
+                    result = service.generate_from_engineering_model(
+                        self._body(), apply=path.endswith("/apply")
+                    )
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if method == "POST" and path == "/api/precommit-verification":
+                    result = service.verify_precommit(self._body())
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
                 if method == "POST" and path == "/api/graphs/compare":
                     result = service.graph_compare(self._body())
                     self._json(HTTPStatus.OK, result, request_id)

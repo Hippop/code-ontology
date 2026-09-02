@@ -7,7 +7,8 @@ from collections.abc import Callable, Mapping
 from typing import Any, TextIO
 from urllib.parse import quote, unquote
 
-from .errors import PlatformError
+from .engineering_semantics import EngineeringSemantics
+from .errors import PlatformError, invalid, not_found
 from .service import PlatformService
 
 MCP_PROTOCOL_VERSION = "2025-11-25"
@@ -530,6 +531,49 @@ class ReadOnlyMcpGateway:
                 ),
                 "annotations": readonly,
             },
+            {
+                "name": "engineering_validate",
+                "description": "校验 EngineeringRequirement、Contract、Verification 与 Evidence 的闭环约束。",
+                "inputSchema": _object_schema(dict(_GRAPH_REF_PROPERTIES)),
+                "annotations": readonly,
+            },
+            {
+                "name": "engineering_coverage",
+                "description": "计算 leaf Requirement 的实现、验证和验证证据覆盖率。",
+                "inputSchema": _object_schema(dict(_GRAPH_REF_PROPERTIES)),
+                "annotations": readonly,
+            },
+            {
+                "name": "engineering_collect",
+                "description": "沿白名单工程关系收集 Capability、Requirement、Contract、Code 和 Test 上下文。",
+                "inputSchema": _object_schema(
+                    {
+                        **_GRAPH_REF_PROPERTIES,
+                        "entityId": {"type": "string", "minLength": 1},
+                        "depth": {"type": "integer", "minimum": 0, "maximum": 6, "default": 2},
+                    },
+                    required=["entityId"],
+                ),
+                "annotations": readonly,
+            },
+            {
+                "name": "engineering_impact",
+                "description": "仅按显式 typed rule 计算跨代码、需求、契约与验证的确定性影响。",
+                "inputSchema": _object_schema(
+                    {
+                        **_GRAPH_REF_PROPERTIES,
+                        "entityIds": {
+                            "type": "array",
+                            "minItems": 1,
+                            "maxItems": 100,
+                            "items": {"type": "string", "minLength": 1},
+                        },
+                        "depth": {"type": "integer", "minimum": 1, "maximum": 8, "default": 4},
+                    },
+                    required=["entityIds"],
+                ),
+                "annotations": readonly,
+            },
         ]
         self._dispatch: dict[str, Callable[[dict[str, Any]], Any]] = {
             "list_repositories": self.service.list_repositories,
@@ -567,8 +611,59 @@ class ReadOnlyMcpGateway:
             "communities": self.service.graph_communities,
             "processes": self.service.graph_processes,
             "contract_graph": self.service.contract_graph,
+            "engineering_validate": self.engineering_validate,
+            "engineering_coverage": self.engineering_coverage,
+            "engineering_collect": self.engineering_collect,
+            "engineering_impact": self.engineering_impact,
         }
         self._tool_by_name = {tool["name"]: tool for tool in self.tools}
+
+    def _engineering_analysis(
+        self, args: dict[str, Any]
+    ) -> tuple[dict[str, Any], EngineeringSemantics]:
+        graph_space, revision, nodes, edges = self.service._analysis_graph(args)
+        metadata = {
+            "repositoryId": args.get("repositoryId"),
+            "graphSpace": graph_space,
+            "revision": revision,
+        }
+        return metadata, EngineeringSemantics(
+            {"graphSpace": graph_space, "nodes": nodes, "edges": edges}
+        )
+
+    def engineering_validate(self, args: dict[str, Any]) -> dict[str, Any]:
+        metadata, analyzer = self._engineering_analysis(args)
+        return {**metadata, **analyzer.validate()}
+
+    def engineering_coverage(self, args: dict[str, Any]) -> dict[str, Any]:
+        metadata, analyzer = self._engineering_analysis(args)
+        return {**metadata, **analyzer.coverage()}
+
+    def engineering_collect(self, args: dict[str, Any]) -> dict[str, Any]:
+        metadata, analyzer = self._engineering_analysis(args)
+        entity_id = str(args.get("entityId", ""))
+        try:
+            result = analyzer.collect(entity_id, depth=int(args.get("depth", 2)))
+        except KeyError as error:
+            raise not_found(f"工程语义实体不存在: {entity_id}") from error
+        except ValueError as error:
+            raise invalid(str(error)) from error
+        return {**metadata, **result}
+
+    def engineering_impact(self, args: dict[str, Any]) -> dict[str, Any]:
+        metadata, analyzer = self._engineering_analysis(args)
+        entity_ids = [str(item) for item in args.get("entityIds", [])]
+        try:
+            result = analyzer.impact(
+                entity_ids, max_depth=int(args.get("depth", 4))
+            )
+        except KeyError as error:
+            raise not_found(
+                f"工程语义影响分析存在未知实体: {error.args[0]}"
+            ) from error
+        except ValueError as error:
+            raise invalid(str(error)) from error
+        return {**metadata, **result}
 
     @staticmethod
     def validate_protocol_header(value: str | None) -> None:
@@ -622,7 +717,7 @@ class ReadOnlyMcpGateway:
                         },
                         "serverInfo": {
                             "name": "code-ontology-readonly-gateway",
-                            "version": "0.3.0",
+                            "version": "0.4.0",
                         },
                         "instructions": (
                             "此 Gateway 只提供图谱、代码影响和索引状态读取；"

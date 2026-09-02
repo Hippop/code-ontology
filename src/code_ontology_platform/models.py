@@ -5,7 +5,9 @@ from typing import Any
 
 from .errors import invalid
 
-STAGES = frozenset({"extract", "align", "plan", "implement", "verify", "impact"})
+STAGES = frozenset(
+    {"extract", "align", "plan", "generate", "implement", "verify", "precommit", "impact"}
+)
 GRAPH_SPACES = frozenset(
     {"current", "business", "desired", "proposed", "approved", "actual", "impact"}
 )
@@ -34,6 +36,18 @@ ARTIFACT_TYPES = frozenset(
         "TestExecutionReport",
         "ReconciliationReport",
         "ImpactExplanation",
+        "EngineeringSemanticGraph",
+        "EngineeringCoverage",
+        "CodeGenerationPlan",
+        "CodeGenerationArtifact",
+        "GitDiffSnapshot",
+        "WorkingTreeGraphOverlay",
+        "ActualChangeSet",
+        "ActualImpactGraph",
+        "ImpactObligationArtifact",
+        "ImplementationReconciliationArtifact",
+        "VerificationCoverageArtifact",
+        "PreCommitReview",
     }
 )
 ALIGNMENT_TYPES = frozenset(

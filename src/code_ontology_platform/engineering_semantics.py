@@ -15,7 +15,7 @@ CONTRACTS = frozenset(
 )
 SEMANTIC_CONTRACTS = frozenset({"SemanticContract"})
 VERIFICATION_METHODS = frozenset(
-    {"VerificationMethod", "TestVerification", "FormalProofVerification", "AnalysisVerification", "InspectionVerification", "DemonstrationVerification"}
+    {"VerificationMethod", "ExecutedVerificationMethod", "TestVerification", "FormalProofVerification", "AnalysisVerification", "InspectionVerification", "DemonstrationVerification"}
 )
 VERIFICATION_OBJECTIVES = frozenset({"VerificationObjective"})
 VERIFICATION_EVIDENCE = frozenset(
@@ -165,7 +165,11 @@ class EngineeringSemantics:
                     issue("VERIFICATION_OBJECTIVE", entity_id, "VerificationMethod must derive from exactly one VerificationObjective.", objectiveCount=len(objectives), validObjectiveCount=len(valid_objectives))
                 if not self.typed_links(entity_id, "out", {"verifiesRequirement"}, GOVERNED_REQUIREMENTS):
                     issue("VERIFICATION_REQUIREMENT", entity_id, "VerificationMethod must verify at least one EngineeringRequirement.")
-                if not self.typed_links(entity_id, "out", {"satisfiedByEvidence"}, VERIFICATION_EVIDENCE):
+                execution_status = str(node.get("executionStatus", "")).lower()
+                evidence_required = kind == "ExecutedVerificationMethod" or execution_status in {
+                    "executed", "completed", "passed", "failed"
+                }
+                if evidence_required and not self.typed_links(entity_id, "out", {"satisfiedByEvidence"}, VERIFICATION_EVIDENCE):
                     issue("VERIFICATION_EVIDENCE", entity_id, "VerificationMethod must have concrete evidence.")
             elif kind in VERIFICATION_OBJECTIVES:
                 if self.links(entity_id, "out", {"satisfiedByEvidence"}):

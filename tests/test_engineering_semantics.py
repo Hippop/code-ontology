@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import Mock
 
 from code_ontology_platform.engineering_semantics import EngineeringSemantics
+from code_ontology_platform.engineering_workflow import materialize_engineering_intent
+from code_ontology_platform.mcp_gateway import ReadOnlyMcpGateway
 
 
 def graph() -> dict:
@@ -38,6 +41,55 @@ def graph() -> dict:
 
 
 class EngineeringSemanticsTest(unittest.TestCase):
+    def test_unified_mcp_exposes_engineering_coverage(self) -> None:
+        value = graph()
+        service = Mock()
+        service._analysis_graph.return_value = (
+            "business",
+            "model-v1",
+            value["nodes"],
+            value["edges"],
+        )
+        gateway = ReadOnlyMcpGateway(service)
+        response = gateway.handle(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                    "name": "engineering_coverage",
+                    "arguments": {
+                        "graphSpace": "business",
+                        "revision": "model-v1",
+                    },
+                },
+            }
+        )
+        self.assertEqual(
+            1.0,
+            response["result"]["structuredContent"]["implementation"]["ratio"],
+        )
+
+    def test_requirement_ir_materializes_governed_engineering_intent(self) -> None:
+        result = materialize_engineering_intent(
+            "REQ-1",
+            {
+                "scope": ["service"],
+                "desiredEntities": [
+                    {
+                        "entityId": "desired:test",
+                        "entityType": "DesiredTestObligation",
+                        "label": "must pass",
+                    }
+                ],
+            },
+        )
+        validation = EngineeringSemantics(result).validate()
+        self.assertTrue(validation["conforms"], validation)
+        self.assertIn(
+            "EngineeringRequirement", {node["type"] for node in result["nodes"]}
+        )
+
     def test_valid_graph_conforms(self) -> None:
         result = EngineeringSemantics(graph()).validate()
         self.assertTrue(result["conforms"], result)
@@ -104,6 +156,30 @@ class EngineeringSemanticsTest(unittest.TestCase):
         result = EngineeringSemantics(value).validate()
         self.assertFalse(result["conforms"])
         self.assertIn("EVIDENCE_ARTIFACT", {item["code"] for item in result["issues"]})
+
+    def test_planned_verification_can_exist_before_evidence(self) -> None:
+        value = graph()
+        value["edges"] = [
+            edge
+            for edge in value["edges"]
+            if edge["relation"] != "eng:satisfiedByEvidence"
+        ]
+        result = EngineeringSemantics(value).validate()
+        self.assertTrue(result["conforms"], result)
+
+    def test_executed_verification_requires_evidence(self) -> None:
+        value = graph()
+        next(
+            node for node in value["nodes"] if node["id"] == "verification:test"
+        )["executionStatus"] = "Completed"
+        value["edges"] = [
+            edge
+            for edge in value["edges"]
+            if edge["relation"] != "eng:satisfiedByEvidence"
+        ]
+        result = EngineeringSemantics(value).validate()
+        self.assertFalse(result["conforms"])
+        self.assertIn("VERIFICATION_EVIDENCE", {item["code"] for item in result["issues"]})
 
 
 if __name__ == "__main__":

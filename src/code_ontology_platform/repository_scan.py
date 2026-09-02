@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import xml.etree.ElementTree as ET
@@ -132,15 +133,21 @@ def _safe_git(repository: Path, *arguments: str) -> str | None:
 
 def _workspace_revision(repository: Path) -> str:
     digest = hashlib.sha256()
-    for path in sorted(repository.rglob("*")):
-        if not path.is_file() or any(part in _IGNORED_PARTS for part in path.parts):
-            continue
-        relative = path.relative_to(repository).as_posix()
-        digest.update(relative.encode("utf-8"))
-        try:
-            digest.update(path.read_bytes())
-        except OSError:
-            continue
+    for directory, child_directories, filenames in os.walk(repository):
+        child_directories[:] = sorted(
+            name for name in child_directories if name not in _IGNORED_PARTS
+        )
+        root = Path(directory)
+        for filename in sorted(filenames):
+            path = root / filename
+            if not path.is_file():
+                continue
+            relative = path.relative_to(repository).as_posix()
+            digest.update(relative.encode("utf-8"))
+            try:
+                digest.update(path.read_bytes())
+            except OSError:
+                continue
     return f"workspace:{digest.hexdigest()}"
 
 

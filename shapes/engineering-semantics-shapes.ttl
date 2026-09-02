@@ -66,12 +66,16 @@ eng:VerificationMethodShape
         sh:minCount 1 ;
         sh:class eng:EngineeringRequirement ;
         sh:message "VerificationMethod 必须验证至少一个 EngineeringRequirement。"@zh
-    ] ;
+    ] .
+
+eng:ExecutedVerificationMethodShape
+    a sh:NodeShape ;
+    sh:targetClass eng:ExecutedVerificationMethod ;
     sh:property [
         sh:path eng:satisfiedByEvidence ;
         sh:minCount 1 ;
         sh:class eng:VerificationEvidence ;
-        sh:message "VerificationMethod 必须有具体 Evidence。"@zh
+        sh:message "已执行的 VerificationMethod 必须有具体 Evidence。"@zh
     ] .
 
 eng:VerificationObjectiveShape

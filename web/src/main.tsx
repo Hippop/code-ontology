@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { createRoot } from "react-dom/client";
+import { LifecycleWorkbench, WorkbenchView } from "./lifecycle";
 import "./styles.css";
 
 type JsonObject = Record<string, unknown>;
@@ -1817,9 +1818,7 @@ function TraceWorkbench({
 }
 
 function App() {
-  const [view, setView] = useState<
-    "graphs" | "compare" | "workflow" | "trace"
-  >("graphs");
+  const [view, setView] = useState<WorkbenchView>("lifecycle");
   const [requirementId, setRequirementId] = useState("REQ-SDN-2026-001");
   const [token, setToken] = useState("");
 
@@ -1850,6 +1849,14 @@ function App() {
       </header>
 
       <nav className="view-tabs" aria-label="Workbench views">
+        <button
+          type="button"
+          className={view === "lifecycle" ? "active" : ""}
+          onClick={() => setView("lifecycle")}
+        >
+          ONTOLOGY FLOW
+          <small>本体 · 生成 · Git 门禁 · 发布</small>
+        </button>
         <button
           type="button"
           className={view === "workflow" ? "active" : ""}
@@ -1884,6 +1891,7 @@ function App() {
         </button>
       </nav>
 
+      {view === "lifecycle" && <LifecycleWorkbench token={token} onNavigate={setView} />}
       {view === "graphs" && <GraphExplorer token={token} />}
       {view === "compare" && <GraphCompare token={token} />}
       {view === "workflow" && <WorkflowControl token={token} />}

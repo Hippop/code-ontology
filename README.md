@@ -15,6 +15,10 @@
 - [MCP 代码图谱 Server 与接入指南](docs/27-mcp-code-graph-server.md)
 - [本地 Codex 需求到代码图谱闭环](docs/29-local-codex-requirement-workflow.md)
 - [语言与技术栈复核](docs/30-technology-stack-review.md)
+- [Agent 驱动的组件设计到完整变更要求规划架构](docs/31-agent-change-planning-architecture.md)
+- [基于 Git Diff 的提交前波及完整性验证架构](docs/32-precommit-impact-verification-architecture.md)
+- [Reqvire 启发下的本体驱动端到端全流程](docs/33-reqvire-informed-ontology-e2e-workflow.md)
+- [本体驱动需求到代码闭环：可执行实现](docs/34-ontology-e2e-implementation.md)
 - [正式设计文档目录](docs/README.md)
 - [总体架构](docs/00-overall-architecture.md)
 
@@ -61,6 +65,9 @@ Approved Change
 - [需求设计到代码图变更规划本体](ontology/requirement-change-planning.ttl)
 - [业务图与代码图 SHACL 约束](shapes/business-code-linkage-shapes.ttl)
 - [需求变更规划 SHACL 约束](shapes/requirement-change-planning-shapes.ttl)
+- [工程语义本体](ontology/engineering-semantics.ttl)
+- [工程语义 SHACL 约束](shapes/engineering-semantics-shapes.ttl)
+- [Code Ontology 项目自模型](models/code-ontology.engineering-model.json)
 - [需求变更规划规则模板](rules/requirement-change-planning-rules.yaml)
 - [SDN 网络策略部署实例图](examples/sdn-network-policy-deployment.ttl)
 - [SDN 需求到代码图变更实例](examples/sdn-requirement-to-code-change-plan.ttl)
@@ -83,6 +90,10 @@ python3 -m venv .venv
 .venv/bin/code-ontology-platform codegraph impact examples/java-spring-sample \
   PolicyService --repository-id repo-sdn-sample
 .venv/bin/code-ontology-platform doctor
+.venv/bin/code-ontology-engineering coverage \
+  models/code-ontology.engineering-model.json
+.venv/bin/code-ontology-generate \
+  models/code-ontology.engineering-model.json --output .
 .venv/bin/code-ontology-platform mcp
 .venv/bin/code-ontology-platform serve
 ```
@@ -120,6 +131,10 @@ cd ..
 code-ontology-platform serve --web-root web/dist
 ```
 
+默认的 `ONTOLOGY FLOW` 将仓库基线、本体构建、需求意图、语义对齐、批准计划、
+代码生成、提交门禁和发布审计串成一条可执行路径，详见
+[本体工程全流程工作台](docs/35-ontology-lifecycle-workbench.md)。
+
 容器部署见 [deploy/README.md](deploy/README.md)。
 
 主要平台 API：
@@ -130,6 +145,7 @@ Graph Catalog / Bounded Query / Cross-Graph Compare
 CodeGraph Explore / Symbol Impact / Affected Tests / Index Freshness
 Hybrid Search / Community / Process / Cross-Repository Contract Graph
 Read-only stdio / Streamable HTTP MCP Server
+Engineering Workbench / Semantic Analysis / Ontology Code Generation / Pre-commit Verification
 Design Document / Revision / Requirement IR / Review
 Persistent Requirement Workflow / Human Gate Resume / Failed-Stage Retry
 Alignment Candidate / Confirm / Reject / ImplementationSlice
@@ -208,8 +224,12 @@ src/code_ontology_platform/
   graph_analysis.py        混合检索、社区、流程和跨仓契约图
   mcp_gateway.py           只读 stdio / Streamable HTTP MCP Server
   document_ingestion.py    Design Revision 与 Requirement IR
+  engineering_workflow.py  Requirement IR 到工程语义图物化
+  engineering_semantics.py 本体约束、Coverage、Context 与 typed impact
   analysis_workflow.py     Alignment、ImplementationSlice、Diff、Plan
   agent_runtime.py         Codex/OpenCode、Worktree、Policy、Patch、Test
+  ontology_codegen.py      Requirement Contract 驱动的确定性代码生成
+  precommit_verification.py Working Tree 双向对账与 Commit Gate
   verification_workflow.py Actual、Reconciliation、Impact、Release
   workflow_orchestration.py 多角色持久化状态机、人工 Gate 与失败恢复
   service.py               Gate 与应用工作流

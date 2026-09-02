@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import subprocess
@@ -39,6 +40,13 @@ from .document_ingestion import (
     parse_design_document,
 )
 from .errors import PlatformError, conflict, invalid, not_found
+from .engineering_semantics import EngineeringSemantics
+from .engineering_workflow import (
+    ENGINEERING_ONTOLOGY_VERSION,
+    materialize_engineering_intent,
+)
+from .ontology_codegen import OntologyCodeGenerator
+from .precommit_verification import PreCommitVerifier
 from .graph_analysis import (
     build_contract_graph,
     detect_communities,
@@ -265,11 +273,168 @@ class PlatformService:
         self.codegraph_sidecar = codegraph_sidecar or CodeGraphSidecar(store)
         self.workflow_orchestrator = RequirementWorkflowOrchestrator(self)
 
+    @staticmethod
+    def _path_is_within(path: Path, root: Path) -> bool:
+        if path.is_relative_to(root):
+            return True
+        # Windows drives mounted through WSL are case-insensitive even though
+        # pathlib performs POSIX case-sensitive lexical comparisons.
+        for candidate in (path, *path.parents):
+            try:
+                if candidate.samefile(root):
+                    return True
+            except OSError:
+                continue
+        return False
+
+    def engineering_workbench(self) -> dict[str, Any]:
+        """Return the governed starter model and repository choices for the Web workbench."""
+        model_path = self.project_root / "models" / "code-ontology.engineering-model.json"
+        model: dict[str, Any] = {
+            "graphId": "urn:graph:engineering:new-model",
+            "graphType": "EngineeringSemanticModel",
+            "revision": "0.1.0",
+            "repositoryId": "",
+            "nodes": [],
+            "edges": [],
+        }
+        if model_path.is_file():
+            loaded = json.loads(model_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, Mapping):
+                model = dict(loaded)
+        repositories = self.list_repositories()
+        suggested_path = (
+            str(self.project_root)
+            if any(
+                self._path_is_within(self.project_root, root)
+                for root in self.repository_roots
+            )
+            else None
+        )
+        return {
+            "model": model,
+            "modelSource": str(model_path) if model_path.is_file() else None,
+            "repositories": repositories["repositories"],
+            "suggestedRepositoryPath": suggested_path,
+            "lifecycle": [
+                "RepositoryBaseline",
+                "OntologyModel",
+                "RequirementIntent",
+                "SemanticAlignment",
+                "ApprovedPlan",
+                "CodeGeneration",
+                "PreCommitVerification",
+                "ActualReconciliation",
+                "ReleaseAudit",
+            ],
+        }
+
+    @staticmethod
+    def _engineering_model(body: Mapping[str, Any]) -> dict[str, Any]:
+        model = object_value(body.get("model"), "model")
+        nodes = list_value(model.get("nodes"), "model.nodes")
+        edges = list_value(model.get("edges"), "model.edges")
+        model["nodes"] = [object_value(item, "model.nodes[]") for item in nodes]
+        model["edges"] = [object_value(item, "model.edges[]") for item in edges]
+        return model
+
+    def analyze_engineering_model(self, body_value: Any) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        model = self._engineering_model(body)
+        semantics = EngineeringSemantics(model)
+        result: dict[str, Any] = {
+            "modelId": model.get("graphId"),
+            "modelRevision": model.get("revision"),
+            "validation": semantics.validate(),
+            "coverage": semantics.coverage(),
+            "summary": {
+                "nodeCount": len(model["nodes"]),
+                "edgeCount": len(model["edges"]),
+            },
+        }
+        entity_id = body.get("entityId")
+        if entity_id is not None:
+            depth = body.get("contextDepth", 2)
+            if isinstance(depth, bool) or not isinstance(depth, int) or not 0 <= depth <= 8:
+                raise invalid("contextDepth 必须是 0 到 8 的整数")
+            try:
+                result["context"] = semantics.collect(
+                    string_value(entity_id, "entityId"), depth=depth
+                )
+            except KeyError as error:
+                raise invalid("entityId 不存在于工程本体模型", {"entityId": str(error)}) from error
+        changed = body.get("changedEntityIds")
+        if changed is not None:
+            changed_ids = [
+                string_value(item, "changedEntityIds[]")
+                for item in list_value(changed, "changedEntityIds", nonempty=True)
+            ]
+            max_depth = body.get("impactDepth", 4)
+            if isinstance(max_depth, bool) or not isinstance(max_depth, int) or not 1 <= max_depth <= 8:
+                raise invalid("impactDepth 必须是 1 到 8 的整数")
+            try:
+                result["impact"] = semantics.impact(changed_ids, max_depth=max_depth)
+            except KeyError as error:
+                raise invalid("changedEntityIds 包含未知实体", {"entityIds": str(error)}) from error
+        return result
+
+    def generate_from_engineering_model(
+        self, body_value: Any, *, apply: bool
+    ) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        model = self._engineering_model(body)
+        repository_id = string_value(body.get("repositoryId"), "repositoryId")
+        repository = self.get_repository(repository_id)
+        overwrite = body.get("overwrite", False)
+        if not isinstance(overwrite, bool):
+            raise invalid("overwrite 必须是 boolean")
+        try:
+            result = OntologyCodeGenerator(model).generate(
+                repository["path"], apply=apply, overwrite=overwrite
+            )
+        except FileExistsError as error:
+            raise PlatformError(409, "GENERATION_CONFLICT", str(error)) from error
+        except (KeyError, TypeError, ValueError) as error:
+            raise invalid("工程本体模型无法生成代码", {"reason": str(error)}) from error
+        result["repositoryId"] = repository_id
+        result["repositoryPath"] = repository["path"]
+        return result
+
+    def verify_precommit(self, body_value: Any) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        model = self._engineering_model(body)
+        repository_id = string_value(body.get("repositoryId"), "repositoryId")
+        repository = self.get_repository(repository_id)
+        planned = [
+            object_value(item, "plannedChanges[]")
+            for item in list_value(body.get("plannedChanges", []), "plannedChanges")
+        ]
+        verification_results = [
+            object_value(item, "verificationResults[]")
+            for item in list_value(
+                body.get("verificationResults", []), "verificationResults"
+            )
+        ]
+        reviewed_hash = body.get("reviewedSnapshotHash")
+        if reviewed_hash is not None:
+            reviewed_hash = string_value(reviewed_hash, "reviewedSnapshotHash")
+        try:
+            result = PreCommitVerifier(
+                repository["path"],
+                model,
+                planned_changes=planned,
+                verification_results=verification_results,
+            ).verify(reviewed_snapshot_hash=reviewed_hash)
+        except (KeyError, TypeError, ValueError) as error:
+            raise invalid("无法执行提交前验证", {"reason": str(error)}) from error
+        result["repositoryId"] = repository_id
+        return result
+
     def _repository_path(self, value: Any) -> Path:
         path = Path(string_value(value, "path")).resolve()
         if not path.is_dir():
             raise invalid(f"仓库目录不存在: {path}")
-        if not any(path.is_relative_to(root) for root in self.repository_roots):
+        if not any(self._path_is_within(path, root) for root in self.repository_roots):
             raise invalid(
                 "仓库路径不在允许的根目录内",
                 {
@@ -718,6 +883,13 @@ class PlatformService:
                         "target": following["entityId"],
                     }
                 )
+        engineering_intent = materialize_engineering_intent(requirement_id, ir)
+        node_by_id = {node["id"]: node for node in desired_nodes}
+        node_by_id.update(
+            {node["id"]: node for node in engineering_intent["nodes"]}
+        )
+        desired_nodes = list(node_by_id.values())
+        desired_edges.extend(engineering_intent["edges"])
         self.replace_graph(
             "desired",
             desired_revision,
@@ -790,10 +962,29 @@ class PlatformService:
         source_artifact: str,
     ) -> None:
         requirement_node_id = f"requirement:{requirement_id}"
+        engineering_types = {
+            "EngineeringRequirement",
+            "RequirementContract",
+            "SpecificationContract",
+            "BehaviorContract",
+            "ConstraintContract",
+            "StateContract",
+            "InputOutputContract",
+            "SemanticContract",
+            "OntologyAsset",
+            "VerificationObjective",
+            "VerificationMethod",
+            "TestVerification",
+            "FormalProofVerification",
+            "AnalysisVerification",
+            "InspectionVerification",
+            "DemonstrationVerification",
+        }
         business_ids = {
             node["id"]
             for node in desired_nodes
             if node.get("type") in _BUSINESS_ENTITY_TYPES
+            or node.get("type") in engineering_types
             or str(node.get("type", "")).startswith("Business")
         }
         evidence_ids = {
@@ -1144,7 +1335,20 @@ class PlatformService:
             context=context,
         )
         plan["changeSet"]["repositoryId"] = context.get("repositoryId")
+        plan["changeSet"]["ontologyVersion"] = ENGINEERING_ONTOLOGY_VERSION
         plan["context"] = context
+        business_nodes, business_edges = self.store.read_graph(
+            "business", requirement["desiredGraphRevision"]
+        )
+        engineering = EngineeringSemantics(
+            {"nodes": business_nodes, "edges": business_edges}
+        )
+        engineering_requirement_id = f"requirement:{requirement['requirementId']}"
+        if engineering_requirement_id in engineering.node_by_id:
+            plan["requirementContext"]["engineeringContext"] = engineering.collect(
+                engineering_requirement_id, depth=3
+            )
+            plan["requirementContext"]["engineeringCoverage"] = engineering.coverage()
         plan["governance"] = {
             "requiresArchitectureReview": True,
             "requiresSecurityDataReview": any(

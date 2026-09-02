@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "code-ontology-platform"
-version = "0.3.0"
+version = "0.4.0"
 description = "Executable Agent Gateway and deterministic change-planning slice for Code Ontology"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -20,6 +20,8 @@ dependencies = [
 code-ontology-platform = "code_ontology_platform.cli:main"
 code-ontology-engineering = "code_ontology_platform.engineering_semantics:main"
 code-ontology-engineering-mcp = "code_ontology_platform.engineering_mcp_gateway:main"
+code-ontology-generate = "code_ontology_platform.ontology_codegen:main"
+code-ontology-precommit = "code_ontology_platform.precommit_verification:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

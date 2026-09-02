@@ -12,6 +12,10 @@
 - [CodeGraph Sidecar 与图智能增强](26-codegraph-sidecar-and-graph-intelligence.md)
 - [本地 Codex 需求到代码图谱闭环](29-local-codex-requirement-workflow.md)
 - [语言与技术栈复核](30-technology-stack-review.md)
+- [Agent 驱动的组件设计到完整变更要求规划架构](31-agent-change-planning-architecture.md)
+- [基于 Git Diff 的提交前波及完整性验证架构](32-precommit-impact-verification-architecture.md)
+- [Reqvire 启发下的本体驱动端到端全流程](33-reqvire-informed-ontology-e2e-workflow.md)
+- [本体驱动需求到代码闭环：可执行实现](34-ontology-e2e-implementation.md)
 - [总体架构](00-overall-architecture.md)
 - [OpenCode Agent + Skill AI 辅助架构](20-opencode-agent-skill-architecture.md)
 
@@ -48,6 +52,11 @@
 29. [产业图谱工具与竞品研究](28-industry-landscape-and-competitive-research.md)
 30. [本地 Codex 需求到代码图谱闭环](29-local-codex-requirement-workflow.md)
 31. [语言与技术栈复核](30-technology-stack-review.md)
+32. [Agent 驱动的组件设计到完整变更要求规划架构](31-agent-change-planning-architecture.md)
+33. [基于 Git Diff 的提交前波及完整性验证架构](32-precommit-impact-verification-architecture.md)
+34. [Reqvire 启发下的本体驱动端到端全流程](33-reqvire-informed-ontology-e2e-workflow.md)
+35. [本体驱动需求到代码闭环：可执行实现](34-ontology-e2e-implementation.md)
+36. [本体工程全流程工作台](35-ontology-lifecycle-workbench.md)
 
 ## 业务语义与需求规划资产
 
@@ -56,6 +65,9 @@
 - [需求设计到代码图变更规划本体](../ontology/requirement-change-planning.ttl)
 - [业务图与代码图 SHACL 约束](../shapes/business-code-linkage-shapes.ttl)
 - [需求变更规划 SHACL 约束](../shapes/requirement-change-planning-shapes.ttl)
+- [工程语义本体](../ontology/engineering-semantics.ttl)
+- [工程语义 SHACL 约束](../shapes/engineering-semantics-shapes.ttl)
+- [Code Ontology 项目自模型](../models/code-ontology.engineering-model.json)
 - [需求变更规划规则模板](../rules/requirement-change-planning-rules.yaml)
 - [SDN 网络策略部署实例图](../examples/sdn-network-policy-deployment.ttl)
 - [SDN 需求到代码图变更实例](../examples/sdn-requirement-to-code-change-plan.ttl)
