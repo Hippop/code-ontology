@@ -38,8 +38,10 @@ def check():
     assert page.h1 == 1, "Expected one H1"
     assert len(page.ids) == len(set(page.ids)), "Duplicate IDs"
     assert all(ref in page.ids for ref in page.references), "Broken ARIA references"
-    assert len(page.tabs) == 5, "Expected five method stages"
-    assert sum(tab["aria-selected"] == "true" for tab in page.tabs) == 1
+    assert len(page.tabs) == 9, "Expected three concept examples and six graph stages"
+    assert sum(tab["aria-selected"] == "true" for tab in page.tabs) == 2
+    assert {tab.get("data-stage") for tab in page.tabs if "data-stage" in tab} == set(map(str, range(6)))
+    assert {tab.get("data-concept") for tab in page.tabs if "data-concept" in tab} == set(map(str, range(3)))
     for link in page.links:
         parsed = urlparse(link)
         if parsed.scheme:
@@ -61,7 +63,8 @@ def check():
     assert data["definitionCounts"] == {"developmentClasses": 49, "developmentObjectProperties": 57}
     for digest in data["hashes"].values():
         assert re.fullmatch(r"[a-f0-9]{64}", digest), "Invalid SHA-256"
-    print(f"PASS: {len(page.links)} links/assets, {len(page.ids)} IDs, 5 accessible stages, 8 historical tests; no local endpoints.")
+    assert "方法演示" in html and "真实历史记录" in html
+    print(f"PASS: {len(page.links)} links/assets, {len(page.ids)} IDs, 3 concept examples, 6 graph stages, 8 historical tests; no local endpoints.")
 
 
 if __name__ == "__main__":
