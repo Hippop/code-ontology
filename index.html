@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101412" />
+    <meta
+      name="description"
+      content="Code Ontology：从业务语义到可验证代码。以本体连接需求、行为契约、设计、代码与证据，让软件开发可追溯、可验证、可演进。"
+    />
+    <meta
+      property="og:title"
+      content="Code Ontology — 让代码，连接业务的本意。"
+    />
+    <meta
+      property="og:description"
+      content="探索基于本体的软件开发方法：从需求到设计，从生成到验证，让每一段实现都有据可循。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://hippop.github.io/code-ontology/" />
+    <link rel="canonical" href="https://hippop.github.io/code-ontology/" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
+    <title>Code Ontology · 从业务语义到可验证代码</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="#" aria-label="Code Ontology 首页"
+          ><svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M7 8 16 3 25 8v16l-9 5-9-5Z M7 8l9 6 9-6 M16 14v15" />
+            <circle cx="16" cy="14" r="3" /></svg
+          ><span>code<span class="brand-separator">/</span>ontology</span></a
+        >
+        <button
+          class="menu-toggle"
+          aria-expanded="false"
+          aria-controls="navigation"
+        >
+          菜单 <span aria-hidden="true">＋</span>
+        </button>
+        <nav id="navigation" aria-label="主导航">
+          <a href="#vision">目标愿景</a><a href="#method">核心方法</a
+          ><a href="#case">真实案例</a><a href="#roadmap">演进路线</a>
+          <a class="nav-github" href="https://github.com/Hippop/code-ontology"
+            >GitHub <span aria-hidden="true">↗</span></a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero container" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="status-dot"></span> ONTOLOGY-DRIVEN DEVELOPMENT
+          </p>
+          <h1 id="hero-title">
+            让代码，<br />连接业务的<span class="accent">本意。</span>
+          </h1>
+          <p class="hero-description">
+            从业务语义到可验证代码。<br />用本体连接需求、设计、实现与证据，<br
+              class="desktop-break"
+            />让软件不仅能运行，也能解释为什么这样运行。
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#method"
+              >探索核心方法 <span aria-hidden="true">↗</span></a
+            ><a class="text-link" href="https://github.com/Hippop/code-ontology"
+              >查看项目 <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <p class="hero-note">
+            <span class="small-line"></span> 可追溯 · 可验证 · 可演进
+          </p>
+        </div>
+        <div class="hero-graph">
+          <div class="graph-topline">
+            <span>THE SEMANTIC THREAD</span><span>01 — 05</span>
+          </div>
+          <svg
+            class="ontology-graph"
+            viewBox="0 0 580 530"
+            role="img"
+            aria-labelledby="graph-title graph-description"
+          >
+            <title id="graph-title">从需求到证据的语义关系图</title>
+            <desc id="graph-description">
+              业务需求约束语义契约，契约指导目标设计，设计经适配器生成代码，验收证据验证契约。元模型定义这些对象的类型、关系与约束。
+            </desc>
+            <defs>
+              <pattern
+                id="dots"
+                width="24"
+                height="24"
+                patternUnits="userSpaceOnUse"
+              >
+                <circle cx="1" cy="1" r="1" fill="#36403a" />
+              </pattern>
+              <marker
+                id="arrow"
+                markerWidth="6"
+                markerHeight="6"
+                refX="5"
+                refY="3"
+                orient="auto"
+              >
+                <path d="M0 0 6 3 0 6" fill="none" stroke="#7b8a7f" />
+              </marker>
+            </defs>
+            <rect width="580" height="530" fill="url(#dots)" opacity=".48" />
+            <g class="graph-orbit" fill="none" stroke="#303a32">
+              <ellipse
+                cx="290"
+                cy="260"
+                rx="252"
+                ry="213"
+                stroke-dasharray="3 9"
+              />
+              <ellipse cx="290" cy="260" rx="189" ry="160" opacity=".5" />
+            </g>
+            <g
+              class="graph-edges"
+              fill="none"
+              stroke="#6c7b6f"
+              stroke-width="1.2"
+              marker-end="url(#arrow)"
+            >
+              <path d="M192 117C254 117 195 212 240 226" />
+              <path d="M346 222C385 210 330 117 405 117" />
+              <path d="M472 157V343" />
+              <path d="M404 381H205" />
+              <path d="M135 346V157" />
+              <path
+                d="M137 344C140 283 212 278 231 268"
+                stroke="#c1ec80"
+                stroke-dasharray="4 6"
+              />
+            </g>
+            <g font-family="inherit" font-size="12" fill="#9eaaa1">
+              <text x="181" y="180">约束</text>
+              <text x="362" y="181">落实</text>
+              <text x="487" y="258">生成</text>
+              <text x="273" y="403">验证</text>
+              <text x="63" y="258">追溯</text>
+              <text x="165" y="310" fill="#c1ec80">满足性判断</text>
+            </g>
+            <g class="diagram-node">
+              <rect x="64" y="78" width="142" height="79" rx="5" />
+              <text x="82" y="103" class="node-label">01 / REQUIREMENT</text>
+              <text x="82" y="132" class="node-title">业务需求</text>
+            </g>
+            <g class="diagram-node">
+              <rect x="402" y="78" width="142" height="79" rx="5" />
+              <text x="420" y="103" class="node-label">03 / DESIGN</text>
+              <text x="420" y="132" class="node-title">目标设计</text>
+            </g>
+            <g class="diagram-node">
+              <rect x="402" y="345" width="142" height="79" rx="5" />
+              <text x="420" y="370" class="node-label">04 / CODE</text>
+              <text x="420" y="399" class="node-title">代码实现</text>
+            </g>
+            <g class="diagram-node evidence-node">
+              <rect x="64" y="345" width="142" height="79" rx="5" />
+              <text x="82" y="370" class="node-label">05 / EVIDENCE</text>
+              <text x="82" y="399" class="node-title">验收证据</text>
+            </g>
+            <g class="contract-node">
+              <rect x="220" y="208" width="142" height="91" rx="5" />
+              <text x="238" y="234" class="node-label">02 / CONTRACT</text>
+              <text x="238" y="265" class="node-title">语义契约</text>
+              <circle cx="343" cy="225" r="3" fill="#151b12" />
+            </g>
+            <g class="graph-pulse">
+              <circle cx="472" cy="249" r="4" fill="#c1ec80" />
+              <circle
+                cx="472"
+                cy="249"
+                r="10"
+                fill="none"
+                stroke="#c1ec80"
+                opacity=".3"
+              />
+            </g>
+            <text
+              x="290"
+              y="489"
+              text-anchor="middle"
+              font-size="13"
+              fill="#87948b"
+            >
+              元模型 · 类型 / 关系 / 约束
+            </text>
+          </svg>
+          <div class="graph-bottomline">
+            <span><span class="status-dot"></span> 语义贯穿，证据闭环</span
+            ><span>概念示意</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="proof-strip" aria-label="当前模型与案例数据">
+        <div class="container proof-grid">
+          <div class="proof-caption">
+            <span class="eyebrow">MODEL → REALITY</span
+            ><span>从模型走向<br />真实运行</span>
+          </div>
+          <div class="proof-item">
+            <strong>49<span>个</span></strong
+            ><span>开发元模型类</span>
+          </div>
+          <div class="proof-item">
+            <strong>57<span>条</span></strong
+            ><span>对象属性定义</span>
+          </div>
+          <div class="proof-item">
+            <strong>8<span>/ 8</span></strong
+            ><span>案例验收测试通过</span>
+          </div>
+          <div class="proof-item">
+            <strong>1<span>条</span></strong
+            ><span>已运行的限定生成链路</span>
+          </div>
+        </div>
+        <p class="container data-note">
+          2026-09-08
+          本地模型与任务优先级案例记录；定义数量不代表已实现功能数量，测试通过率不代表全部业务覆盖率。
+        </p>
+      </section>
+
+      <section
+        id="vision"
+        class="section container vision-section"
+        aria-labelledby="vision-title"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">01 / OUR VISION</p>
+          <h2 id="vision-title">代码会迭代。<br />业务本意，不应丢失。</h2>
+        </div>
+        <div class="vision-content">
+          <p class="large-copy">
+            需求写在文档里，设计留在讨论中，<br />实现散落在代码库，验证沉淀为测试结果。
+          </p>
+          <p>
+            我们希望让它们成为一套互相关联、可查询、可检查的工程模型。从“这个功能做完了吗”，走向“哪个要求由哪些代码实现，又有哪些证据支持”。
+          </p>
+          <div class="vision-principles">
+            <article>
+              <span class="index">01</span>
+              <h3>共享业务语义</h3>
+              <p>用明确的概念、行为和关系，连接业务人员与开发者的理解。</p>
+            </article>
+            <article>
+              <span class="index">02</span>
+              <h3>保留决策依据</h3>
+              <p>不仅记录生成了什么，也保留设计理由、适用范围与版本。</p>
+            </article>
+            <article>
+              <span class="index">03</span>
+              <h3>让结论有据可循</h3>
+              <p>
+                用真实执行支撑验收；模型或代码变化后，重新检查证据是否有效。
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="method"
+        class="section method-section"
+        aria-labelledby="method-title"
+      >
+        <div class="container">
+          <div class="section-heading horizontal">
+            <div>
+              <p class="eyebrow">02 / THE METHOD</p>
+              <h2 id="method-title">
+                不是一键魔法。<br />是一条有依据的生成链路。
+              </h2>
+            </div>
+            <p>
+              本体定义意义与约束，适配器执行转换，<br />真实测试回答是否满足要求。
+            </p>
+          </div>
+          <div class="method-layout">
+            <div
+              class="method-tabs"
+              role="tablist"
+              aria-label="代码生成流程"
+              aria-orientation="vertical"
+            >
+              <button
+                id="step-0"
+                role="tab"
+                aria-selected="true"
+                aria-controls="method-panel"
+                data-step="0"
+              >
+                <span>01</span
+                ><span
+                  ><strong>建立共同语言</strong
+                  ><small>元模型与领域概念</small></span
+                ><span class="step-arrow" aria-hidden="true">↗</span>
+              </button>
+              <button
+                id="step-1"
+                role="tab"
+                aria-selected="false"
+                aria-controls="method-panel"
+                tabindex="-1"
+                data-step="1"
+              >
+                <span>02</span
+                ><span
+                  ><strong>把需求变成契约</strong
+                  ><small>值域、行为与验收</small></span
+                ><span class="step-arrow" aria-hidden="true">↗</span>
+              </button>
+              <button
+                id="step-2"
+                role="tab"
+                aria-selected="false"
+                aria-controls="method-panel"
+                tabindex="-1"
+                data-step="2"
+              >
+                <span>03</span
+                ><span
+                  ><strong>让设计承接语义</strong
+                  ><small>目标表示与生成规范</small></span
+                ><span class="step-arrow" aria-hidden="true">↗</span>
+              </button>
+              <button
+                id="step-3"
+                role="tab"
+                aria-selected="false"
+                aria-controls="method-panel"
+                tabindex="-1"
+                data-step="3"
+              >
+                <span>04</span
+                ><span
+                  ><strong>生成可追溯代码</strong
+                  ><small>受控适配器与版本</small></span
+                ><span class="step-arrow" aria-hidden="true">↗</span>
+              </button>
+              <button
+                id="step-4"
+                role="tab"
+                aria-selected="false"
+                aria-controls="method-panel"
+                tabindex="-1"
+                data-step="4"
+              >
+                <span>05</span
+                ><span
+                  ><strong>用证据完成闭环</strong
+                  ><small>真实验收与失效检查</small></span
+                ><span class="step-arrow" aria-hidden="true">↗</span>
+              </button>
+            </div>
+            <div
+              id="method-panel"
+              class="method-panel"
+              role="tabpanel"
+              aria-labelledby="step-0"
+              tabindex="0"
+            >
+              <div class="panel-meta">
+                <span id="panel-tag">METAMODEL / 语义底座</span
+                ><span id="panel-count">01 / 05</span>
+              </div>
+              <h3 id="panel-title">先约定，怎样描述软件开发。</h3>
+              <p id="panel-description">
+                元模型定义业务概念、行为条款、设计决策和证据等类型。具体项目使用这些类型建模，再通过约束检查模型是否完整。
+              </p>
+              <div class="semantic-mini" aria-hidden="true">
+                <span id="mini-left">元模型</span
+                ><span class="mini-edge">→</span
+                ><span id="mini-middle">项目模型</span
+                ><span class="mini-edge">→</span
+                ><span id="mini-right">技术表示</span>
+              </div>
+              <div class="code-window">
+                <div class="code-heading">
+                  <span class="window-dots" aria-hidden="true">● ● ●</span
+                  ><span id="code-filename">domain-model.ttl · 简化示意</span>
+                </div>
+                <pre><code id="method-code">TaskConcept rdfs:subClassOf BusinessConcept .
+
+task a TaskConcept ;
+  hasAttribute priority .
+
+priority a BusinessAttribute .</code></pre>
+              </div>
+              <p class="panel-footnote" id="panel-note">
+                模型中的 Task 节点是业务概念的表示，不是某个用户创建的任务记录。
+              </p>
+            </div>
+          </div>
+          <noscript
+            ><p class="no-js-note">
+              交互讲解需要 JavaScript。完整主线：元模型与领域概念 →
+              值域、行为及验收条件 → 目标设计与生成规范 → 适配器生成代码 →
+              真实验证与证据复核。下方案例无需 JavaScript 即可阅读。
+            </p></noscript
+          >
+        </div>
+      </section>
+
+      <section
+        id="case"
+        class="section container case-section"
+        aria-labelledby="case-title"
+      >
+        <div class="section-heading horizontal">
+          <div>
+            <p class="eyebrow">03 / FROM A REAL RUN</p>
+            <h2 id="case-title">一个小需求，<br />走完一条真实链路。</h2>
+          </div>
+          <p>以“任务优先级”为例，<br />看业务规则如何落实为代码与证据。</p>
+        </div>
+        <div class="case-grid">
+          <div class="case-story">
+            <span class="tag">TASK PRIORITY</span>
+            <h3>“创建任务时，<br />优先级必须合法。”</h3>
+            <p>
+              允许 low、medium、high；未填写时采用
+              medium；保留合法输入；拒绝非法输入。
+            </p>
+            <div class="case-contract">
+              <span>需求 <b>1</b></span
+              ><span>契约条款 <b>2</b></span
+              ><span>验收条件 <b>3</b></span>
+            </div>
+            <p class="case-scope">
+              本次仅实现任务输入校验，不包含任务调度、数据库、业务 API
+              或生产部署。
+            </p>
+            <a class="text-link" href="./case-data.json"
+              >查看历史验收数据 <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="case-result">
+            <div class="result-top">
+              <span class="eyebrow">VERIFICATION / 历史执行记录</span
+              ><span class="ready-badge">● READY</span>
+            </div>
+            <div class="result-number">8<span>/ 8 项通过</span></div>
+            <div class="test-row">
+              <span><code>Task()</code><small>默认值正确</small></span
+              ><span class="test-pass">✓ medium</span>
+            </div>
+            <div class="test-row">
+              <span
+                ><code>Task("high")</code
+                ><small>合法值保留 · low / medium / high</small></span
+              ><span class="test-pass">✓ high</span>
+            </div>
+            <div class="test-row">
+              <span
+                ><code>Task("urgent")</code
+                ><small>非法输入拒绝 · 另测空值、None、数字</small></span
+              ><span class="test-pass">✓ ValueError</span>
+            </div>
+            <div class="result-footer">
+              <span>5 项满足性判断</span><span>2 项义务关闭</span>
+            </div>
+            <p class="case-disclaimer">
+              2026-09-08 · 单一 Python
+              适配器的本地验收。此处展示历史结果，不在线运行代码，也不实时复核产物状态。
+            </p>
+          </div>
+        </div>
+        <div class="evidence-callout">
+          <span class="evidence-symbol" aria-hidden="true">↳</span>
+          <div>
+            <h3>“通过”不是永久标签。</h3>
+            <p>
+              结论绑定模型、代码快照与验收报告。工作台再次查询时复核摘要；记录内文件或元模型绑定变化，当前结论变为
+              Stale。
+            </p>
+          </div>
+          <span class="state-change">Ready <span>→</span> Stale</span>
+        </div>
+      </section>
+
+      <section class="value-section" aria-labelledby="value-title">
+        <div class="container">
+          <p class="eyebrow">THE CORE VALUE</p>
+          <h2 id="value-title">
+            不只生成代码。<br />更让每一次变化，<span>有迹可循。</span>
+          </h2>
+          <div class="value-grid">
+            <article>
+              <span>TRACEABLE</span>
+              <h3>从代码，回到需求</h3>
+              <p>
+                保留业务条款、设计选择和生成依据。解释实现，不再仅依赖参与者的记忆。
+              </p>
+            </article>
+            <article>
+              <span>VERIFIABLE</span>
+              <h3>从“做完”，到有证据</h3>
+              <p>
+                把验收条件与真实执行关联。区分生成成功、验证通过和证据仍然有效。
+              </p>
+            </article>
+            <article>
+              <span>EVOLVABLE</span>
+              <h3>从单次交付，到持续演进</h3>
+              <p>
+                以版本化语义关系为基础，逐步支持影响评审、适配器复用与协作治理。
+              </p>
+            </article>
+          </div>
+          <p class="value-note">
+            价值主张不等于收益测量：当前尚无对照实验支持效率、成本或缺陷率的量化提升。
+          </p>
+        </div>
+      </section>
+
+      <section
+        id="roadmap"
+        class="section container roadmap-section"
+        aria-labelledby="roadmap-title"
+      >
+        <div class="section-heading horizontal">
+          <div>
+            <p class="eyebrow">04 / WHAT COMES NEXT</p>
+            <h2 id="roadmap-title">从一个可验证切片，<br />走向完整工程。</h2>
+          </div>
+          <p>
+            以可运行的证据推进愿景。<br />清楚展示已走到哪里，也坦诚说明下一步。
+          </p>
+        </div>
+        <div class="roadmap-grid">
+          <article class="roadmap-now">
+            <div class="roadmap-status">
+              <span class="status-dot"></span> 当前 · 限定能力已验证
+            </div>
+            <h3>打通语义与执行</h3>
+            <ul>
+              <li>开发元模型与约束定义</li>
+              <li>基础查询、元模型草稿与历史</li>
+              <li>任务模型 → Python 代码 → 真实验收</li>
+              <li>版本绑定与查询时失效检查</li>
+            </ul>
+          </article>
+          <article>
+            <div class="roadmap-status">下一步 · 设计方向</div>
+            <h3>深化可执行行为</h3>
+            <ul>
+              <li>事件、状态、转换与守卫条件</li>
+              <li>分支、异常、重试及补偿语义</li>
+              <li>逐条款的细粒度验证</li>
+              <li>更多业务切片与转换适配器</li>
+            </ul>
+          </article>
+          <article>
+            <div class="roadmap-status">长期 · 目标愿景</div>
+            <h3>覆盖完整开发生命周期</h3>
+            <ul>
+              <li>业务模型与现有代码事实对齐</li>
+              <li>跨组件语义变更与影响评审</li>
+              <li>多技术栈的受控生成与验证</li>
+              <li>元模型发布迁移与团队协作治理</li>
+            </ul>
+          </article>
+        </div>
+        <p class="roadmap-note">
+          本项目不承诺从任意自然语言一键生成完整系统。复杂业务行为需要结构化表达、相应执行器及独立验证。
+        </p>
+      </section>
+
+      <section class="closing container">
+        <div>
+          <p class="eyebrow">BUILD WITH MEANING</p>
+          <h2>让软件工程，<br />拥有可连接的语义。</h2>
+        </div>
+        <div class="closing-actions">
+          <a
+            class="button primary"
+            href="https://github.com/Hippop/code-ontology"
+            >在 GitHub 探索项目 <span aria-hidden="true">↗</span></a
+          ><a
+            class="text-link"
+            href="https://github.com/Hippop/code-ontology/blob/main/docs/00-overall-architecture.md"
+            >阅读总体架构 <span aria-hidden="true">↗</span></a
+          >
+        </div>
+      </section>
+    </main>
+    <footer class="container site-footer">
+      <a class="brand" href="#"
+        >code<span class="brand-separator">/</span>ontology</a
+      >
+      <p>从业务语义到可验证代码</p>
+      <a href="https://github.com/Hippop/code-ontology"
+        >项目源码 <span aria-hidden="true">↗</span></a
+      ><span>© 2026 Code Ontology</span>
+    </footer>
+  </body>
+</html>
