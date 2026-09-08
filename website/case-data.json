@@ -1,0 +1,40 @@
+{
+  "title": "任务优先级：历史验收摘要",
+  "recordedDate": "2026-09-08",
+  "kind": "historical-local-run-summary",
+  "liveVerification": false,
+  "scope": "Python 任务输入校验；不含调度、API、数据库或生产部署",
+  "adapter": "python-enum-dataclass-v1",
+  "modelId": "e74cc45a-e76e-43e2-8dc5-553208c5d9ef",
+  "runId": "bd68749b-3ea9-441f-96d3-b6c5635c3e67",
+  "tests": [
+    { "case": "default", "expected": "medium", "passed": true },
+    { "case": "retain-low", "expected": "low", "passed": true },
+    { "case": "retain-medium", "expected": "medium", "passed": true },
+    { "case": "retain-high", "expected": "high", "passed": true },
+    { "case": "reject-'urgent'", "expected": "ValueError", "passed": true },
+    { "case": "reject-''", "expected": "ValueError", "passed": true },
+    { "case": "reject-None", "expected": "ValueError", "passed": true },
+    { "case": "reject-3", "expected": "ValueError", "passed": true }
+  ],
+  "exitCode": 0,
+  "filesUnchanged": true,
+  "recordedStatus": "Ready",
+  "satisfactionAssessments": 5,
+  "closedObligations": 2,
+  "definitionCounts": {
+    "developmentClasses": 49,
+    "developmentObjectProperties": 57
+  },
+  "hashes": {
+    "savedModelSha256": "73f86f44ead373a5c1870c21bf5a2ad534fc3fdc965cde2d7f13f35a588a0cf9",
+    "sourceSha256": "6098c76a00ba9b56d4aca37f7fb1dd1501840101e79ae72769e963d7dac5ad01",
+    "reportSha256": "feac3a71884be66af93e202fcd4d772abc088b1c9f74a76e25d67d7978b8b2df"
+  },
+  "limitations": [
+    "本文件为公开讲解摘要，非完整原始报告或当前工作台状态。",
+    "五项判断共享一份报告，采用整体通过判定。",
+    "八项测试通过不表示完整业务覆盖或形式化证明。",
+    "此静态网站不执行代码、不提供工作台 API，也不持续监控证据。"
+  ]
+}
