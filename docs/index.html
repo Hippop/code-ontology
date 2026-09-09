@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doc · 建模与实现指南 | Code Ontology</title>
+  <meta name="description" content="从元模型定义、业务与代码图谱，到受控代码生成和验证证据：Code Ontology 建模与实现文档。">
+  <link rel="canonical" href="https://hippop.github.io/code-ontology/docs/">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../styles.css"><link rel="stylesheet" href="./docs.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+  <header class="docs-header"><div class="container"><a class="brand" href="../index.html">code<span class="accent">/</span>ontology</a><nav class="docs-nav" aria-label="主导航"><a href="../index.html">首页</a><a href="./index.html" aria-current="page">Doc 文档</a><a href="https://github.com/Hippop/code-ontology">GitHub ↗</a></nav></div></header>
+  <div class="container doc-layout">
+    <aside class="doc-sidebar"><p>DOC / 文档</p><nav aria-label="文档导航"><a href="./index.html" aria-current="page">00 阅读指南</a><a href="./modeling.html">01 本体与图谱建模</a><a href="./implementation.html">02 生成与实现闭环</a></nav></aside>
+    <main id="main" class="doc">
+      <p class="eyebrow">ONTOLOGY → GRAPH → SOFTWARE</p><h1>从本体定义，<br>走到可验证的代码。</h1>
+      <p class="lead">本体定义“有哪些事物、它们如何关联、必须满足什么约束”；图谱记录具体项目的需求、设计与代码事实；生成器沿显式映射实现一个受限切片，再由验证证据回答是否落实。</p>
+      <div class="note">文档基线：开发元模型 2.0.0 · 2026-09-09。介绍仓库实现与方法设计；这是静态文档站，不是在线建模或代码执行工作台。未新增业务动作、函数或行为 DSL。</div>
+      <section id="guide"><h2>按两个问题阅读</h2><div class="reading-list">
+        <a href="./modeling.html"><strong>01 / 如何把软件开发问题建成图谱？ →</strong><span>元模型与项目实例的区别 · 五套本体 · 核心节点与关系 · 身份和版本 · 任务优先级示例 · SHACL 校验</span></a>
+        <a href="./implementation.html"><strong>02 / 图谱如何约束生成并验证实现？ →</strong><span>定义目录与前端入口 · 生成规范和批准 · 代码与快照 · 验收证据 · API 与源码位置 · 当前边界</span></a>
+      </div></section>
+      <section id="map"><h2>一张贯穿全流程的知识图谱</h2>
+        <div class="graph-chain" aria-label="需求通过条款、设计和生成规范关联代码，验证证据支持满足性判断"><b>业务需求</b><span>→ 约束</span><b>契约条款</b><span>→ 设计落实</span><b>技术表示</b><span>→ 转换</span><b>代码产物</b><span>→ 验证</span><b>证据与判断</b></div>
+        <p>这些连接不只是流程图箭头，而是可查询的具名关系。例如 <code>mappingSource / mappingTarget</code> 记录业务与技术映射，<code>preserves</code> 声明生成应保留的条款，<code>supportedByEvidence</code> 记录判断依据。</p>
+        <p>需求改变时，可以沿关系找到受影响的设计、产物和验收条件；代码改变时，可以检查旧证据是否仍适用于当前快照。关系存在本身并不能证明实现正确。</p>
+      </section>
+      <section id="baseline"><h2>当前定义的范围</h2><div class="table-wrap"><table><caption>2.0.0 仓库基线；统计不代表生成器能力覆盖率</caption><thead><tr><th>范围</th><th>规模</th><th>含义</th></tr></thead><tbody>
+        <tr><td>五套组合本体</td><td>241 类 / 296 对象属性 / 75 数据属性</td><td>组合业务、代码结构、工程语义、变更规划与开发闭环。</td></tr>
+        <tr><td>开发元模型 dev</td><td>49 类 / 57 对象属性 / 39 数据属性</td><td>连接意图、设计、生成和证据，不替代其他四套本体。</td></tr>
+        <tr><td>约束定义</td><td>80 个 NodeShape</td><td>形状数量不等于规则数量，也不等于覆盖所有业务语义。</td></tr>
+        <tr><td>成熟化进展</td><td>241 类均有名称与说明</td><td>仍有 275 个旧属性术语待补自身说明。</td></tr>
+      </tbody></table></div></section>
+      <section id="boundaries"><h2>阅读时始终区分三个结论</h2><ol><li><strong>模型符合约束：</strong>当前数据通过已加载的校验规则，不代表需求完整。</li><li><strong>转换规则可以生成：</strong>输入落在某个已实现适配器的支持范围，不代表任意业务都可自动生成。</li><li><strong>实现得到验证：</strong>在特定模型、代码快照和验收范围内取得真实证据，不代表整个系统或生产发布就绪。</li></ol><p>站点首页的运行记录是历史摘要，不是实时验证；文档中的简化片段也不是可直接批准执行的完整模型。</p></section>
+      <div class="page-next"><a href="../index.html">← 返回愿景与演示</a><a href="./modeling.html">开始阅读：本体与图谱建模 →</a></div>
+    </main>
+  </div><footer class="container doc-footer">Code Ontology / Doc · 以本体建模，以图谱驱动开发</footer>
+</body></html>

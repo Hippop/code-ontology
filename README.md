@@ -1,5 +1,15 @@
 # Code Ontology 宣传网站
 
+## Doc 文档子页面
+
+首页导航与页尾提供「Doc 文档」入口，所有页面采用相对链接，支持 GitHub Pages 项目目录：
+
+- `docs/index.html`：阅读指南、知识图谱主链及版本范围。
+- `docs/modeling.html`：五套本体、49 个 dev 类型、核心关系、任务优先级片段、身份与校验。
+- `docs/implementation.html`：工作台操作、受限生成、验收证据、接口与源码职责、当前边界。
+
+文档内容以 2026-09-09 本地仓库 2.0.0 基线为准，明确区分静态说明与可执行工作台，网站发布不代表实现同步发布。共享 `docs/docs.css`，无新增 JavaScript 或外部依赖。静态检查递归验证所有 HTML 页面、跨页锚点和资源路径。
+
 公开地址：<https://hippop.github.io/code-ontology/>
 
 独立静态网站，不依赖工作台、Node 构建、外部字体、第三方脚本或后端服务。
