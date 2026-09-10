@@ -4,6 +4,26 @@
   background: #0d2924;
 }
 
+.navigation-dialog { width: min(560px, calc(100% - 32px)); padding: 28px; color: #e7f0f8; background: #0d1d2c; border: 1px solid #52738a; border-radius: 12px; }
+.navigation-dialog::backdrop { background: rgb(0 0 0 / 65%); }
+.navigation-dialog p { line-height: 1.8; font-size: 16px; }
+.navigation-dialog .button-row { flex-wrap: wrap; gap: 12px; }
+
+.workspace-switch { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.workspace-switch button { display: grid; gap: 8px; padding: 22px 24px; text-align: left; border: 1px solid #294459; background: #0b1929; color: #b8cbd9; border-radius: 10px; }
+.workspace-switch button[aria-pressed="true"] { border-color: #27d3a2; background: #10302e; color: #ecfff9; box-shadow: inset 0 3px #27d3a2; }
+.workspace-switch strong { font-size: 20px; }
+.workspace-switch small { font-size: 14px; line-height: 1.6; }
+.workspace-switch span { font-size: 12px; letter-spacing: .08em; }
+.workspace-rail-heading { padding: 24px 18px; border-bottom: 1px solid #294459; }
+.workspace-rail-heading strong { font-size: 17px; color: #d7f4ec; }
+.workspace-rail-heading p { font-size: 14px; line-height: 1.8; color: #9bb2c5; }
+.project-metamodel-reference { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 18px; margin-bottom: 20px; border: 1px solid #294459; color: #b4cbdc; font-size: 14px; }
+.project-metamodel-reference span { flex: 1; min-width: 180px; }
+.lifecycle-shell .lifecycle-rail button strong { font-size: 14px; }
+.lifecycle-shell .lifecycle-rail button small { font-size: 14px; white-space: normal; line-height: 1.5; }
+@media(max-width: 650px) { .workspace-switch { grid-template-columns: 1fr; } .workspace-switch button { padding: 16px; } }
+
 .lifecycle-shell {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);

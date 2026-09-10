@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { NavigationProvider, useNavigation } from "./navigation-guard";
 import { createRoot } from "react-dom/client";
 import { LifecycleWorkbench, WorkbenchView } from "./lifecycle";
 import "./styles.css";
@@ -1818,7 +1819,9 @@ function TraceWorkbench({
 }
 
 function App() {
-  const [view, setView] = useState<WorkbenchView>("lifecycle");
+  const [view, changeView] = useState<WorkbenchView>("lifecycle");
+  const navigate = useNavigation();
+  const setView = (next: WorkbenchView) => { if (next !== view) navigate(() => changeView(next)); };
   const [requirementId, setRequirementId] = useState("REQ-SDN-2026-001");
   const [token, setToken] = useState("");
 
@@ -1891,7 +1894,7 @@ function App() {
         </button>
       </nav>
 
-      {view === "lifecycle" && <LifecycleWorkbench token={token} onNavigate={setView} />}
+      <div hidden={view !== "lifecycle"}><LifecycleWorkbench token={token} onNavigate={setView} /></div>
       {view === "graphs" && <GraphExplorer token={token} />}
       {view === "compare" && <GraphCompare token={token} />}
       {view === "workflow" && <WorkflowControl token={token} />}
@@ -1908,6 +1911,6 @@ function App() {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <NavigationProvider><App /></NavigationProvider>
   </React.StrictMode>,
 );

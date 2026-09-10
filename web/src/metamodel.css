@@ -1,0 +1,73 @@
+.metamodel-center { min-width: 0; color: #d7e5ef; }
+.meta-hero { display: flex; justify-content: space-between; gap: 24px; padding: 26px; background: linear-gradient(125deg,#102c38,#0c192b 65%); border: 1px solid #294658; }
+.meta-hero h2 { font-size: 28px; margin: 14px 0; letter-spacing: -.04em; }
+.meta-hero p { color: #9ab0c1; line-height: 1.8; }
+.meta-version { display: flex; flex-direction: column; gap: 10px; min-width: 190px; }
+.meta-version > span,.meta-muted { color: #89a1b5; font-size: 12px; line-height: 1.8; }
+.meta-version > strong { color: #50dfb2; font-size: 26px; }
+.metamodel-center button { padding: 10px 13px; border: 1px solid #345062; color: #d7e5ef; background: #12283a; text-align: left; }
+.metamodel-center button:hover,.metamodel-center button.active { border-color: #38cba1; background: #13392f; }
+.metamodel-center button:disabled { opacity: .5; cursor: wait; }
+.metamodel-center code { font-size: 11px; overflow-wrap: anywhere; color: #92b6ce; }
+.metamodel-center label { display: flex; flex-direction: column; gap: 8px; color: #94adbd; font-size: 11px; }
+.metamodel-center input,.metamodel-center select,.metamodel-center textarea { min-width: 0; width: 100%; padding: 11px; background: #08141f; color: #dcebf8; border: 1px solid #2a4357; }
+.meta-counts { display: flex; flex-wrap: wrap; gap: 24px; padding: 19px 0; }
+.meta-counts span { color: #8da7b9; font-size: 12px; }
+.meta-counts b { color: #e1edf7; font-size: 21px; margin-right: 7px; }
+.meta-tabs { display: flex; gap: 6px; margin: 0 0 16px; }
+.meta-browser { display: grid; grid-template-columns: minmax(200px,280px) minmax(0,1fr); border: 1px solid #274154; }
+.meta-catalog { padding: 18px; background: #0b1724; border-right: 1px solid #274154; }
+.meta-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+.meta-term-list { max-height: 660px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+.meta-term-list button { display: flex; flex-direction: column; gap: 5px; border-color: transparent; background: transparent; }
+.meta-term-list strong { font-size: 12px; font-weight: 500; }
+.meta-detail { padding: 24px; min-width: 0; max-height: 960px; overflow-y: auto; background: #0a1623; }
+.meta-detail-heading > span { color: #42d2ab; font-size: 10px; letter-spacing: .14em; }
+.meta-detail-heading h3 { font-size: 23px; margin: 10px 0; }
+.meta-detail-heading p { font-size: 13px; line-height: 1.9; color: #b3c4d2; }
+.meta-section { border-top: 1px solid #24394c; margin-top: 24px; padding-top: 10px; }
+.meta-section h4 { font-size: 13px; }
+.meta-section h4 span { color: #4cceaa; margin-left: 6px; }
+.meta-lineage { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.meta-lineage button { font-size: 11px; }
+.meta-lineage > strong { padding: 10px; font-size: 12px; color: #52ddb5; border: 1px solid #25876c; }
+.meta-constraint { border: 1px solid #263f52; margin: 9px 0; padding: 13px; }
+.meta-constraint summary { cursor: pointer; font-size: 12px; overflow-wrap: anywhere; }
+.meta-constraint small { display: block; padding-top: 6px; color: #86a8ba; }
+.meta-property { background: #101e2d; padding: 10px; margin-top: 8px; font-size: 11px; overflow-wrap: anywhere; }
+.meta-property strong { color: #5ddcba; }
+.meta-property span { color: #809daf; }
+.meta-property p { margin: 6px 0; }
+.meta-detail pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 350px; overflow: auto; color: #afc4d4; font-size: 11px; }
+.meta-relation-list { display: grid; gap: 6px; margin-bottom: 15px; }
+.meta-relation-list button { display: flex; gap: 12px; flex-wrap: wrap; align-items: baseline; font-size: 11px; }
+.meta-relation-list span { color: #7b9bac; }
+.meta-usage { display: grid; gap: 6px; padding: 12px 0; border-bottom: 1px solid #24394c; font-size: 11px; }
+.meta-usage small { color: #82a3b6; }
+.meta-examples { display: grid; gap: 20px; }
+.meta-examples > section { padding: 20px; border: 1px solid #274154; background: #0a1623; min-width: 0; }
+.meta-examples textarea { height: 280px; font: 11px/1.8 monospace; margin-bottom: 15px; }
+.meta-verdict { padding: 15px; margin-top: 16px; border: 1px solid #286b5b; font-size: 12px; }
+.meta-verdict.valid { color: #64dab8; }
+.meta-verdict.invalid { border-color: #915444; color: #ffc1a5; }
+.meta-table-scroll { max-width: 100%; overflow: auto; }
+.meta-query-results table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.meta-query-results td,.meta-query-results th { min-width: 130px; max-width: 240px; overflow-wrap: anywhere; padding: 10px; border: 1px solid #284052; text-align: left; }
+.meta-sources { padding: 24px; border: 1px solid #274154; }
+.meta-sources p { font-size: 13px; line-height: 1.8; }
+.meta-sources article { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; padding: 17px 0; border-bottom: 1px solid #274154; font-size: 12px; }
+.meta-sources article strong { overflow-wrap: anywhere; }
+.meta-binding-bar { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; padding: 14px; border: 1px solid #345064; margin-bottom: 16px; font-size: 12px; }
+.meta-binding-bar code { color: #64d7b9; }
+.meta-authoring { padding: 20px; border: 1px solid #345064; }
+.meta-authoring fieldset { border: 0; display: grid; gap: 14px; padding: 0; }
+.meta-authoring label { display: grid; gap: 8px; }
+.meta-authoring textarea { width: 100%; min-height: 440px; font: 12px/1.6 monospace; }
+.meta-authoring pre { white-space: pre-wrap; max-height: 320px; overflow: auto; }
+.meta-dynamic-fields { display: grid; gap: 12px; }
+.meta-dynamic-fields textarea { width: 100%; min-height: 54px; background: #08141f; color: #dcebf8; border: 1px solid #2a4357; }
+.meta-generation-controls { display: grid; gap: 10px; padding: 14px; margin: 14px 0; border: 1px solid #344d60; background: #0b1926; }
+.meta-generation-controls .meta-check { flex-direction: row; align-items: center; }
+.meta-generation-controls .meta-check input { width: auto; }
+@media (max-width: 1050px) { .meta-browser { grid-template-columns: 1fr; } .meta-term-list { max-height: 240px; } .meta-catalog { border-right: 0; border-bottom: 1px solid #274154; } .meta-detail { max-height: none; } }
+@media (max-width: 600px) { .meta-hero { flex-direction: column; padding: 18px; } .meta-detail { padding: 15px; } .meta-counts { gap: 12px; } }

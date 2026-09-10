@@ -200,7 +200,7 @@ ex:CurrentPathComputationSlice
     biz:canonicalId "slice.sdn.path-computation" ;
     biz:implementsProcessStep ex:CurrentComputeConstrainedPathStep ;
     biz:hasPrimaryEntry ex:CurrentComputeMethod ;
-    biz:containsSupportingCode ex:CurrentConstraintEvaluateMethod .
+    biz:containsSupportingEntity ex:CurrentConstraintEvaluateMethod .
 
 #################################################################
 # Candidate alignments

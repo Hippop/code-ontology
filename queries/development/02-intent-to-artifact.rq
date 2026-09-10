@@ -1,0 +1,12 @@
+# Q2: why does this code exist? A trace is not proof of satisfaction.
+PREFIX dev: <https://example.org/code-ontology/development#>
+PREFIX eng: <https://example.org/code-ontology/engineering#>
+SELECT DISTINCT ?goal ?requirement ?contract ?clause ?design ?decision ?rule ?run ?artifact ?path WHERE {
+  ?goal dev:motivates ?requirement .
+  ?requirement eng:constrainedBy ?contract . ?contract dev:hasClause ?clause .
+  ?design dev:addresses ?clause ; dev:decidedBy ?decision .
+  ?spec dev:inputDesign ?design ; dev:appliesRule ?rule ; dev:preserves ?clause .
+  OPTIONAL { ?run a dev:GenerationRun ; dev:usesSpecification ?spec ; dev:produces ?artifact .
+    ?artifact dev:targetPath ?path . }
+}
+ORDER BY ?requirement ?clause ?path

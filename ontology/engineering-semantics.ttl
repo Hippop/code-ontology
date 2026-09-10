@@ -83,3 +83,27 @@ eng:executionStatus a owl:DatatypeProperty ;
 
 eng:rootCapability a owl:ObjectProperty ;
     rdfs:domain eng:EngineeringSubmodel ; rdfs:range code:BusinessCapability .
+
+# Human-readable class definitions; identity and inheritance above remain authoritative.
+eng:EngineeringRequirement rdfs:label "工程需求"@zh ; rdfs:comment "具有能力归属或父需求的工程意图，继承通用代码需求。"@zh .
+eng:RequirementContract rdfs:label "需求专属契约"@zh ; rdfs:comment "由唯一工程需求拥有的实现契约，不同于可复用语义契约。"@zh .
+eng:SpecificationContract rdfs:label "实现规范契约"@zh ; rdfs:comment "规定需求实现结构和约定的需求专属契约。"@zh .
+eng:BehaviorContract rdfs:label "行为契约"@zh ; rdfs:comment "规定需求行为语义的专属契约，不等于行为已执行。"@zh .
+eng:ConstraintContract rdfs:label "约束契约"@zh ; rdfs:comment "规定需求实现必须满足的限制条件。"@zh .
+eng:StateContract rdfs:label "状态契约"@zh ; rdfs:comment "规定需求相关状态语义的专属契约。"@zh .
+eng:InputOutputContract rdfs:label "输入输出契约"@zh ; rdfs:comment "规定需求的输入、输出及边界约定。"@zh .
+eng:OntologyAsset rdfs:label "本体资产"@zh ; rdfs:comment "语义契约引用的本体定义资产或其修订。"@zh .
+eng:SemanticContract rdfs:label "语义契约"@zh ; rdfs:comment "引用本体资产、可共同约束多个需求的语义约束集合。"@zh .
+eng:VerificationObjective rdfs:label "验证目标"@zh ; rdfs:comment "需要验证的工程意图；不直接拥有执行证据。"@zh .
+eng:VerificationMethod rdfs:label "验证方法"@zh ; rdfs:comment "从验证目标派生并关联工程需求的具体验证方法。"@zh .
+eng:ExecutedVerificationMethod rdfs:label "已执行验证方法"@zh ; rdfs:comment "具有执行证据的验证方法记录，不仅是验证计划。"@zh .
+eng:TestVerification rdfs:label "测试验证"@zh ; rdfs:comment "通过运行测试检查需求的验证方法。"@zh .
+eng:FormalProofVerification rdfs:label "形式证明验证"@zh ; rdfs:comment "采用形式证明的验证方法类型；声明该类型不代表证明成立。"@zh .
+eng:AnalysisVerification rdfs:label "分析验证"@zh ; rdfs:comment "通过分析获得需求验证依据的方法。"@zh .
+eng:InspectionVerification rdfs:label "检查验证"@zh ; rdfs:comment "通过检查工程资产获得验证依据的方法。"@zh .
+eng:DemonstrationVerification rdfs:label "演示验证"@zh ; rdfs:comment "通过演示获取验证依据的方法，须区分演示与生产执行范围。"@zh .
+eng:VerificationEvidence rdfs:label "验证证据"@zh ; rdfs:comment "关联可审计工程产物的验证依据。"@zh .
+eng:TestExecutionEvidence rdfs:label "测试执行证据"@zh ; rdfs:comment "由测试执行产生的验证依据。"@zh .
+eng:ProofEvidence rdfs:label "证明证据"@zh ; rdfs:comment "承载形式证明结果或证明资产的验证依据。"@zh .
+eng:AnalysisEvidence rdfs:label "分析证据"@zh ; rdfs:comment "承载分析结果的验证依据。"@zh .
+eng:EngineeringSubmodel rdfs:label "工程子模型"@zh ; rdfs:comment "以根业务能力为入口组织需求、契约及验证对象的工程视图。"@zh .

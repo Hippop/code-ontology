@@ -26,7 +26,7 @@ _REPOSITORY_VOLATILE_KEYS = frozenset({"branch", "dirty", "remote"})
 
 
 def _is_absolute_path(value: str) -> bool:
-    return Path(value).is_absolute() or (
+    return Path(value).is_absolute() or value.startswith("/") or (
         len(value) > 2 and value[1] == ":" and value[2] in {"\\", "/"}
     )
 

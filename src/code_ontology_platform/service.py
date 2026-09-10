@@ -12,6 +12,8 @@ from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
+from rdflib import Graph
+
 from .code_intelligence import (
     CodeGraphSidecar,
     compare_codegraph_to_baseline,
@@ -46,6 +48,8 @@ from .engineering_workflow import (
     materialize_engineering_intent,
 )
 from .ontology_codegen import OntologyCodeGenerator
+from .metamodel_registry import MetamodelRegistry
+from .development_codegen import DevelopmentCodeGenerator
 from .precommit_verification import PreCommitVerifier
 from .graph_analysis import (
     build_contract_graph,
@@ -70,7 +74,7 @@ from .repository_scan import (
     RepositoryScanner,
     inspect_repository,
 )
-from .store import SQLiteStore, content_hash, utc_now
+from .store import SQLiteStore, _safe_graph_filename, content_hash, utc_now
 from .verification_workflow import (
     build_impact_analysis,
     reconcile_approved_actual,
@@ -203,11 +207,12 @@ def _git_changed_files(repository: Path, base_ref: str | None) -> dict[str, Any]
                     {"baseRef": base_ref, "stderr": message},
                 )
             continue
-        paths.update(
-            item.decode("utf-8", errors="replace").replace("\\", "/")
-            for item in completed.stdout.split(b"\0")
-            if item
-        )
+        for item in completed.stdout.split(b"\0"):
+            if not item:
+                continue
+            normalized = item.decode("utf-8", errors="replace").replace("\\", "/")
+            if not normalized.startswith((".code-ontology/", ".codegraph/")):
+                paths.add(normalized)
     return {"source": "git", "baseRef": base_ref, "files": sorted(paths)}
 
 
@@ -272,6 +277,7 @@ class PlatformService:
         self.role_agent_adapter = role_agent_adapter or self.agent_adapter
         self.codegraph_sidecar = codegraph_sidecar or CodeGraphSidecar(store)
         self.workflow_orchestrator = RequirementWorkflowOrchestrator(self)
+        self._metamodel_registry_cache: tuple[str, MetamodelRegistry] | None = None
 
     @staticmethod
     def _path_is_within(path: Path, root: Path) -> bool:
@@ -311,11 +317,15 @@ class PlatformService:
             )
             else None
         )
+        suggested_graph_storage = (
+            str(Path(suggested_path) / ".code-ontology") if suggested_path else None
+        )
         return {
             "model": model,
             "modelSource": str(model_path) if model_path.is_file() else None,
             "repositories": repositories["repositories"],
             "suggestedRepositoryPath": suggested_path,
+            "suggestedGraphStoragePath": suggested_graph_storage,
             "lifecycle": [
                 "RepositoryBaseline",
                 "OntologyModel",
@@ -328,6 +338,88 @@ class PlatformService:
                 "ReleaseAudit",
             ],
         }
+
+    def metamodel_registry(self) -> MetamodelRegistry:
+        # Read file bytes to fingerprint the installed package, but parse RDF only
+        # when its content changes. Bindings still pin the registry's exact hash.
+        manifest_path = self.project_root / "models/development-metamodel.package.json"
+        try:
+            manifest_bytes = manifest_path.read_bytes()
+            manifest = json.loads(manifest_bytes)
+            fingerprint = hashlib.sha256(manifest_bytes)
+            for key in ("ontologyFiles", "shapeFiles"):
+                for relative in manifest[key]:
+                    path = (self.project_root / relative).resolve()
+                    if self.project_root not in path.parents or not path.is_file():
+                        raise invalid("元模型清单引用了无效的仓库文件", {"path": relative})
+                    fingerprint.update(relative.encode() + b"\0" + path.read_bytes())
+            signature = fingerprint.hexdigest()
+        except (OSError, KeyError, TypeError, json.JSONDecodeError):
+            # Let the registry produce the canonical structured error below.
+            signature = ""
+        if self._metamodel_registry_cache is not None and self._metamodel_registry_cache[0] == signature:
+            return self._metamodel_registry_cache[1]
+        registry = MetamodelRegistry(self.project_root)
+        self._metamodel_registry_cache = (registry.ref["contentHash"], registry)
+        return registry
+
+    def metamodel_action(self, action: str, body_value: Any) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        registry = self.metamodel_registry()
+        registry.check_revision(body.get("revision"))
+        if action == "bind":
+            return {"model": registry.bind_legacy(self._engineering_model(body)), "binding": registry.ref}
+        if action == "query":
+            return registry.query(string_value(body.get("query"), "query"), string_value(body.get("example"), "example"))
+        if "turtle" in body:
+            return registry.validate_turtle(string_value(body["turtle"], "turtle"))
+        return registry.validate_model(self._engineering_model(body))
+
+    def generate_from_development_ontology(self, body_value: Any, *, apply: bool) -> dict[str, Any]:
+        body = object_value(body_value, "request")
+        registry = self.metamodel_registry()
+        registry.check_revision(body.get("revision"))
+        turtle = string_value(body.get("turtle"), "turtle")
+        validation = registry.validate_turtle(turtle)
+        if not validation["conforms"]:
+            raise invalid("开发本体实例不符合 SHACL，不能执行生成规范", validation)
+        graph = Graph().parse(data=turtle, format="turtle")
+        repository_id = body.get("repositoryId")
+        if repository_id is None:
+            if apply:
+                raise invalid("应用开发本体生成必须指定 repositoryId")
+            target_root = self.project_root
+            repository_path = None
+        else:
+            repository = self.get_repository(string_value(repository_id, "repositoryId"))
+            target_root = Path(repository["path"])
+            repository_path = repository["path"]
+        allow_illustrative = body.get("allowIllustrative", False)
+        if not isinstance(allow_illustrative, bool):
+            raise invalid("allowIllustrative 必须是 boolean")
+        specification = body.get("specification")
+        if specification is not None and not isinstance(specification, str):
+            raise invalid("specification 必须是字符串")
+        overwrite = body.get("overwrite", False)
+        if not isinstance(overwrite, bool):
+            raise invalid("overwrite 必须是 boolean")
+        try:
+            result = DevelopmentCodeGenerator(graph).generate(
+                target_root,
+                specification=specification,
+                apply=apply,
+                overwrite=overwrite,
+                allow_illustrative=allow_illustrative,
+            )
+        except FileExistsError as error:
+            raise PlatformError(409, "GENERATION_CONFLICT", str(error)) from error
+        except (KeyError, TypeError, ValueError) as error:
+            raise invalid("开发本体模型无法生成代码", {"reason": str(error)}) from error
+        result["repositoryId"] = repository_id
+        result["repositoryPath"] = repository_path
+        result["metamodelRef"] = registry.ref
+        result["validation"] = validation
+        return result
 
     @staticmethod
     def _engineering_model(body: Mapping[str, Any]) -> dict[str, Any]:
@@ -352,6 +444,11 @@ class PlatformService:
                 "edgeCount": len(model["edges"]),
             },
         }
+        if model.get("metamodelRef") is not None:
+            metamodel_validation = self.metamodel_registry().validate_model(model)
+            result["metamodelValidation"] = metamodel_validation
+            issues = result["validation"]["issues"] + metamodel_validation["issues"]
+            result["validation"] = {"conforms": not issues, "issueCount": len(issues), "issues": issues}
         entity_id = body.get("entityId")
         if entity_id is not None:
             depth = body.get("contextDepth", 2)
@@ -385,6 +482,16 @@ class PlatformService:
         model = self._engineering_model(body)
         repository_id = string_value(body.get("repositoryId"), "repositoryId")
         repository = self.get_repository(repository_id)
+        binding = model.get("metamodelRef")
+        # Preserve the low-latency legacy endpoint.  Only explicitly bound
+        # models need the repository-pinned OWL/SHACL catalogue; the static
+        # generator guard handles unbound dev short names.
+        registry = self.metamodel_registry() if binding is not None else None
+        if binding is not None:
+            validation = registry.validate_model(model)
+            if not validation["conforms"]:
+                raise invalid("元模型约束未通过，不能生成代码", validation)
+        MetamodelRegistry.require_supported_generator(model, registry)
         overwrite = body.get("overwrite", False)
         if not isinstance(overwrite, bool):
             raise invalid("overwrite 必须是 boolean")
@@ -398,6 +505,8 @@ class PlatformService:
             raise invalid("工程本体模型无法生成代码", {"reason": str(error)}) from error
         result["repositoryId"] = repository_id
         result["repositoryPath"] = repository["path"]
+        if binding is not None:
+            result["metamodelRef"] = binding
         return result
 
     def verify_precommit(self, body_value: Any) -> dict[str, Any]:
@@ -405,6 +514,9 @@ class PlatformService:
         model = self._engineering_model(body)
         repository_id = string_value(body.get("repositoryId"), "repositoryId")
         repository = self.get_repository(repository_id)
+        metamodel_validation = None
+        if model.get("metamodelRef") is not None:
+            metamodel_validation = self.metamodel_registry().validate_model(model)
         planned = [
             object_value(item, "plannedChanges[]")
             for item in list_value(body.get("plannedChanges", []), "plannedChanges")
@@ -428,6 +540,11 @@ class PlatformService:
         except (KeyError, TypeError, ValueError) as error:
             raise invalid("无法执行提交前验证", {"reason": str(error)}) from error
         result["repositoryId"] = repository_id
+        if metamodel_validation is not None:
+            result["metamodelValidation"] = metamodel_validation
+            if not metamodel_validation["conforms"]:
+                result["status"] = "BlockCommit"
+                result["blockers"].append({"code": "METAMODEL_CONSTRAINT_VIOLATION", "message": "绑定的元模型约束未通过"})
         return result
 
     def _repository_path(self, value: Any) -> Path:
@@ -455,7 +572,44 @@ class PlatformService:
             if repository_id_value is not None
             else "repo-" + hashlib.sha256(str(path).encode()).hexdigest()[:16]
         )
+        graph_storage_path_value = body.get("graphStoragePath")
+        if graph_storage_path_value is not None and str(graph_storage_path_value).strip():
+            graph_storage_path = Path(str(graph_storage_path_value).strip()).resolve()
+        else:
+            graph_storage_path = (path / ".code-ontology").resolve()
+
+        graph_storage_path.mkdir(parents=True, exist_ok=True)
+        (graph_storage_path / "graphs").mkdir(exist_ok=True)
+        (graph_storage_path / "graphs" / "current").mkdir(exist_ok=True)
+        (graph_storage_path / "graphs" / "proposed").mkdir(exist_ok=True)
+        (graph_storage_path / "graphs" / "approved").mkdir(exist_ok=True)
+        (graph_storage_path / "models").mkdir(exist_ok=True)
+        (graph_storage_path / "baselines").mkdir(exist_ok=True)
+
+        gitignore_path = graph_storage_path / ".gitignore"
+        if not gitignore_path.exists():
+            gitignore_path.write_text(
+                "# Code Ontology local caches and transient files\n*.tmp\nscratch/\n",
+                encoding="utf-8",
+            )
+
         identity = inspect_repository(path, repository_id)
+        config_path = graph_storage_path / "config.json"
+        if not config_path.exists():
+            config_path.write_text(
+                json.dumps(
+                    {
+                        "repositoryId": repository_id,
+                        "createdAt": utc_now(),
+                        "defaultBranch": body.get("defaultBranch") or identity["branch"],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
         repository = self.store.put_repository(
             {
                 "repositoryId": repository_id,
@@ -469,9 +623,11 @@ class PlatformService:
                 "metadata": {
                     "remote": identity["remote"],
                     "registeredRevision": identity["revision"],
+                    "graphStoragePath": str(graph_storage_path),
                 },
             }
         )
+        repository["graphStoragePath"] = str(graph_storage_path)
         self.store.append_audit_event(
             "RepositoryRegistered",
             repository,
@@ -686,7 +842,35 @@ class PlatformService:
             revision=graph["revision"],
             actor=body.get("actor"),
         )
-        response = {**run, "buildModel": result["buildModel"]}
+        graph_storage_path = repository.get("graphStoragePath") or repository.get(
+            "metadata", {}
+        ).get("graphStoragePath")
+        if not graph_storage_path:
+            graph_storage_path = str(Path(repository["path"]) / ".code-ontology")
+        storage_path = Path(graph_storage_path)
+        snapshot_file_path = None
+        try:
+            current_dir = storage_path / "graphs" / "current"
+            current_dir.mkdir(parents=True, exist_ok=True)
+            snapshot_file = current_dir / f"{_safe_graph_filename(graph['revision'])}.json"
+            snapshot_file.write_text(
+                json.dumps(graph, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            snapshot_file_path = str(snapshot_file)
+        except Exception:
+            pass
+
+        response = {
+            **run,
+            "buildModel": result["buildModel"],
+            "graphStoragePath": str(graph_storage_path),
+            "graphSnapshotFile": snapshot_file_path,
+            "summary": {
+                "nodeCount": len(graph["nodes"]),
+                "edgeCount": len(graph["edges"]),
+            },
+        }
         if body.get("includeGraph") is True:
             response["graph"] = graph
         return response

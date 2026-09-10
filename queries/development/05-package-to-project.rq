@@ -1,0 +1,9 @@
+# Q5: which project/model/requirement uses a definition package or its dependencies?
+PREFIX dev: <https://example.org/code-ontology/development#>
+SELECT DISTINCT ?package ?version ?project ?profile ?model ?requirement WHERE {
+  ?profile dev:usesPackage/dev:dependsOnPackage* ?package ; dev:forProject ?project .
+  ?package dev:version ?version .
+  ?model dev:usesProfile ?profile .
+  OPTIONAL { ?requirement a dev:Requirement ; dev:inModel ?model }
+}
+ORDER BY ?project ?package

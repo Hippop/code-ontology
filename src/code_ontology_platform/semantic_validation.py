@@ -8,6 +8,7 @@ from pyshacl import validate
 from rdflib import Graph
 
 from .errors import invalid
+from .metamodel_quality import definition_issues, vocabulary_issues
 
 
 def _paths(values: Iterable[str | Path], name: str) -> list[Path]:
@@ -43,6 +44,7 @@ def validate_semantic_assets(
     data = _paths(data_files, "data_files")
     ontology_graph = _load_graph(ontologies)
     shape_graph = _load_graph(shapes)
+    schema_issues = definition_issues(ontology_graph, shape_graph)
 
     results: list[dict[str, Any]] = []
     for path in data:
@@ -55,14 +57,17 @@ def validate_semantic_assets(
             advanced=True,
             abort_on_first=False,
         )
+        issues = [*schema_issues, *vocabulary_issues(data_graph, ontology_graph)]
         result: dict[str, Any] = {
             "file": str(path),
-            "conforms": bool(conforms),
+            "conforms": bool(conforms) and not issues,
             "dataTripleCount": len(data_graph),
             "reportTripleCount": len(report_graph),
         }
         if not conforms:
             result["report"] = report_text
+        if issues:
+            result["definitionIssues"] = issues
         results.append(result)
 
     return {

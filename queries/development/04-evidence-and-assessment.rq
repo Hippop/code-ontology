@@ -1,0 +1,10 @@
+# Q4: what exact version and execution evidence support each verdict?
+PREFIX dev: <https://example.org/code-ontology/development#>
+SELECT DISTINCT ?assessment ?target ?verdict ?model ?snapshot ?report ?runStatus ?scenario WHERE {
+  ?assessment a dev:SatisfactionAssessment ; dev:assesses ?target ; dev:status ?verdict ;
+    dev:evaluatesModel ?model ; dev:evaluatesSnapshot ?snapshot .
+  OPTIONAL { ?assessment dev:supportedBy ?evidence .
+    ?evidence dev:reportUri ?report ; dev:generatedBy ?run .
+    ?run dev:status ?runStatus ; dev:scenario ?scenario . }
+}
+ORDER BY ?assessment

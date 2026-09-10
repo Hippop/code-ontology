@@ -699,3 +699,86 @@ code:version a owl:DatatypeProperty ;
 code:environmentName a owl:DatatypeProperty ;
     rdfs:domain code:Environment ;
     rdfs:range xsd:string .
+
+# Human-readable class definitions; identity and inheritance above remain authoritative.
+code:ImpactAnalysisEntity rdfs:label "可分析实体"@zh ; rdfs:comment "代码、业务、交付与影响对象的公共上位类，不意味着每个子类都是源码事实。"@zh .
+code:CodeEntity rdfs:label "代码实体"@zh ; rdfs:comment "源码与仓库结构中可独立定位的实体。"@zh .
+code:Repository rdfs:label "代码仓库"@zh ; rdfs:comment "源代码的仓库边界；具体版本由快照或修订上下文确定。"@zh .
+code:Module rdfs:label "代码模块"@zh ; rdfs:comment "仓库中组织源文件与依赖的模块。"@zh .
+code:SourceFile rdfs:label "源文件"@zh ; rdfs:comment "仓库内可定位的源码文件，文件名不能代替版本身份。"@zh .
+code:Type rdfs:label "语言类型"@zh ; rdfs:comment "代码中可引用的类型，包含类、接口和枚举。"@zh .
+code:Class rdfs:label "代码类"@zh ; rdfs:comment "编程语言中的类定义，不是 owl:Class 元模型定义本身。"@zh .
+code:Interface rdfs:label "代码接口"@zh ; rdfs:comment "编程语言中的接口类型，不等同于业务能力接口或 API 操作。"@zh .
+code:Enum rdfs:label "代码枚举"@zh ; rdfs:comment "编程语言中的枚举类型，其业务值域需独立映射。"@zh .
+code:Callable rdfs:label "可调用代码单元"@zh ; rdfs:comment "函数、方法或构造器等可被调用的代码实体。"@zh .
+code:Method rdfs:label "代码方法"@zh ; rdfs:comment "声明在类型中的方法；重载身份应包含签名。"@zh .
+code:Function rdfs:label "代码函数"@zh ; rdfs:comment "可独立定位的函数定义，不等同于元模型转换规则。"@zh .
+code:Constructor rdfs:label "构造器"@zh ; rdfs:comment "用于创建语言对象的可调用代码单元。"@zh .
+code:Field rdfs:label "代码字段"@zh ; rdfs:comment "类型声明中的成员字段，不等同于业务属性或数据库列。"@zh .
+code:Parameter rdfs:label "代码参数"@zh ; rdfs:comment "可调用单元的参数位置和类型定义。"@zh .
+code:ArchitectureEntity rdfs:label "架构实体"@zh ; rdfs:comment "描述逻辑结构与职责划分的工程对象。"@zh .
+code:Component rdfs:label "逻辑组件"@zh ; rdfs:comment "承担一组技术职责的架构单元。"@zh .
+code:LogicalService rdfs:label "逻辑服务"@zh ; rdfs:comment "提供服务职责的架构对象，不等同于容器镜像或运行实例。"@zh .
+code:BoundedContext rdfs:label "限界上下文"@zh ; rdfs:comment "限定领域语言与模型一致性边界的架构范围。"@zh .
+code:ContractEntity rdfs:label "契约实体"@zh ; rdfs:comment "API、消息、模式和工程契约等边界定义的上位类。"@zh .
+code:APIOperation rdfs:label "API 操作"@zh ; rdfs:comment "接口对外暴露的操作契约，不等同于实现它的代码方法。"@zh .
+code:Schema rdfs:label "数据模式"@zh ; rdfs:comment "接口或消息结构的模式定义，不是数据库实例。"@zh .
+code:RequestSchema rdfs:label "请求模式"@zh ; rdfs:comment "API 请求数据的结构定义。"@zh .
+code:ResponseSchema rdfs:label "响应模式"@zh ; rdfs:comment "API 响应数据的结构定义。"@zh .
+code:MessageSchema rdfs:label "消息模式"@zh ; rdfs:comment "异步消息的数据结构定义。"@zh .
+code:SchemaField rdfs:label "模式字段"@zh ; rdfs:comment "数据模式中可独立追踪的字段。"@zh .
+code:MessageField rdfs:label "消息字段"@zh ; rdfs:comment "消息模式中可独立追踪的字段。"@zh .
+code:EventType rdfs:label "技术事件类型"@zh ; rdfs:comment "技术契约中的事件定义，不等同于业务事件或消息主题。"@zh .
+code:CommandMessage rdfs:label "命令消息"@zh ; rdfs:comment "表达处理请求的技术消息契约。"@zh .
+code:Topic rdfs:label "消息主题"@zh ; rdfs:comment "消息发布与订阅的技术通道。"@zh .
+code:ConsumerGroup rdfs:label "消费者组"@zh ; rdfs:comment "共同承担消息消费职责的消费者集合。"@zh .
+code:DataEntity rdfs:label "数据实体"@zh ; rdfs:comment "数据库结构与访问对象的上位类。"@zh .
+code:Database rdfs:label "数据库"@zh ; rdfs:comment "组织数据表和访问资源的存储边界。"@zh .
+code:Table rdfs:label "数据表"@zh ; rdfs:comment "数据库中的表结构，不直接等同于业务对象。"@zh .
+code:Column rdfs:label "数据列"@zh ; rdfs:comment "数据表中独立可追踪的列定义。"@zh .
+code:Query rdfs:label "数据查询"@zh ; rdfs:comment "代码或数据库中可定位的数据访问查询。"@zh .
+code:Index rdfs:label "数据库索引"@zh ; rdfs:comment "支持数据访问的索引结构。"@zh .
+code:ConfigurationEntity rdfs:label "配置实体"@zh ; rdfs:comment "配置键、值、来源及敏感配置的上位类。"@zh .
+code:ConfigurationKey rdfs:label "配置键"@zh ; rdfs:comment "配置项的语义标识，不包含具体环境下的值。"@zh .
+code:ConfigurationValue rdfs:label "配置值"@zh ; rdfs:comment "某配置上下文中的取值。"@zh .
+code:ConfigurationSource rdfs:label "配置来源"@zh ; rdfs:comment "配置被定义或加载的来源。"@zh .
+code:FeatureFlag rdfs:label "特性开关"@zh ; rdfs:comment "控制功能启用的配置键。"@zh .
+code:Secret rdfs:label "敏感配置"@zh ; rdfs:comment "敏感凭据的语义引用，图中不得保存明文秘密。"@zh .
+code:Environment rdfs:label "运行环境"@zh ; rdfs:comment "配置、验证或交付所适用的环境边界。"@zh .
+code:VerificationEntity rdfs:label "验证实体"@zh ; rdfs:comment "测试和验证相关工程对象的上位类。"@zh .
+code:TestCase rdfs:label "测试用例"@zh ; rdfs:comment "声明检查目标的测试对象，存在用例不代表已执行。"@zh .
+code:UnitTest rdfs:label "单元测试"@zh ; rdfs:comment "针对局部代码单元的测试用例。"@zh .
+code:IntegrationTest rdfs:label "集成测试"@zh ; rdfs:comment "检查多个技术单元协作的测试用例。"@zh .
+code:ContractTest rdfs:label "契约测试"@zh ; rdfs:comment "检查接口或组件契约一致性的测试用例。"@zh .
+code:EndToEndTest rdfs:label "端到端测试"@zh ; rdfs:comment "在声明范围内检查完整业务路径的测试用例。"@zh .
+code:TestFixture rdfs:label "测试夹具"@zh ; rdfs:comment "为测试提供输入、环境或固定数据的资产。"@zh .
+code:TestEnvironment rdfs:label "测试环境"@zh ; rdfs:comment "测试执行所采用的环境定义。"@zh .
+code:BusinessEntity rdfs:label "业务关联实体"@zh ; rdfs:comment "代码分析层中的业务关联概念，与 biz 业务实体体系分别保留身份。"@zh .
+code:BusinessCapability rdfs:label "工程能力锚点"@zh ; rdfs:comment "工程需求和实现关联的能力对象，与 biz:BusinessCapability 不自动等价。"@zh .
+code:CriticalBusinessCapability rdfs:label "关键业务能力"@zh ; rdfs:comment "被标记为业务关键的工程能力对象。"@zh .
+code:BusinessProcess rdfs:label "业务流程锚点"@zh ; rdfs:comment "代码分析层关联实现的业务过程，不自动合并 biz 流程。"@zh .
+code:BusinessProcessStep rdfs:label "业务步骤锚点"@zh ; rdfs:comment "代码分析层关联实现的业务步骤。"@zh .
+code:BusinessRule rdfs:label "业务规则锚点"@zh ; rdfs:comment "代码分析层关联规则实现的业务规则对象。"@zh .
+code:Requirement rdfs:label "通用需求"@zh ; rdfs:comment "工程需求的基础类型；更严格所有权与开发约束由 eng/dev 子类补充。"@zh .
+code:AcceptanceCriterion rdfs:label "验收条件"@zh ; rdfs:comment "可与需求实现和验证关联的验收判据。"@zh .
+code:Team rdfs:label "责任团队"@zh ; rdfs:comment "承担工程或业务职责的组织对象。"@zh .
+code:DeliveryEntity rdfs:label "交付实体"@zh ; rdfs:comment "构建、发布、部署相关对象的上位类。"@zh .
+code:BuildArtifact rdfs:label "构建产物"@zh ; rdfs:comment "由构建过程产生的交付资产。"@zh .
+code:ArtifactVersion rdfs:label "构建产物版本"@zh ; rdfs:comment "某构建产物的具体版本。"@zh .
+code:DeployableUnit rdfs:label "可部署单元"@zh ; rdfs:comment "可被部署到环境中的交付单元。"@zh .
+code:Release rdfs:label "软件发布"@zh ; rdfs:comment "组织一组交付内容的发布对象，不等同于就绪判断。"@zh .
+code:Deployment rdfs:label "部署记录"@zh ; rdfs:comment "某交付内容与环境的部署关联。"@zh .
+code:DeploymentAction rdfs:label "部署动作描述"@zh ; rdfs:comment "交付层对部署操作的描述，不宣称动作已成功执行。"@zh .
+code:RuntimeInstance rdfs:label "运行实例"@zh ; rdfs:comment "已部署服务或程序的具体运行实例。"@zh .
+code:ChangeEntity rdfs:label "变更实体"@zh ; rdfs:comment "语义变化与变更集合的上位类。"@zh .
+code:ChangeSet rdfs:label "变更集合"@zh ; rdfs:comment "在声明版本范围内的一组变化。"@zh .
+code:ChangeItem rdfs:label "变更项"@zh ; rdfs:comment "作用于明确目标的一项语义变化。"@zh .
+code:FieldTypeChanged rdfs:label "字段类型变化"@zh ; rdfs:comment "字段数据类型发生变化的变更项。"@zh .
+code:MethodDeleted rdfs:label "方法删除"@zh ; rdfs:comment "方法从目标代码版本中移除的变更项。"@zh .
+code:SignatureChanged rdfs:label "签名变化"@zh ; rdfs:comment "可调用单元签名发生变化的变更项。"@zh .
+code:ContractChanged rdfs:label "契约变化"@zh ; rdfs:comment "接口或模式等契约发生变化的变更项。"@zh .
+code:ConfigurationChanged rdfs:label "配置变化"@zh ; rdfs:comment "配置语义或值发生变化的变更项。"@zh .
+code:ImpactAssessment rdfs:label "影响判断"@zh ; rdfs:comment "对变化影响的有依据判断，不等同于图可达结果。"@zh .
+code:ImpactEvidence rdfs:label "影响证据"@zh ; rdfs:comment "支持影响或验证分析的工程依据。"@zh .
+code:ImpactPath rdfs:label "影响路径"@zh ; rdfs:comment "记录变化到候选影响对象之间的传播依据。"@zh .
+code:CompatibilityAssessment rdfs:label "兼容性判断"@zh ; rdfs:comment "对变化是否保持相关契约兼容性的判断。"@zh .

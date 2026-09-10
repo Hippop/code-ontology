@@ -432,6 +432,12 @@ class PlatformServiceTest(unittest.TestCase):
                 "path": str(JAVA_SAMPLE),
             }
         )
+        self.assertIn("graphStoragePath", repository)
+        self.assertTrue(Path(repository["graphStoragePath"]).is_dir())
+        self.assertTrue((Path(repository["graphStoragePath"]) / "graphs").is_dir())
+        self.assertTrue((Path(repository["graphStoragePath"]) / ".gitignore").is_file())
+        self.assertTrue((Path(repository["graphStoragePath"]) / "config.json").is_file())
+
         snapshot = self.service.create_repository_snapshot(
             repository["repositoryId"], {"actor": "test"}
         )
@@ -445,6 +451,11 @@ class PlatformServiceTest(unittest.TestCase):
         )
 
         self.assertEqual("Completed", run["status"])
+        self.assertIn("graphStoragePath", run)
+        self.assertIn("graphSnapshotFile", run)
+        self.assertTrue(Path(run["graphSnapshotFile"]).is_file())
+        self.assertIn("summary", run)
+        self.assertGreater(run["summary"]["nodeCount"], 0)
         self.assertEqual(9, run["coverage"]["parsedJavaFiles"])
         self.assertEqual(0, run["coverage"]["unresolvedCallCount"])
         self.assertEqual(7, run["coverage"]["externalCallCount"])
@@ -769,9 +780,9 @@ class SemanticAssetsTest(unittest.TestCase):
             result["conforms"],
             "\n\n".join(item.get("report", "") for item in result["results"]),
         )
-        self.assertEqual(5, len(result["ontologyFiles"]))
-        self.assertEqual(3, len(result["shapeFiles"]))
-        self.assertEqual(3, len(result["results"]))
+        self.assertEqual(6, len(result["ontologyFiles"]))
+        self.assertEqual(4, len(result["shapeFiles"]))
+        self.assertEqual(5, len(result["results"]))
 
 
 class HttpContractTest(unittest.TestCase):

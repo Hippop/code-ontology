@@ -12,3 +12,8 @@ data/*.db
 data/*.db-shm
 data/*.db-wal
 data/*.graphs/
+data/development-runs/
+data/platform-development-runs/
+output/playwright/
+.playwright-cli/
+.code-ontology/

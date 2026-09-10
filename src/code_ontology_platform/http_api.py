@@ -15,6 +15,9 @@ from urllib.parse import parse_qs, unquote, urlsplit
 from .errors import PlatformError, invalid
 from .mcp_gateway import ReadOnlyMcpGateway
 from .service import PlatformService
+from .metamodel_authoring import MetamodelAuthoring
+from .development_slice import DevelopmentSlice
+from .platform_development import PlatformDevelopment
 
 MAX_BODY_BYTES = 1_048_576
 
@@ -116,6 +119,88 @@ def handler_for(
 
                 if method == "GET" and path == "/api/engineering-workbench":
                     result = service.engineering_workbench()
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if path.startswith("/api/platform-development/"):
+                    workflow = PlatformDevelopment(service)
+                    action = path.rsplit("/", 1)[-1]
+                    if method == "GET" and action == "catalog": result = workflow.catalog()
+                    elif method == "GET" and action == "models": result = workflow.models()
+                    elif method == "GET" and action == "model": result = workflow._get("model", self._single_query(query,"modelId"))
+                    elif method == "GET" and action == "preview": result = workflow.preview(self._single_query(query,"modelId"))
+                    elif method == "GET" and action == "history": result = workflow.history(self._single_query(query,"modelId"))
+                    elif method == "GET" and action == "run": result = workflow.run(self._single_query(query,"runId"))
+                    elif method == "POST" and action in {"models","approve","execute"}:
+                        body = self._body()
+                        if not isinstance(body,dict): raise invalid("请求必须为 JSON 对象")
+                        result = {"models":workflow.create,"approve":workflow.approve,"execute":workflow.execute}[action](body)
+                    else: raise PlatformError(405,"METHOD_NOT_ALLOWED","此平台自开发接口不支持该方法或操作")
+                    self._json(HTTPStatus.OK,result,request_id)
+                    return
+
+                if path in {"/api/development-slices/models", "/api/development-slices/model", "/api/development-slices/execute", "/api/development-slices/run", "/api/development-slices/runs"}:
+                    slices = DevelopmentSlice(service)
+                    if method == "GET" and path.endswith("/models"):
+                        result = slices.models()
+                    elif method == "GET" and path.endswith("/model"):
+                        result = slices._get("model", self._single_query(query, "modelId"))
+                    elif method == "GET" and path.endswith("/runs"):
+                        result = slices.runs(self._single_query(query, "modelId"))
+                    elif method == "GET" and path.endswith("/run"):
+                        result = slices.run(self._single_query(query, "runId"))
+                    elif method == "POST" and (path.endswith("/models") or path.endswith("/execute")):
+                        body = self._body()
+                        if not isinstance(body, dict):
+                            raise invalid("请求必须为 JSON 对象")
+                        result = slices.save(body) if path.endswith("/models") else slices.execute(body)
+                    else:
+                        raise PlatformError(405, "METHOD_NOT_ALLOWED", "此开发切片接口不支持该方法")
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if path in {"/api/metamodel/drafts", "/api/metamodel/drafts/template", "/api/metamodel/drafts/history", "/api/metamodel/drafts/check"}:
+                    authoring = MetamodelAuthoring(service.metamodel_registry(), service.store)
+                    if method == "GET" and path.endswith("/template"):
+                        result = authoring.template()
+                    elif method == "GET" and path.endswith("/history"):
+                        result = authoring.history(self._single_query(query, "draftId"))
+                    elif method == "GET" and path.endswith("/drafts"):
+                        result = {"drafts": [{k: v for k, v in d.items() if k not in {"ontology", "shapes"}} for d in service.store.metamodel_drafts()]}
+                    elif method == "POST" and (path.endswith("/drafts") or path.endswith("/check")):
+                        body = self._body()
+                        if not isinstance(body, dict):
+                            raise invalid("请求必须是 JSON 对象")
+                        result = authoring.check(body) if path.endswith("/check") else authoring.save(body)
+                    else:
+                        raise PlatformError(405, "METHOD_NOT_ALLOWED", "此草稿接口不支持该方法")
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if method == "GET" and path in {"/api/metamodel/catalog", "/api/metamodel/term", "/api/metamodel/example"}:
+                    registry = service.metamodel_registry()
+                    registry.check_revision(self._optional_query(query, "revision"))
+                    if path.endswith("/catalog"):
+                        result = registry.catalog()
+                    elif path.endswith("/term"):
+                        result = registry.detail(self._optional_query(query, "iri") or "")
+                    else:
+                        result = registry.example(self._optional_query(query, "name") or "")
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if method == "POST" and path in {"/api/metamodel/bind", "/api/metamodel/validate", "/api/metamodel/query"}:
+                    result = service.metamodel_action(path.rsplit("/", 1)[-1], self._body())
+                    self._json(HTTPStatus.OK, result, request_id)
+                    return
+
+                if method == "POST" and path in {
+                    "/api/development-code-generation/preview",
+                    "/api/development-code-generation/apply",
+                }:
+                    result = service.generate_from_development_ontology(
+                        self._body(), apply=path.endswith("/apply")
+                    )
                     self._json(HTTPStatus.OK, result, request_id)
                     return
 

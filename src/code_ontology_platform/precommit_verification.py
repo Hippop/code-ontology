@@ -53,9 +53,14 @@ def _changed_entries(repository: Path) -> list[dict[str, str]]:
         if not value:
             continue
         path = value.decode("utf-8", errors="surrogateescape")
+        if path.startswith((".code-ontology/", ".codegraph/")):
+            continue
         if path not in tracked:
             entries.append({"status": "A", "path": path, "untracked": "true"})
-    return sorted(entries, key=lambda item: (item["path"], item["status"]))
+    filtered_entries = [
+        e for e in entries if not e["path"].startswith((".code-ontology/", ".codegraph/"))
+    ]
+    return sorted(filtered_entries, key=lambda item: (item["path"], item["status"]))
 
 
 def capture_worktree_snapshot(repository: str | Path) -> dict[str, Any]:
@@ -63,8 +68,27 @@ def capture_worktree_snapshot(repository: str | Path) -> dict[str, Any]:
     if not (root / ".git").exists() and not _git(root, "rev-parse", "--git-dir"):
         raise ValueError(f"Not a Git repository: {root}")
     base_revision = _git(root, "rev-parse", "HEAD").decode().strip()
-    status = _git(root, "status", "--porcelain=v1", "-z")
-    patch = _git(root, "diff", "--binary", "--no-ext-diff", "HEAD")
+    status = _git(
+        root,
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--",
+        ".",
+        ":(exclude).codegraph/**",
+        ":(exclude).code-ontology/**",
+    )
+    patch = _git(
+        root,
+        "diff",
+        "--binary",
+        "--no-ext-diff",
+        "HEAD",
+        "--",
+        ".",
+        ":(exclude).codegraph/**",
+        ":(exclude).code-ontology/**",
+    )
     entries = _changed_entries(root)
     digest = hashlib.sha256()
     digest.update(base_revision.encode("ascii"))

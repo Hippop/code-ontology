@@ -6,16 +6,36 @@
 
 ## 信息架构
 
-| 阶段 | 主要输入 | 核心操作 | 输出或 Gate |
+| 阶段 | 主要输入 | 核心操作 | 页面输出或 Gate |
 | --- | --- | --- | --- |
-| 仓库基线 | Git 仓库 | 注册身份、选择工作仓库、进入图谱扫描 | repositoryId、HEAD 与 Current Graph |
-| 本体构建 | Engineering Semantic Model | 新增实体/关系、JSON 高级编辑、上下文收集 | 一致性、覆盖率与显式规则影响 |
-| 需求意图 | 设计文档 | 进入 Requirement Workflow，提取并确认 IR | Confirmed Requirement IR |
-| 语义对齐 | Current + Desired | 图谱对比、实现切片、候选决策 | Confirmed Alignment |
-| 批准计划 | 对齐结果与影响义务 | 检查生成契约和批准边界 | Approved Change Plan |
-| 代码生成 | 已治理模型与仓库 | 预览产物；人工确认后才允许应用 | 内容 Hash、目标路径与工作树变更 |
-| 提交门禁 | Git Diff、计划与验证结果 | Actual 映射、影响传播、计划对账 | ReadyToCommit 或结构化 Blocker |
-| 发布审计 | Approved / Actual / Evidence | 对账、需求回放、证据核验 | 可审计发布决策 |
+| 01 仓库与存储接入 | 代码库路径、图谱保存路径（选填，默认生成 `.code-ontology`） | 注册代码库、初始化图谱存储空间、一键触发图谱扫描 | 绑定状态卡片、存储空间状态、HEAD 修订号 |
+| 02 图谱扫描基线 | 目标仓库、触发扫描指令 | 静态 AST 解析、事实抽取、图谱快照落盘 | 节点与关系统计指标、Current Graph 快照路径（`.code-ontology/graphs/current/`） |
+| 03 项目本体建模 | 实体/关系草案、影响分析种子、JSON 模型 | 关联元模型、新增实体与契约、执行 SHACL 约束校验与显式波及分析 | 拓扑图画布、CONFORMS 判定与约束违规清单、波及影响雷达 |
+| 04 需求意图 IR | 自然语言需求描述、PRD 片段、能力归属 | 运行意图抽取引擎、识别期望实体与业务规则 | 结构化 Requirement IR、RequirementReview 门禁 |
+| 05 语义对齐裁决 | 对齐分析触发、候选动作人工裁决（复用/扩展/修改/替换/新建） | 双图差异比对、消除歧义决策、生成变更草案 | Current ↔ Desired 对照视图、Proposed Graph 快照 |
+| 06 批准计划契约 | 审查变更集、配置生成契约（RequirementContract）、设定影响测试义务 | 签署并锁定变更范围与安全边界 | Approved Change Plan、不可变 Plan Hash 签名 |
+| 07 代码生成应用 | 覆盖选项勾选、审查预览 Diff、工作树写入确认 | 确定性代码生成、Diff 审查、安全写入 Git 工作树 | 产物明细清单、语法高亮 Diff 查看器、工作树变更日志 |
+| 08 提交门禁核验 | 触发门禁复核、可选导入自动化测试执行证据 | 工作树 Git 快照核验、计划对账、影响义务闭环与防漂移检查 | ReadyToCommit 或 BlockCommit 判定、Blockers 违规清单 |
+| 09 发布就绪审计 | 选定需求 ID 或发布 Commit 标签 | 聚合因果链、验证密码学签名、最终对账核验 | 全因果溯源时间线、不可篡改证据包（Evidence Package） |
+
+## 图谱工作空间约定：.code-ontology
+
+每个受管辖代码库默认拥有专属图谱与语义工作空间，结构如下：
+```text
+<repository_path>/.code-ontology/
+├── config.json              # 仓库图谱治理配置（分支、语言、扫描规则）
+├── .gitignore               # 自动化保护规则（忽略 *.tmp 与 scratch/）
+├── models/
+│   └── engineering-model.json  # 项目工程本体模型（实体、关系、生成契约）
+├── graphs/
+│   ├── current/             # 扫描提取的代码本体图谱快照
+│   ├── proposed/            # 变更草案图谱快照
+│   └── approved/            # 批准生效的图谱快照
+├── baselines/               # 结构化图谱基线与差异对比记录
+└── audit/                   # 门禁凭证与发布审计追踪链
+```
+用户在接入代码库时可自定义此路径；若留空，系统自动在源码根目录下创建并维护 `.code-ontology` 目录。系统已在扫描器遍历与 Git 快照检查中对 `.code-ontology` 进行了防漂移隔离保护。
+
 
 ## 本体构建器
 

@@ -1,0 +1,199 @@
+@prefix dev: <https://example.org/code-ontology/development#> .
+@prefix code: <https://example.org/code-ontology#> .
+@prefix biz: <https://example.org/code-ontology/business#> .
+@prefix eng: <https://example.org/code-ontology/engineering#> .
+@prefix plan: <https://example.org/code-ontology/planning#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/code-ontology/development> a owl:Ontology ;
+    owl:versionIRI <https://example.org/code-ontology/development/2.0.0> ;
+    owl:versionInfo "2.0.0" ;
+    owl:imports <https://example.org/code-ontology>,
+        <https://example.org/code-ontology/business>,
+        <https://example.org/code-ontology/engineering>,
+        <https://example.org/code-ontology/planning> ;
+    rdfs:label "本体驱动开发元模型"@zh ;
+    rdfs:comment "意图、契约、设计、义务、转换和证据的版本化开发闭环。治理约束通过 dev 类型、继承及明确的模型修订关系选择目标；业务身份在绑定模型内检查唯一性，不将声明推理成事实或满足性结论。"@zh .
+
+# Definition level, semantic layer and lifecycle are independent axes.
+# rdf:type / rdfs:subClassOf remain the type system; no second instanceOf property.
+dev:Entity a owl:Class ; rdfs:subClassOf code:ImpactAnalysisEntity ; rdfs:label "受治理开发实体"@zh ; rdfs:comment "具有稳定 IRI、可读名称的开发资产；事实与判断采用不同子类。"@zh .
+dev:VersionedAsset a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "版本化资产"@zh ; rdfs:comment "用独立 IRI 表示修订，记录版本及来源；发布后不可原地覆盖。"@zh .
+dev:MetamodelPackage a owl:Class ; rdfs:subClassOf dev:VersionedAsset, eng:OntologyAsset ; rdfs:label "元模型包修订"@zh ; rdfs:comment "打包类、属性、约束和依赖；依赖指向固定包修订。"@zh .
+dev:DomainExtension a owl:Class ; rdfs:subClassOf dev:MetamodelPackage ; rdfs:label "领域扩展包"@zh ; rdfs:comment "通过继承和约束复用通用元模型的领域定义包。"@zh .
+dev:ConstraintSet a owl:Class ; rdfs:subClassOf dev:VersionedAsset ; rdfs:label "约束集"@zh ; rdfs:comment "项目采用的 SHACL 文档集合及版本。"@zh .
+dev:RuleSet a owl:Class ; rdfs:subClassOf dev:VersionedAsset ; rdfs:label "规则集"@zh ; rdfs:comment "显式收录转换规则和影响规则的版本化集合。"@zh .
+dev:Project a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "工程项目"@zh ; rdfs:comment "业务模型、仓库和技术栈的归属边界，可关联多个仓库。"@zh .
+dev:ProjectProfile a owl:Class ; rdfs:subClassOf dev:VersionedAsset ; rdfs:label "项目模型配置"@zh ; rdfs:comment "锁定元模型包、约束集、规则集和技术栈。"@zh .
+dev:ModelRevision a owl:Class ; rdfs:subClassOf dev:VersionedAsset ; rdfs:label "项目模型修订"@zh ; rdfs:comment "业务与需求定义的不可混用版本，明确绑定项目配置。"@zh .
+dev:CodeSnapshot a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "代码快照"@zh ; rdfs:comment "仓库提交与工作树内容摘要以及采集范围；不能用分支名代替精确修订。"@zh .
+dev:GraphRevision a owl:Class ; rdfs:subClassOf dev:VersionedAsset ; rdfs:label "图修订"@zh ; rdfs:comment "独立记录知识、变更、影响图角色以及 Current/Desired 等生命周期。"@zh .
+dev:MigrationPlan a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "元模型迁移计划"@zh ; rdfs:comment "记录源/目标包修订、迁移理由及受影响的项目配置。"@zh .
+
+dev:BusinessGoal a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "业务目标"@zh ; rdfs:comment "可由多个需求共同推进的业务结果；单个需求满足不自动证明目标实现。"@zh .
+dev:BusinessConcept a owl:Class ; rdfs:subClassOf dev:Entity, biz:BusinessObject ; rdfs:label "业务概念"@zh ; rdfs:comment "项目模型中的业务对象定义实例，独立于语言类型、表与 API Schema。"@zh .
+dev:BusinessAttribute a owl:Class ; rdfs:subClassOf dev:Entity, biz:BusinessAttribute ; rdfs:label "业务属性"@zh ; rdfs:comment "领域属性的语义位置；值域、单位和默认行为由契约条款约束。"@zh .
+dev:BusinessRule a owl:Class ; rdfs:subClassOf dev:Entity, biz:BusinessRule ; rdfs:label "业务规则"@zh ; rdfs:comment "描述业务允许、禁止或必须发生的行为，不能用字段类型代替。"@zh .
+dev:Requirement a owl:Class ; rdfs:subClassOf dev:Entity, eng:EngineeringRequirement ; rdfs:label "开发需求"@zh ; rdfs:comment "属于明确模型修订，具备目标、范围、验收条件和契约。"@zh .
+dev:AcceptanceCriterion a owl:Class ; rdfs:subClassOf dev:Entity, code:AcceptanceCriterion ; rdfs:label "可验证验收条件"@zh ; rdfs:comment "需求的一项可观察判据，必须明确验证范围。"@zh .
+dev:SemanticContract a owl:Class ; rdfs:subClassOf dev:Entity, eng:SemanticContract ; rdfs:label "领域语义契约"@zh ; rdfs:comment "可复用的业务语义约束集合，经 eng:constrainedBy 连接需求。"@zh .
+dev:ContractClause a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "契约条款"@zh ; rdfs:comment "可被设计、实现、转换和验证逐项引用的最小语义责任。"@zh .
+dev:Invariant a owl:Class ; rdfs:subClassOf dev:ContractClause ; rdfs:label "不变式条款"@zh ; rdfs:comment "在声明的状态和操作范围内必须始终成立的约束。"@zh .
+dev:BehaviorClause a owl:Class ; rdfs:subClassOf dev:ContractClause ; rdfs:label "行为条款"@zh ; rdfs:comment "以文本描述前置条件、后置条件和失败行为；不定义独立动作或可执行行为语言。"@zh .
+dev:ValueConstraint a owl:Class ; rdfs:subClassOf dev:ContractClause ; rdfs:label "值约束条款"@zh ; rdfs:comment "业务属性的类型、枚举、默认值和单位；默认值不是自动运行时赋值。"@zh .
+
+dev:DesignDecision a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "架构决策"@zh ; rdfs:comment "记录问题、候选、选择及理由；可关联既有 plan:DesignDecision，但不隐式创造变更提案。"@zh .
+dev:DesignElement a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "目标设计元素"@zh ; rdfs:comment "预期技术结构或行为，有契约依据，不是已采集代码事实。"@zh .
+dev:TechnicalRepresentation a owl:Class ; rdfs:subClassOf dev:DesignElement ; rdfs:label "技术表示设计"@zh ; rdfs:comment "业务概念或属性的 API、代码、存储或消息表示。"@zh .
+dev:ImplementationSlice a owl:Class ; rdfs:subClassOf dev:Entity, biz:ImplementationSlice ; rdfs:label "实现切片"@zh ; rdfs:comment "实现一个业务步骤的入口、代码、数据、接口和测试集合，复用 biz 切片约束。"@zh .
+dev:RealizationMapping a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "实现映射记录"@zh ; rdfs:comment "连接契约或需求到目标设计/实际产物；保存角色、状态、模型和代码版本，不声明二者相等。"@zh .
+dev:SemanticDelta a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "语义差异"@zh ; rdfs:comment "在当前代码快照与目标模型之间说明增加、修改、删除或复用的原因。"@zh .
+dev:Obligation a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "工程义务"@zh ; rdfs:comment "明确来源、目标、状态和完成依据的工作责任。"@zh .
+dev:ChangeObligation a owl:Class ; rdfs:subClassOf dev:Obligation ; rdfs:label "实现义务"@zh ; rdfs:comment "通过新增、修改、复用或有依据的免除处理语义差异。"@zh .
+dev:VerificationObligation a owl:Class ; rdfs:subClassOf dev:Obligation ; rdfs:label "验证义务"@zh ; rdfs:comment "对契约或验收条件执行验证的责任，不能仅凭存在测试节点关闭。"@zh .
+dev:ChangePlan a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "开发变更计划"@zh ; rdfs:comment "绑定基线快照、目标模型、义务、任务和批准记录。"@zh .
+dev:Approval a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "范围绑定批准"@zh ; rdfs:comment "针对具体计划内容摘要的人工决定；计划变化使旧批准失效。"@zh .
+
+dev:TechnologyProfile a owl:Class ; rdfs:subClassOf dev:VersionedAsset ; rdfs:label "技术栈配置"@zh ; rdfs:comment "语言、框架、工具版本和项目约定，作为转换的显式输入。"@zh .
+dev:TransformationRule a owl:Class ; rdfs:subClassOf dev:VersionedAsset ; rdfs:label "模型转换规则"@zh ; rdfs:comment "声明输入模式、前提、输出模式、保留语义和不支持情况；不是任意可达推理。"@zh .
+dev:ImpactRule a owl:Class ; rdfs:subClassOf dev:VersionedAsset ; rdfs:label "影响传播规则"@zh ; rdfs:comment "声明变化种类、传播条件、停止条件及证据要求。"@zh .
+dev:GenerationSpecification a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "生成规范"@zh ; rdfs:comment "固定规则、输入设计、技术栈、输出路径与保留条款。"@zh .
+dev:ImplementationTask a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "开发任务"@zh ; rdfs:comment "履行计划义务的 Template、Agent、Manual 或 Reuse 工作，可有依赖。"@zh .
+dev:ExecutionRun a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "执行记录"@zh ; rdfs:comment "记录执行器版本、输入摘要、时间、结果与产物；运行记录不等于验证通过。"@zh .
+dev:GenerationRun a owl:Class ; rdfs:subClassOf dev:ExecutionRun ; rdfs:label "生成执行"@zh ; rdfs:comment "按生成规范和批准计划产生代码产物的执行记录。"@zh .
+dev:ObservationRun a owl:Class ; rdfs:subClassOf dev:ExecutionRun ; rdfs:label "事实采集执行"@zh ; rdfs:comment "解析实际代码或运行数据，记录采集范围和代码快照。"@zh .
+dev:CodeArtifact a owl:Class ; rdfs:subClassOf dev:Entity, code:SourceFile ; rdfs:label "代码产物修订"@zh ; rdfs:comment "具有路径、内容摘要和代码快照的实际产物；不复用目标设计节点 ID。"@zh .
+
+dev:VerificationSpecification a owl:Class ; rdfs:subClassOf dev:VersionedAsset ; rdfs:label "验证规范"@zh ; rdfs:comment "检查验收条件或契约条款的命令/方法和预期结果，可独立于生成模板设计。"@zh .
+dev:VerificationRun a owl:Class ; rdfs:subClassOf dev:ExecutionRun ; rdfs:label "验证执行"@zh ; rdfs:comment "按验证规范针对精确代码快照运行，记录成功或失败。"@zh .
+dev:Evidence a owl:Class ; rdfs:subClassOf dev:Entity, eng:VerificationEvidence ; rdfs:label "可审计证据"@zh ; rdfs:comment "指向执行报告及其摘要、执行来源、模型、快照和适用范围。"@zh .
+dev:SatisfactionAssessment a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "满足性判断"@zh ; rdfs:comment "对一项验收条件或条款的版本限定结论，不从 implements/verifies 自动推导。"@zh .
+dev:ImpactAssessment a owl:Class ; rdfs:subClassOf dev:Entity, code:ImpactAssessment ; rdfs:label "开发影响判断"@zh ; rdfs:comment "记录差异、受影响对象、规则、路径、状态以及证据。"@zh .
+dev:ReleaseAssessment a owl:Class ; rdfs:subClassOf dev:Entity ; rdfs:label "交付就绪判断"@zh ; rdfs:comment "聚合计划所有义务和验收判断；仅对所声明范围作出结论。"@zh .
+
+# Governance. Multiple domain statements are avoided: they mean intersection.
+dev:version a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "版本"@zh ; rdfs:comment "版本化资产的明确修订标签。"@zh .
+dev:source a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "来源"@zh ; rdfs:comment "定义文件、文档章节或生产者定位；不得包含秘密凭据。"@zh .
+dev:statement a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "语义陈述"@zh ; rdfs:comment "可读定义，复杂规则需另有关联的可执行表达。"@zh .
+dev:scope a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "适用范围"@zh ; rdfs:comment "采集、验证或业务结论的边界，未覆盖不代表不存在。"@zh .
+dev:contentHash a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "内容摘要"@zh ; rdfs:comment "64 位小写 SHA-256；SHACL 验格式，真实重算由执行器负责。"@zh .
+dev:status a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "生命周期状态"@zh ; rdfs:comment "各类分别通过 SHACL 声明自己的状态词表。"@zh .
+dev:forProject a owl:ObjectProperty ; rdfs:range dev:Project ; rdfs:label "所属项目"@zh ; rdfs:comment "声明资产的工程归属。"@zh .
+dev:repository a owl:ObjectProperty ; rdfs:range code:Repository ; rdfs:label "关联仓库"@zh ; rdfs:comment "精确代码快照所属仓库。"@zh .
+dev:usesProfile a owl:ObjectProperty ; rdfs:range dev:ProjectProfile ; rdfs:label "采用项目配置"@zh ; rdfs:comment "绑定固定的配置修订。"@zh .
+dev:usesPackage a owl:ObjectProperty ; rdfs:range dev:MetamodelPackage ; rdfs:label "采用定义包"@zh ; rdfs:comment "固定项目采用的通用或领域元模型包。"@zh .
+dev:dependsOnPackage a owl:ObjectProperty ; rdfs:domain dev:MetamodelPackage ; rdfs:range dev:MetamodelPackage ; rdfs:label "依赖定义包"@zh ; rdfs:comment "依赖固定包修订，循环由 SHACL 检出。"@zh .
+dev:definesTerm a owl:ObjectProperty ; rdfs:domain dev:MetamodelPackage ; rdfs:label "收录语义定义"@zh ; rdfs:comment "目标是 owl:Class/ObjectProperty/DatatypeProperty IRI，不是项目实例。"@zh .
+dev:usesConstraints a owl:ObjectProperty ; rdfs:range dev:ConstraintSet ; rdfs:label "采用约束集"@zh ; rdfs:comment "绑定验证资产修订。"@zh .
+dev:usesRules a owl:ObjectProperty ; rdfs:range dev:RuleSet ; rdfs:label "采用规则集"@zh ; rdfs:comment "绑定可用转换及影响规则。"@zh .
+dev:includesRule a owl:ObjectProperty ; rdfs:domain dev:RuleSet ; rdfs:label "包含规则"@zh ; rdfs:comment "收录 TransformationRule 或 ImpactRule。"@zh .
+dev:usesTechnology a owl:ObjectProperty ; rdfs:range dev:TechnologyProfile ; rdfs:label "采用技术栈"@zh ; rdfs:comment "固定转换所使用的实现约定。"@zh .
+dev:inModel a owl:ObjectProperty ; rdfs:range dev:ModelRevision ; rdfs:label "所属模型修订"@zh ; rdfs:comment "项目业务实体的定义上下文。"@zh .
+dev:inSnapshot a owl:ObjectProperty ; rdfs:range dev:CodeSnapshot ; rdfs:label "所属代码快照"@zh ; rdfs:comment "实际产物的精确版本边界。"@zh .
+dev:commit a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "提交标识"@zh ; rdfs:comment "生产数据使用不可变提交标识；fixture 标识仅用于演示。"@zh .
+dev:graphRole a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "图角色"@zh ; rdfs:comment "Knowledge、Change 或 Impact，与生命周期正交。"@zh .
+dev:graphSpace a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "图生命周期"@zh ; rdfs:comment "Current、Business、Desired、Proposed、Approved、Actual 或 Impact。"@zh .
+dev:containsEntity a owl:ObjectProperty ; rdfs:label "包含实体"@zh ; rdfs:comment "图修订明确收录的实体，不表示事实断言的来源。"@zh .
+dev:fromPackage a owl:ObjectProperty ; rdfs:range dev:MetamodelPackage ; rdfs:label "迁移源版本"@zh ; rdfs:comment "迁移前元模型包。"@zh .
+dev:toPackage a owl:ObjectProperty ; rdfs:range dev:MetamodelPackage ; rdfs:label "迁移目标版本"@zh ; rdfs:comment "迁移后元模型包。"@zh .
+dev:affectsProfile a owl:ObjectProperty ; rdfs:range dev:ProjectProfile ; rdfs:label "影响项目配置"@zh ; rdfs:comment "必须评估兼容性与实例迁移的项目配置。"@zh .
+dev:semanticLayer a owl:AnnotationProperty ; rdfs:label "七层归类"@zh ; rdfs:comment "用于展示的分类，不参与业务满足性推理。"@zh .
+
+# Intent and contracts. Existing eng capability / contract ownership is retained.
+dev:motivates a owl:ObjectProperty ; rdfs:domain dev:BusinessGoal ; rdfs:range dev:Requirement ; rdfs:label "驱动需求"@zh ; rdfs:comment "目标提出需求，不蕴含目标已满足。"@zh .
+dev:refines a owl:ObjectProperty ; rdfs:domain dev:Requirement ; rdfs:range dev:Requirement ; rdfs:label "细化需求"@zh ; rdfs:comment "子需求指向父需求；禁止循环，不作为任意传递影响边。"@zh .
+dev:hasAcceptanceCriterion a owl:ObjectProperty ; rdfs:domain dev:Requirement ; rdfs:range dev:AcceptanceCriterion ; rdfs:label "具有验收条件"@zh ; rdfs:comment "明确本次需求的可观察判据。"@zh .
+dev:hasClause a owl:ObjectProperty ; rdfs:domain dev:SemanticContract ; rdfs:range dev:ContractClause ; rdfs:label "包含条款"@zh ; rdfs:comment "语义契约由逐项可追踪的条款组成。"@zh .
+dev:constrains a owl:ObjectProperty ; rdfs:label "约束业务对象"@zh ; rdfs:comment "条款或规则指向业务概念、属性或需求。"@zh .
+dev:hasAttribute a owl:ObjectProperty ; rdfs:domain dev:BusinessConcept ; rdfs:range dev:BusinessAttribute ; rdfs:subPropertyOf biz:hasBusinessAttribute ; rdfs:label "具有业务属性"@zh ; rdfs:comment "业务概念与独立语义属性的关联。"@zh .
+dev:allowedValue a owl:DatatypeProperty ; rdfs:label "允许值"@zh ; rdfs:comment "枚举条款中的允许 RDF literal，可重复列出。"@zh .
+dev:defaultValue a owl:DatatypeProperty ; rdfs:label "缺省值"@zh ; rdfs:comment "缺省行为采用的值，必须属于所声明的允许值域。"@zh .
+dev:valueDatatype a owl:ObjectProperty ; rdfs:label "值数据类型"@zh ; rdfs:comment "引用 XSD 类型 IRI，区别于代码类型名。"@zh .
+dev:unit a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "业务单位"@zh ; rdfs:comment "数值含义的单位标识，必要时引用单位词汇。"@zh .
+dev:precondition a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "前置条件"@zh ; rdfs:comment "行为适用条件。"@zh .
+dev:postcondition a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "后置条件"@zh ; rdfs:comment "行为成功后的可观察结果。"@zh .
+dev:failureBehavior a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "失败行为"@zh ; rdfs:comment "非法输入、失败或异常时的可观察结果。"@zh .
+
+# Design, mapping, delta and obligations.
+dev:addresses a owl:ObjectProperty ; rdfs:label "针对语义责任"@zh ; rdfs:comment "设计、决策或义务明确对应的需求、条款或验收条件。"@zh .
+dev:represents a owl:ObjectProperty ; rdfs:domain dev:TechnicalRepresentation ; rdfs:label "表示业务含义"@zh ; rdfs:comment "技术设计表示业务概念/属性，不使用 owl:sameAs。"@zh .
+dev:decidedBy a owl:ObjectProperty ; rdfs:range dev:DesignDecision ; rdfs:label "依据设计决策"@zh ; rdfs:comment "显式记录技术选择依据。"@zh .
+dev:question a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "决策问题"@zh ; rdfs:comment "需要作出的工程选择。"@zh .
+dev:alternative a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "候选方案"@zh ; rdfs:comment "评估过的方案，包括最终选择。"@zh .
+dev:chosenOption a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "选定方案"@zh ; rdfs:comment "确定采用的候选。"@zh .
+dev:rationale a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "依据说明"@zh ; rdfs:comment "判断、选择或免除的可审计理由。"@zh .
+dev:hasMember a owl:ObjectProperty ; rdfs:domain dev:ImplementationSlice ; rdfs:label "切片成员"@zh ; rdfs:comment "完成业务步骤的设计、实现或验证对象。"@zh .
+dev:mappingSource a owl:ObjectProperty ; rdfs:domain dev:RealizationMapping ; rdfs:label "映射语义源"@zh ; rdfs:comment "需求、条款或业务概念，必须与模型版本相符。"@zh .
+dev:mappingTarget a owl:ObjectProperty ; rdfs:domain dev:RealizationMapping ; rdfs:label "映射技术目标"@zh ; rdfs:comment "设计声明指向 DesignElement；已观察映射指向 CodeArtifact。"@zh .
+dev:mappingRole a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "映射角色"@zh ; rdfs:comment "Represents、Implements、Enforces 或 Verifies，不推导满足性。"@zh .
+dev:observedBy a owl:ObjectProperty ; rdfs:range dev:ObservationRun ; rdfs:label "由采集确认"@zh ; rdfs:comment "声明映射成为 Observed 时必须有同快照采集记录。"@zh .
+dev:baseline a owl:ObjectProperty ; rdfs:range dev:CodeSnapshot ; rdfs:label "基线快照"@zh ; rdfs:comment "差异或计划比较起点。"@zh .
+dev:targetModel a owl:ObjectProperty ; rdfs:range dev:ModelRevision ; rdfs:label "目标模型"@zh ; rdfs:comment "差异、计划及生成的需求设计版本。"@zh .
+dev:changeKind a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "变化种类"@zh ; rdfs:comment "Add、Modify、Remove、Reuse 或 ConstraintChange。"@zh .
+dev:createsObligation a owl:ObjectProperty ; rdfs:range dev:Obligation ; rdfs:label "产生工程义务"@zh ; rdfs:comment "差异或影响结论产生实现/验证责任。"@zh .
+dev:causedBy a owl:ObjectProperty ; rdfs:range dev:SemanticDelta ; rdfs:label "源于语义差异"@zh ; rdfs:comment "义务、计划或影响分析的变化依据。"@zh .
+dev:hasObligation a owl:ObjectProperty ; rdfs:domain dev:ChangePlan ; rdfs:range dev:Obligation ; rdfs:label "计划包含义务"@zh ; rdfs:comment "批准与交付检查所采用的明确闭包范围。"@zh .
+dev:hasTask a owl:ObjectProperty ; rdfs:domain dev:ChangePlan ; rdfs:range dev:ImplementationTask ; rdfs:label "计划包含任务"@zh ; rdfs:comment "开发执行单元。"@zh .
+dev:fulfills a owl:ObjectProperty ; rdfs:domain dev:ImplementationTask ; rdfs:range dev:Obligation ; rdfs:label "承担义务"@zh ; rdfs:comment "任务承担责任的声明，不自动关闭义务。"@zh .
+dev:closedBy a owl:ObjectProperty ; rdfs:range dev:SatisfactionAssessment ; rdfs:label "由判断关闭"@zh ; rdfs:comment "Closed 义务必须由同目标的 Satisfied 判断支持。"@zh .
+dev:approvedBy a owl:ObjectProperty ; rdfs:range dev:Approval ; rdfs:label "批准记录"@zh ; rdfs:comment "计划或免除引用人工批准。"@zh .
+dev:approvalSubject a owl:ObjectProperty ; rdfs:label "批准对象"@zh ; rdfs:comment "批准绑定的具体计划或义务。"@zh .
+dev:actor a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "责任主体"@zh ; rdfs:comment "批准人、评估人或执行器的可审计标识。"@zh .
+
+# Transformation and execution.
+dev:inputPattern a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "输入模式"@zh ; rdfs:comment "规则匹配的模型结构及契约条件。"@zh .
+dev:outputPattern a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "输出模式"@zh ; rdfs:comment "生成技术结构或产物类型。"@zh .
+dev:unsupportedCase a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "不支持情况"@zh ; rdfs:comment "不能转换的情况应产生义务或失败，禁止静默丢失语义。"@zh .
+dev:stopCondition a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "传播停止条件"@zh ; rdfs:comment "变化被吸收、兼容边界或证据不足时停止的条件。"@zh .
+dev:preserves a owl:ObjectProperty ; rdfs:range dev:ContractClause ; rdfs:label "承诺保留条款"@zh ; rdfs:comment "生成规范承诺保留的输入语义，必须进入验证。"@zh .
+dev:appliesRule a owl:ObjectProperty ; rdfs:range dev:TransformationRule ; rdfs:label "应用转换规则"@zh ; rdfs:comment "生成规范固定的规则版本。"@zh .
+dev:inputDesign a owl:ObjectProperty ; rdfs:range dev:DesignElement ; rdfs:label "输入目标设计"@zh ; rdfs:comment "生成器消费的目标表示或行为模型。"@zh .
+dev:targetPath a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "产物相对路径"@zh ; rdfs:comment "仓库内相对路径；文件系统逃逸仍由执行器校验。"@zh .
+dev:language a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "实现语言"@zh ; rdfs:comment "Python、TypeScript 等语言约定。"@zh .
+dev:framework a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "框架约定"@zh ; rdfs:comment "框架及版本或明确的无框架约定。"@zh .
+dev:mode a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "实现方式"@zh ; rdfs:comment "Template、Agent、Manual 或 Reuse。"@zh .
+dev:dependsOnTask a owl:ObjectProperty ; rdfs:domain dev:ImplementationTask ; rdfs:range dev:ImplementationTask ; rdfs:label "任务依赖"@zh ; rdfs:comment "必须先完成的任务，禁止依赖环。"@zh .
+dev:usesSpecification a owl:ObjectProperty ; rdfs:label "采用执行规范"@zh ; rdfs:comment "生成使用 GenerationSpecification；验证使用 VerificationSpecification。"@zh .
+dev:executesTask a owl:ObjectProperty ; rdfs:domain dev:GenerationRun ; rdfs:range dev:ImplementationTask ; rdfs:label "执行开发任务"@zh ; rdfs:comment "本次产物对应的任务。"@zh .
+dev:underPlan a owl:ObjectProperty ; rdfs:range dev:ChangePlan ; rdfs:label "依据变更计划"@zh ; rdfs:comment "执行及交付的授权和义务范围。"@zh .
+dev:produces a owl:ObjectProperty ; rdfs:domain dev:ExecutionRun ; rdfs:label "产生实际产物"@zh ; rdfs:comment "生成产生代码，验证产生证据，采集产生事实图。"@zh .
+dev:executorVersion a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "执行器版本"@zh ; rdfs:comment "模板引擎、Agent、编译器或测试工具的版本标识。"@zh .
+dev:inputHash a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "输入摘要"@zh ; rdfs:comment "规范化模型、参数及所锁定依赖的 SHA-256。"@zh .
+dev:startedAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime ; rdfs:label "开始时间"@zh ; rdfs:comment "实际执行开始时间。"@zh .
+dev:endedAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime ; rdfs:label "结束时间"@zh ; rdfs:comment "终态执行必须记录，不能早于开始时间。"@zh .
+dev:scenario a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "证据场景"@zh ; rdfs:comment "Operational 或 Illustrative；演示证据不能支撑生产满足性判断。"@zh .
+
+# Evidence and decisions.
+dev:verifies a owl:ObjectProperty ; rdfs:domain dev:VerificationSpecification ; rdfs:label "验证语义目标"@zh ; rdfs:comment "验证明确的验收条件或契约条款。"@zh .
+dev:procedure a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "验证方法"@zh ; rdfs:comment "可执行命令或明确的人工检查程序。"@zh .
+dev:expectedResult a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "预期结果"@zh ; rdfs:comment "判定验证结果的独立预期。"@zh .
+dev:evaluatesSnapshot a owl:ObjectProperty ; rdfs:range dev:CodeSnapshot ; rdfs:label "检查代码快照"@zh ; rdfs:comment "采集、验证、证据和判断针对的精确代码版本。"@zh .
+dev:evaluatesModel a owl:ObjectProperty ; rdfs:range dev:ModelRevision ; rdfs:label "检查模型修订"@zh ; rdfs:comment "验证和判断所采用的语义版本。"@zh .
+dev:generatedBy a owl:ObjectProperty ; rdfs:range dev:VerificationRun ; rdfs:label "证据执行来源"@zh ; rdfs:comment "证据必须追溯到具体验证执行。"@zh .
+dev:reportUri a owl:DatatypeProperty ; rdfs:range xsd:anyURI ; rdfs:label "报告位置"@zh ; rdfs:comment "真实报告可检索地址；fixture URI 明确表示演示。"@zh .
+dev:assesses a owl:ObjectProperty ; rdfs:label "判断对象"@zh ; rdfs:comment "本次满足性判断针对的一项验收条件或契约条款。"@zh .
+dev:supportedBy a owl:ObjectProperty ; rdfs:range dev:Evidence ; rdfs:label "由证据支持"@zh ; rdfs:comment "证据须与判断同模型、同快照且覆盖判断对象。"@zh .
+dev:affectedEntity a owl:ObjectProperty ; rdfs:label "受影响对象"@zh ; rdfs:comment "显式规则识别的候选或确认对象。"@zh .
+dev:triggeredRule a owl:ObjectProperty ; rdfs:range dev:ImpactRule ; rdfs:label "命中影响规则"@zh ; rdfs:comment "可解释传播所用版本化规则。"@zh .
+dev:impactPath a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "影响路径说明"@zh ; rdfs:comment "每步关系、方向、规则与停止依据；不以可达性替代影响判断。"@zh .
+dev:includesAssessment a owl:ObjectProperty ; rdfs:range dev:SatisfactionAssessment ; rdfs:label "聚合满足性判断"@zh ; rdfs:comment "交付结论采用的逐项判断。"@zh .
+
+# Explicit presentation anchors for all seven architecture layers.
+code:CodeEntity dev:semanticLayer "CodeStructure" .
+code:DataEntity dev:semanticLayer "DependencyAndData" .
+code:dependsOn dev:semanticLayer "DependencyAndData" .
+code:ContractEntity dev:semanticLayer "ContractAndEntry" .
+code:ConfigurationEntity dev:semanticLayer "ContractAndEntry" .
+code:VerificationEntity dev:semanticLayer "Verification" .
+biz:BusinessEntity dev:semanticLayer "BusinessSemantics" .
+code:BusinessEntity dev:semanticLayer "BusinessSemantics" .
+code:DeliveryEntity dev:semanticLayer "DeliveryAndRuntime" .
+code:ChangeEntity dev:semanticLayer "ChangeAndImpact" .
+dev:ImpactAssessment dev:semanticLayer "ChangeAndImpact" .
+
+# Role separation is also enforced by SHACL, since RDFS does not check disjointness.
+dev:DesignElement owl:disjointWith dev:CodeArtifact .
+dev:ContractClause owl:disjointWith dev:Evidence .

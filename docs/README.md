@@ -4,6 +4,17 @@
 
 ## 推荐入口
 
+- [平台自身业务：元模型驱动的模型、批准、生成与验收闭环](43-platform-self-development-workflow.md)
+- [本体成熟化 2.0.0：本次优化、约束与兼容边界](42-ontology-maturity-2.0.0.md)
+- [本体完整性审查与成熟化整体设计（优化前基线）](40-ontology-modeling-completeness-and-maturity-design.md)
+- [本体定义逐项审计清单（优化前基线）](41-ontology-definition-audit-inventory.md)
+
+- [基于本体的代码生成：图解、案例、实测数据与核心价值](39-ontology-code-generation-explained.md)
+
+- [任务优先级：项目模型到真实验收](38-task-priority-operational-slice.md)
+
+- [本体驱动开发元模型 2.0.0：核心节点、关系、约束与实例](36-ontology-driven-development-metamodel.md)
+- [元模型中心：前端操作、项目绑定与运行时边界](37-metamodel-center-runtime.md)
 - [需求到代码智能平台完整系统设计](21-complete-requirement-to-code-intelligence-platform.md)
 - [可执行 Agent Gateway 与规划规则 MVP](22-executable-agent-gateway-mvp.md)
 - [完整智能平台符合性审计](23-complete-platform-compliance-audit.md)
@@ -57,9 +68,16 @@
 34. [Reqvire 启发下的本体驱动端到端全流程](33-reqvire-informed-ontology-e2e-workflow.md)
 35. [本体驱动需求到代码闭环：可执行实现](34-ontology-e2e-implementation.md)
 36. [本体工程全流程工作台](35-ontology-lifecycle-workbench.md)
+37. [本体驱动开发元模型 2.0.0](36-ontology-driven-development-metamodel.md)
 
 ## 业务语义与需求规划资产
 
+- [开发元模型 OWL/RDFS](../ontology/ontology-driven-development.ttl)
+- [开发元模型 SHACL](../shapes/ontology-driven-development-shapes.ttl)
+- [开发元模型包清单](../models/development-metamodel.package.json)
+- [任务优先级完整演示模型](../examples/development-task-priority.ttl)
+- [平台自身元模型查询目标模型](../examples/development-code-ontology.ttl)
+- [六项开发元模型查询](../queries/development/)
 - [业务语义与代码图桥接本体](../ontology/business-code-linkage.ttl)
 - [SDN 网络管理业务领域本体](../ontology/sdn-business-ontology.ttl)
 - [需求设计到代码图变更规划本体](../ontology/requirement-change-planning.ttl)

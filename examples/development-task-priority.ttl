@@ -1,0 +1,137 @@
+@prefix t: <urn:example:task-priority:> .
+@prefix dev: <https://example.org/code-ontology/development#> .
+@prefix code: <https://example.org/code-ontology#> .
+@prefix biz: <https://example.org/code-ontology/business#> .
+@prefix eng: <https://example.org/code-ontology/engineering#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Entire graph is an illustrative fixture, NOT a real execution report.
+# All runs are Illustrative, assessments InsufficientEvidence, release Blocked.
+# Repeated hashes and fixture: commits intentionally carry no production claim.
+t:package a dev:MetamodelPackage ; rdfs:label "开发元模型 2.0.0" ;
+    dev:version "2.0.0" ; dev:source "ontology/ontology-driven-development.ttl" ; dev:status "Published" ;
+    dev:definesTerm dev:Requirement, dev:BusinessConcept, dev:ContractClause, dev:represents .
+t:TaskConcept a owl:Class ; rdfs:subClassOf dev:BusinessConcept ; rdfs:label "任务领域概念定义" .
+t:extension a dev:DomainExtension ; rdfs:label "任务领域扩展" ; dev:version "1.0.0" ;
+    dev:source "examples/development-task-priority.ttl#TaskConcept" ; dev:status "Published" ;
+    dev:dependsOnPackage t:package ; dev:definesTerm t:TaskConcept .
+t:constraints a dev:ConstraintSet ; rdfs:label "开发约束集" ; dev:version "2.0.0" ; dev:source "shapes/ontology-driven-development-shapes.ttl" .
+t:rules a dev:RuleSet ; rdfs:label "任务开发规则集" ; dev:version "1.0.0" ; dev:source "fixture:rules" ; dev:includesRule t:rule, t:impactRule .
+t:technology a dev:TechnologyProfile ; rdfs:label "Python 任务示例技术栈" ; dev:version "1.0.0" ; dev:source "fixture:technology" ;
+    dev:language "Python 3.11+" ; dev:framework "stdlib dataclass + explicit validation" .
+t:project a dev:Project ; rdfs:label "任务管理演示项目" ; dev:repository t:repository .
+t:repository a code:Repository ; rdfs:label "任务演示仓库（非真实仓库）" .
+t:profile a dev:ProjectProfile ; rdfs:label "任务项目配置" ; dev:version "1.0.0" ; dev:source "fixture:profile" ;
+    dev:forProject t:project ; dev:usesPackage t:package, t:extension ; dev:usesConstraints t:constraints ;
+    dev:usesRules t:rules ; dev:usesTechnology t:technology .
+t:model a dev:ModelRevision ; rdfs:label "任务优先级目标模型" ; dev:version "1.0.0" ; dev:source "fixture:requirement" ;
+    dev:usesProfile t:profile ; dev:scope "任务创建时优先级输入；不含调度排序与数据库迁移" .
+t:before a dev:CodeSnapshot ; rdfs:label "变更前演示快照" ; dev:forProject t:project ; dev:repository t:repository ;
+    dev:commit "fixture:task-v0" ; dev:scope "fixture task source" ; dev:contentHash "0000000000000000000000000000000000000000000000000000000000000000" .
+t:after a dev:CodeSnapshot ; rdfs:label "变更后演示快照" ; dev:forProject t:project ; dev:repository t:repository ;
+    dev:commit "fixture:task-v1" ; dev:scope "fixture task source" ; dev:contentHash "1111111111111111111111111111111111111111111111111111111111111111" .
+
+t:goal a dev:BusinessGoal ; rdfs:label "重要任务优先处理" ; dev:inModel t:model ;
+    dev:statement "本次先支持优先级输入，后续调度需求才能实现优先处理目标" ; dev:motivates t:requirement .
+t:capability a code:BusinessCapability ; rdfs:label "任务管理能力" .
+t:task a t:TaskConcept ; rdfs:label "Task 业务对象" ; biz:canonicalId "task.object.task" ; dev:inModel t:model ;
+    dev:statement "用户创建并等待执行的任务" ; dev:hasAttribute t:priority .
+t:priority a dev:BusinessAttribute ; rdfs:label "TaskPriority 业务属性" ; biz:canonicalId "task.attribute.priority" ; dev:inModel t:model ;
+    dev:statement "任务的重要程度，与 API 和 Python 的字符串表示相区别" .
+t:businessRule a dev:BusinessRule ; rdfs:label "优先级输入规则" ; biz:canonicalId "task.rule.priority" ; dev:inModel t:model ;
+    dev:statement "缺省采用 medium，未知值必须拒绝" ; dev:constrains t:priority .
+t:requirement a dev:Requirement ; rdfs:label "REQ-TASK-PRIORITY" ; dev:inModel t:model ;
+    dev:statement "创建任务时支持优先级输入" ; dev:scope "输入合法性与缺省处理，不包含调度排序" ;
+    eng:specifiesCapability t:capability ; eng:constrainedBy t:contract ; eng:definesContract t:ownedContract ;
+    dev:hasAcceptanceCriterion t:acDefault, t:acValid, t:acInvalid .
+t:ownedContract a eng:SpecificationContract ; rdfs:label "该需求拥有的实现规范" .
+t:contract a dev:SemanticContract ; rdfs:label "任务优先级语义契约" ; dev:inModel t:model ;
+    eng:usesOntology t:extension ; dev:hasClause t:valueClause, t:behaviorClause .
+t:valueClause a dev:ValueConstraint ; rdfs:label "优先级值域" ; dev:inModel t:model ;
+    dev:statement "优先级为 low、medium、high，缺省为 medium" ; dev:constrains t:priority ;
+    dev:valueDatatype xsd:string ; dev:allowedValue "low", "medium", "high" ; dev:defaultValue "medium" .
+t:behaviorClause a dev:BehaviorClause ; rdfs:label "优先级输入行为" ; dev:inModel t:model ; dev:constrains t:priority ;
+    dev:statement "只接受规定值，遗漏字段时使用默认值" ; dev:precondition "创建任务输入" ;
+    dev:postcondition "得到合法优先级的任务" ; dev:failureBehavior "未知优先级返回明确的校验错误" .
+t:acDefault a dev:AcceptanceCriterion ; rdfs:label "缺省采用 medium" ; dev:inModel t:model ; dev:statement "未传 priority 时得到 medium" ; dev:scope "task creation" .
+t:acValid a dev:AcceptanceCriterion ; rdfs:label "合法值保留" ; dev:inModel t:model ; dev:statement "传 high 时得到 high" ; dev:scope "task creation" .
+t:acInvalid a dev:AcceptanceCriterion ; rdfs:label "非法值拒绝" ; dev:inModel t:model ; dev:statement "传 urgent 时得到校验错误" ; dev:scope "task creation" .
+
+t:decision a dev:DesignDecision ; rdfs:label "优先级表示选择" ; dev:inModel t:model ;
+    dev:question "优先级采用什么表示并在哪里校验" ; dev:alternative "字符串枚举与显式校验", "整数编码" ;
+    dev:chosenOption "字符串枚举与显式校验" ; dev:rationale "保持接口可读性，在服务边界执行校验" .
+t:design a dev:TechnicalRepresentation ; rdfs:label "Task.priority 目标表示" ; dev:inModel t:model ;
+    dev:represents t:priority ; dev:addresses t:valueClause, t:behaviorClause ; dev:decidedBy t:decision .
+t:step a biz:BusinessProcessStep ; rdfs:label "创建合法优先级任务" ; biz:canonicalId "task.step.create" .
+t:slice a dev:ImplementationSlice ; rdfs:label "任务创建实现切片" ;
+    biz:implementsProcessStep t:step ; biz:hasPrimaryEntry t:design ; dev:hasMember t:design, t:artifact, t:verificationSpec .
+t:declaredMapping a dev:RealizationMapping ; rdfs:label "设计声明映射" ; dev:inModel t:model ;
+    dev:mappingSource t:valueClause ; dev:mappingTarget t:design ; dev:mappingRole "Represents" ;
+    dev:status "Declared" ; dev:rationale "目标表示尚不构成实际代码事实" .
+t:observedMapping a dev:RealizationMapping ; rdfs:label "演示采集后的实现映射" ; dev:inModel t:model ; dev:inSnapshot t:after ;
+    dev:mappingSource t:behaviorClause ; dev:mappingTarget t:artifact ; dev:mappingRole "Enforces" ;
+    dev:status "Observed" ; dev:observedBy t:scanRun ; dev:rationale "演示解析结果，不能作为真实实现证明" .
+
+t:delta a dev:SemanticDelta ; rdfs:label "增加优先级输入语义" ; dev:baseline t:before ; dev:targetModel t:model ;
+    dev:changeKind "Add" ; dev:statement "旧版本不表达优先级，新版本需要默认值和非法值行为" ; dev:createsObligation t:change, t:verification .
+t:change a dev:ChangeObligation ; rdfs:label "落实优先级结构和校验" ; dev:status "InProgress" ;
+    dev:statement "类型生成后仍需落实运行时校验" ; dev:causedBy t:delta ; dev:addresses t:behaviorClause .
+t:verification a dev:VerificationObligation ; rdfs:label "验证非法输入拒绝" ; dev:status "Open" ;
+    dev:statement "真实执行测试后才可关闭" ; dev:causedBy t:delta ; dev:addresses t:acInvalid .
+t:plan a dev:ChangePlan ; rdfs:label "演示批准计划" ; dev:baseline t:before ; dev:targetModel t:model ; dev:status "Approved" ;
+    dev:contentHash "2222222222222222222222222222222222222222222222222222222222222222" ;
+    dev:hasObligation t:change, t:verification ; dev:hasTask t:generateTask, t:testTask ; dev:approvedBy t:approval .
+t:approval a dev:Approval ; rdfs:label "演示计划批准（非真实授权）" ; dev:approvalSubject t:plan ; dev:status "Approved" ;
+    dev:actor "fixture:reviewer" ; dev:rationale "仅批准演示中建模的范围" ;
+    dev:contentHash "2222222222222222222222222222222222222222222222222222222222222222" .
+t:generateTask a dev:ImplementationTask ; rdfs:label "生成并实现任务模型" ; dev:mode "Template" ; dev:fulfills t:change ; dev:usesSpecification t:specification .
+t:testTask a dev:ImplementationTask ; rdfs:label "独立验收测试" ; dev:mode "Manual" ; dev:fulfills t:verification ; dev:dependsOnTask t:generateTask .
+t:rule a dev:TransformationRule ; rdfs:label "枚举默认值转换规范（待实现适配器）" ; dev:version "1.0.0" ; dev:source "fixture:transformation-rule" ;
+    dev:inputPattern "TechnicalRepresentation + ValueConstraint + BehaviorClause" ;
+    dev:precondition "枚举、缺省和错误行为明确；设计决策已记录" ;
+    dev:outputPattern "Python 数据类及服务边界校验" ; dev:unsupportedCase "跨字段约束需独立实现义务，不静默降级成 str" .
+t:specification a dev:GenerationSpecification ; rdfs:label "任务模型生成规范" ;
+    dev:appliesRule t:rule ; dev:usesTechnology t:technology ; dev:inputDesign t:design ;
+    dev:preserves t:valueClause, t:behaviorClause ; dev:targetPath "src/task.py" .
+t:generationRun a dev:GenerationRun ; rdfs:label "演示生成执行" ; dev:underPlan t:plan ; dev:executesTask t:generateTask ;
+    dev:usesSpecification t:specification ; dev:status "Succeeded" ; dev:scenario "Illustrative" ;
+    dev:actor "fixture:generator" ; dev:executorVersion "fixture-generator-1" ;
+    dev:inputHash "3333333333333333333333333333333333333333333333333333333333333333" ;
+    dev:startedAt "2026-09-06T01:00:00Z"^^xsd:dateTime ; dev:endedAt "2026-09-06T01:00:01Z"^^xsd:dateTime ; dev:produces t:artifact .
+t:artifact a dev:CodeArtifact ; rdfs:label "演示 Task 代码产物" ; dev:targetPath "src/task.py" ; dev:inSnapshot t:after ;
+    dev:contentHash "4444444444444444444444444444444444444444444444444444444444444444" .
+t:scanRun a dev:ObservationRun ; rdfs:label "演示实际代码采集" ; dev:status "Succeeded" ; dev:scenario "Illustrative" ;
+    dev:evaluatesSnapshot t:after ; dev:scope "fixture task source" ; dev:actor "fixture:scanner" ; dev:executorVersion "fixture-scanner-1" ;
+    dev:inputHash "5555555555555555555555555555555555555555555555555555555555555555" ;
+    dev:startedAt "2026-09-06T01:00:02Z"^^xsd:dateTime ; dev:endedAt "2026-09-06T01:00:03Z"^^xsd:dateTime ; dev:produces t:actualGraph .
+t:desiredGraph a dev:GraphRevision ; rdfs:label "目标设计图" ; dev:version "1" ; dev:source "fixture:design" ;
+    dev:graphRole "Knowledge" ; dev:graphSpace "Desired" ; dev:inModel t:model ; dev:containsEntity t:design .
+t:actualGraph a dev:GraphRevision ; rdfs:label "演示实际代码图" ; dev:version "1" ; dev:source "fixture:scan" ;
+    dev:graphRole "Knowledge" ; dev:graphSpace "Actual" ; dev:inModel t:model ; dev:inSnapshot t:after ;
+    dev:observedBy t:scanRun ; dev:containsEntity t:artifact .
+
+t:verificationSpec a dev:VerificationSpecification ; rdfs:label "独立任务优先级验收规范" ; dev:version "1.0.0" ; dev:source "fixture:acceptance" ;
+    dev:scope "task creation" ; dev:verifies t:acDefault, t:acValid, t:acInvalid, t:valueClause, t:behaviorClause ;
+    dev:procedure "用例：遗漏字段、high、urgent，检查默认、保留和拒绝" ; dev:expectedResult "medium、high、校验错误" .
+t:testRun a dev:VerificationRun ; rdfs:label "演示测试执行，不代表项目测试已运行" ; dev:status "Succeeded" ; dev:scenario "Illustrative" ;
+    dev:usesSpecification t:verificationSpec ; dev:evaluatesSnapshot t:after ; dev:evaluatesModel t:model ;
+    dev:actor "fixture:test-runner" ; dev:executorVersion "fixture-unittest-1" ;
+    dev:inputHash "6666666666666666666666666666666666666666666666666666666666666666" ;
+    dev:startedAt "2026-09-06T01:00:04Z"^^xsd:dateTime ; dev:endedAt "2026-09-06T01:00:05Z"^^xsd:dateTime ; dev:produces t:evidence .
+t:report a code:ImpactAnalysisEntity ; rdfs:label "演示测试报告位置" .
+t:evidence a dev:Evidence ; rdfs:label "演示测试证据" ; dev:generatedBy t:testRun ; dev:evaluatesSnapshot t:after ; dev:evaluatesModel t:model ;
+    dev:scope "task creation" ; dev:reportUri "urn:fixture:task-test-report"^^xsd:anyURI ; eng:evidenceArtifact t:report ;
+    dev:contentHash "7777777777777777777777777777777777777777777777777777777777777777" .
+t:assessment a dev:SatisfactionAssessment ; rdfs:label "非法输入条件尚缺真实证据" ; dev:assesses t:acInvalid ;
+    dev:evaluatesSnapshot t:after ; dev:evaluatesModel t:model ; dev:scope "task creation" ; dev:status "InsufficientEvidence" ;
+    dev:supportedBy t:evidence ; dev:actor "fixture:reviewer" ; dev:rationale "只有演示证据，不得宣布真实需求满足" .
+t:impactRule a dev:ImpactRule ; rdfs:label "契约变化影响实现与验证" ; dev:version "1.0.0" ; dev:source "fixture:impact-rule" ;
+    dev:inputPattern "ContractClause 变化 → 引用该条款的设计及验证" ; dev:precondition "同模型的显式引用存在" ; dev:stopCondition "无映射或证据不足时停止确认，仅保留候选" .
+t:impact a dev:ImpactAssessment ; rdfs:label "任务校验影响候选" ; dev:status "Candidate" ; dev:causedBy t:delta ;
+    dev:affectedEntity t:design ; dev:triggeredRule t:impactRule ; dev:supportedBy t:evidence ;
+    dev:impactPath "priority → valueClause ← design；需核验实际校验行为" ; dev:rationale "演示路径不构成生产影响确认" .
+t:release a dev:ReleaseAssessment ; rdfs:label "演示项目尚不能交付" ; dev:underPlan t:plan ; dev:evaluatesSnapshot t:after ; dev:evaluatesModel t:model ;
+    dev:scope "task creation" ; dev:status "Blocked" ; dev:actor "fixture:reviewer" ;
+    dev:rationale "实现义务未关闭，真实验证缺失，调度目标不在本次范围" ; dev:includesAssessment t:assessment .

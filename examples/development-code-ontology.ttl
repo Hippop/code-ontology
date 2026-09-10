@@ -1,0 +1,70 @@
+@prefix p: <urn:example:code-ontology-development:> .
+@prefix dev: <https://example.org/code-ontology/development#> .
+@prefix code: <https://example.org/code-ontology#> .
+@prefix biz: <https://example.org/code-ontology/business#> .
+@prefix eng: <https://example.org/code-ontology/engineering#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Platform self-model: a PLANNED vertical slice, not a completed UI claim.
+p:package a dev:MetamodelPackage ; rdfs:label "通用开发元模型" ; dev:version "2.0.0" ;
+    dev:source "ontology/ontology-driven-development.ttl" ; dev:status "Published" ; dev:definesTerm dev:Requirement, dev:DesignElement .
+p:MetamodelConcept a owl:Class ; rdfs:subClassOf dev:BusinessConcept ; rdfs:label "平台业务中的元模型概念" .
+p:extension a dev:DomainExtension ; rdfs:label "代码工程平台领域扩展" ; dev:version "1.0.0" ;
+    dev:source "examples/development-code-ontology.ttl#MetamodelConcept" ; dev:status "Published" ;
+    dev:dependsOnPackage p:package ; dev:definesTerm p:MetamodelConcept .
+p:constraints a dev:ConstraintSet ; rdfs:label "平台建模约束" ; dev:version "2.0.0" ; dev:source "shapes/ontology-driven-development-shapes.ttl" .
+p:rules a dev:RuleSet ; rdfs:label "平台转换规则配置" ; dev:version "1.0.0" ; dev:source "planned:platform-rules" ; dev:includesRule p:rule .
+p:technology a dev:TechnologyProfile ; rdfs:label "Python + React 技术栈" ; dev:version "1.0.0" ;
+    dev:source "pyproject.toml;web/package.json" ; dev:language "Python", "TypeScript" ; dev:framework "stdlib HTTP; React 19" .
+p:project a dev:Project ; rdfs:label "code-ontology 平台" ; dev:repository p:repository .
+p:repository a code:Repository ; rdfs:label "Hippop/code-ontology" .
+p:profile a dev:ProjectProfile ; rdfs:label "平台自建模配置" ; dev:version "1.0.0" ; dev:source "planned:platform-profile" ;
+    dev:forProject p:project ; dev:usesPackage p:package, p:extension ; dev:usesConstraints p:constraints ; dev:usesRules p:rules ; dev:usesTechnology p:technology .
+p:model a dev:ModelRevision ; rdfs:label "元模型类查询目标设计" ; dev:version "1.0.0" ; dev:source "docs/36-ontology-driven-development-metamodel.md" ;
+    dev:usesProfile p:profile ; dev:scope "类定义、继承属性、约束来源及项目引用查询；尚未实现" .
+p:baseline a dev:CodeSnapshot ; rdfs:label "待真实扫描绑定的示意基线" ; dev:forProject p:project ; dev:repository p:repository ;
+    dev:commit "fixture:replace-with-real-commit-before-execution" ; dev:scope "建模示意，未声称完成代码扫描" ;
+    dev:contentHash "0000000000000000000000000000000000000000000000000000000000000000" .
+p:goal a dev:BusinessGoal ; rdfs:label "让本体定义驱动开发并可查询" ; dev:inModel p:model ; dev:statement "工程师能追溯实例使用的类型与约束" ; dev:motivates p:requirement .
+p:capability a code:BusinessCapability ; rdfs:label "元模型管理" .
+p:concept a p:MetamodelConcept ; rdfs:label "元模型类定义这一业务对象" ; biz:canonicalId "platform.object.metamodel-definition" ;
+    dev:inModel p:model ; dev:statement "查询目标是定义及其版本，不是项目实例列表" .
+p:requirement a dev:Requirement ; rdfs:label "REQ-METAMODEL-QUERY" ; dev:inModel p:model ;
+    dev:statement "按完整类 IRI 和包修订查询定义、继承属性、约束及使用位置" ; dev:scope "只读元模型查询" ;
+    eng:specifiesCapability p:capability ; eng:constrainedBy p:contract ; dev:hasAcceptanceCriterion p:criterion .
+p:contract a dev:SemanticContract ; rdfs:label "元模型查询契约" ; dev:inModel p:model ; eng:usesOntology p:package ; dev:hasClause p:clause .
+p:clause a dev:Invariant ; rdfs:label "查询版本隔离不变式" ; dev:inModel p:model ;
+    dev:statement "查询仅返回指定版本定义，继承和约束来源均可追溯" ; dev:constrains p:concept .
+p:criterion a dev:AcceptanceCriterion ; rdfs:label "同名不同命名空间和版本不混淆" ; dev:inModel p:model ;
+    dev:statement "两个包中的同名类查询结果分别包含正确的属性与约束来源" ; dev:scope "metamodel query" .
+p:decision a dev:DesignDecision ; rdfs:label "查询使用完整语义标识" ; dev:inModel p:model ;
+    dev:question "如何避免 localName 类型冲突" ; dev:alternative "完整 IRI + 固定包修订", "仅短名称" ;
+    dev:chosenOption "完整 IRI + 固定包修订" ; dev:rationale "保证命名空间和历史版本可区分" .
+p:design a dev:TechnicalRepresentation ; rdfs:label "元模型类详情 API 目标设计" ; dev:inModel p:model ;
+    dev:addresses p:clause ; dev:represents p:concept ; dev:decidedBy p:decision .
+p:mapping a dev:RealizationMapping ; rdfs:label "需求到查询设计映射" ; dev:inModel p:model ;
+    dev:mappingSource p:clause ; dev:mappingTarget p:design ; dev:mappingRole "Implements" ; dev:status "Declared" ; dev:rationale "仅目标设计，尚无采集确认" .
+p:delta a dev:SemanticDelta ; rdfs:label "补齐元模型定义查询" ; dev:baseline p:baseline ; dev:targetModel p:model ; dev:changeKind "Add" ;
+    dev:statement "当前工作台类型列表写死，需要引入版本化查询服务" ; dev:createsObligation p:change, p:verification .
+p:change a dev:ChangeObligation ; rdfs:label "实现查询与展示" ; dev:status "Open" ; dev:statement "建立查询服务、接口与详情页" ; dev:causedBy p:delta ; dev:addresses p:clause .
+p:verification a dev:VerificationObligation ; rdfs:label "验证版本隔离" ; dev:status "Open" ; dev:statement "使用不同版本和同名类的独立样例" ; dev:causedBy p:delta ; dev:addresses p:criterion .
+p:plan a dev:ChangePlan ; rdfs:label "平台元模型查询草案计划" ; dev:baseline p:baseline ; dev:targetModel p:model ; dev:status "Draft" ;
+    dev:contentHash "1111111111111111111111111111111111111111111111111111111111111111" ;
+    dev:hasObligation p:change, p:verification ; dev:hasTask p:task, p:testTask .
+p:task a dev:ImplementationTask ; rdfs:label "生成接口类型并开发查询逻辑" ; dev:mode "Agent" ; dev:fulfills p:change ; dev:usesSpecification p:specification .
+p:testTask a dev:ImplementationTask ; rdfs:label "独立接口和前端验收" ; dev:mode "Manual" ; dev:fulfills p:verification ; dev:dependsOnTask p:task .
+p:rule a dev:TransformationRule ; rdfs:label "接口契约到 Python/TS 类型（目标规则）" ; dev:version "1.0.0" ; dev:source "planned:query-contract-transformation" ;
+    dev:inputPattern "查询字段、参数、来源和错误契约" ; dev:precondition "完整 IRI、版本和响应结构明确" ;
+    dev:outputPattern "Python 响应结构及 TypeScript 客户端类型" ; dev:unsupportedCase "继承遍历和版本解析逻辑必须独立开发与验证" .
+p:specification a dev:GenerationSpecification ; rdfs:label "元模型查询类型生成规范" ; dev:appliesRule p:rule ; dev:usesTechnology p:technology ;
+    dev:inputDesign p:design ; dev:preserves p:clause ; dev:targetPath "src/code_ontology_platform/generated/metamodel_query_types.py" .
+p:verificationSpec a dev:VerificationSpecification ; rdfs:label "查询版本隔离验收规范" ; dev:version "1.0.0" ; dev:source "planned:query-acceptance" ;
+    dev:scope "metamodel query" ; dev:verifies p:criterion, p:clause ;
+    dev:procedure "分别查询两个包修订的同名类，检查返回 IRI、继承属性与来源" ; dev:expectedResult "无跨版本混入，可定位每项约束来源" .
+p:assessment a dev:SatisfactionAssessment ; rdfs:label "元模型查询需求未评估" ; dev:assesses p:criterion ;
+    dev:evaluatesSnapshot p:baseline ; dev:evaluatesModel p:model ; dev:scope "metamodel query" ; dev:status "NotAssessed" ;
+    dev:actor "design-author" ; dev:rationale "本轮仅完成本体建模，查询前后端尚待实现" .
+p:release a dev:ReleaseAssessment ; rdfs:label "平台查询功能尚不能交付" ; dev:underPlan p:plan ; dev:evaluatesSnapshot p:baseline ; dev:evaluatesModel p:model ;
+    dev:scope "metamodel query" ; dev:status "Blocked" ; dev:actor "design-author" ; dev:rationale "草案计划、开放义务、无执行证据" ; dev:includesAssessment p:assessment .

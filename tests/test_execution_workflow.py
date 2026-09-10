@@ -42,6 +42,8 @@ class ExecutionWorkflowTest(unittest.TestCase):
         wrapper = self.repository / "mvnw"
         wrapper.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
         wrapper.chmod(0o755)
+        wrapper_cmd = self.repository / "mvnw.cmd"
+        wrapper_cmd.write_text("@exit /b 0\n", encoding="utf-8")
         _git(self.repository, "init")
         _git(self.repository, "checkout", "-b", "main")
         _git(self.repository, "config", "user.name", "Platform Test")

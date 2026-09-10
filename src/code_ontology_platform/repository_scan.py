@@ -21,6 +21,7 @@ from .errors import invalid
 EXTRACTOR_VERSION = "java-tree-sitter-0.2.0"
 _IGNORED_PARTS = frozenset(
     {
+        ".code-ontology",
         ".codegraph",
         ".git",
         ".gradle",
@@ -169,6 +170,7 @@ def inspect_repository(
         "--",
         ".",
         ":(exclude).codegraph/**",
+        ":(exclude).code-ontology/**",
     )
     dirty = bool(git_status)
     revision = (

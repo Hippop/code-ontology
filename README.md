@@ -6,6 +6,9 @@
 
 ## 系统总入口
 
+- [平台自开发：业务建模、批准、生成与固定回归闭环](docs/43-platform-self-development-workflow.md)
+- [本体驱动开发元模型 2.0.0：定义、约束、实例与查询](docs/36-ontology-driven-development-metamodel.md)
+- [元模型中心：查询定义、绑定项目模型及生成前校验](docs/37-metamodel-center-runtime.md)
 - [需求到代码智能平台完整系统设计](docs/21-complete-requirement-to-code-intelligence-platform.md)
 - [可执行 Agent Gateway 与规划规则 MVP](docs/22-executable-agent-gateway-mvp.md)
 - [完整智能平台符合性审计与证据](docs/23-complete-platform-compliance-audit.md)
@@ -59,6 +62,9 @@ Approved Change
 
 ## 本体、规则与示例
 
+- [本体驱动开发元模型](ontology/ontology-driven-development.ttl)与 [SHACL 约束](shapes/ontology-driven-development-shapes.ttl)
+- [开发元模型包清单](models/development-metamodel.package.json)与 [六项能力查询](queries/development/)
+- [任务优先级演示链](examples/development-task-priority.ttl)与 [平台自建模目标切片](examples/development-code-ontology.ttl)
 - [核心代码本体](ontology/code-ontology.ttl)
 - [业务语义与代码图桥接本体](ontology/business-code-linkage.ttl)
 - [SDN 网络管理业务领域本体](ontology/sdn-business-ontology.ttl)

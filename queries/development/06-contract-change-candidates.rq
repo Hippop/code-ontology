@@ -1,0 +1,9 @@
+# Q6: explicit references affected by a clause change. These are review candidates,
+# not automatically Confirmed impacts. Bind ?clause to restrict a real query.
+PREFIX dev: <https://example.org/code-ontology/development#>
+SELECT DISTINCT ?clause ?consumer ?relationship WHERE {
+  ?clause a ?type . ?type <http://www.w3.org/2000/01/rdf-schema#subClassOf>* dev:ContractClause .
+  VALUES ?relationship { dev:addresses dev:preserves dev:verifies dev:mappingSource }
+  ?consumer ?relationship ?clause .
+}
+ORDER BY ?clause ?consumer

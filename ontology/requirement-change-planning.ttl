@@ -440,3 +440,67 @@ plan:toolVersion a owl:DatatypeProperty ;
 
 plan:ruleVersion a owl:DatatypeProperty ;
     rdfs:range xsd:string .
+
+# Human-readable class definitions; identity and inheritance above remain authoritative.
+plan:DesignDocument rdfs:label "设计文档"@zh ; rdfs:comment "需求与设计输入的逻辑文档，具有独立修订。"@zh .
+plan:DesignRevision rdfs:label "设计文档修订"@zh ; rdfs:comment "固定版本与内容摘要的设计输入。"@zh .
+plan:DesignSection rdfs:label "设计章节"@zh ; rdfs:comment "设计文档中的可定位章节或结构单元。"@zh .
+plan:RequirementIR rdfs:label "需求中间表示"@zh ; rdfs:comment "将来源设计规范化为需求和目标实体的规划表示。"@zh .
+plan:DesignArtifact rdfs:label "设计资产"@zh ; rdfs:comment "规划过程使用的设计相关资产。"@zh .
+plan:DocumentEvidence rdfs:label "文档证据"@zh ; rdfs:comment "定位到来源章节的文本或结构化依据。"@zh .
+plan:ExplicitDesignFact rdfs:label "显式设计事实"@zh ; rdfs:comment "来源文档明确表达的设计断言，不是源码采集事实。"@zh .
+plan:InferredDesignFact rdfs:label "推断设计事实"@zh ; rdfs:comment "从来源推断的设计断言，需要保留推断依据。"@zh .
+plan:UnresolvedDesignQuestion rdfs:label "未解决设计问题"@zh ; rdfs:comment "阻碍确定设计或规划的开放问题。"@zh .
+plan:DesignDecision rdfs:label "规划设计决策"@zh ; rdfs:comment "规划过程记录的设计选择，与 dev 决策通过显式适配关联。"@zh .
+plan:DesiredGraphEntity rdfs:label "目标图实体"@zh ; rdfs:comment "预期设计图中的节点，不等同于已有代码对象。"@zh .
+plan:DesiredBusinessEntity rdfs:label "目标业务实体"@zh ; rdfs:comment "规划中希望形成的业务语义对象。"@zh .
+plan:DesiredTechnicalEntity rdfs:label "目标技术实体"@zh ; rdfs:comment "规划中希望形成的技术对象。"@zh .
+plan:DesiredAPIOperation rdfs:label "目标 API 操作"@zh ; rdfs:comment "待实现或修改的 API 契约目标。"@zh .
+plan:DesiredSchema rdfs:label "目标数据模式"@zh ; rdfs:comment "待实现或修改的数据结构模式。"@zh .
+plan:DesiredSchemaField rdfs:label "目标模式字段"@zh ; rdfs:comment "待实现或修改的模式字段。"@zh .
+plan:DesiredEventType rdfs:label "目标事件类型"@zh ; rdfs:comment "规划中的技术事件类型目标。"@zh .
+plan:DesiredConfigurationKey rdfs:label "目标配置键"@zh ; rdfs:comment "规划中的配置项目标。"@zh .
+plan:DesiredCodeRole rdfs:label "目标代码角色"@zh ; rdfs:comment "预期代码应承担的技术职责，不以现有文件名替代。"@zh .
+plan:DesiredDatabaseObject rdfs:label "目标数据库对象"@zh ; rdfs:comment "规划中的存储结构目标。"@zh .
+plan:DesiredTestObligation rdfs:label "目标测试责任"@zh ; rdfs:comment "目标设计中需要满足的测试责任。"@zh .
+plan:DesiredDeploymentAction rdfs:label "目标部署要求"@zh ; rdfs:comment "目标设计中的部署要求，不表示部署已执行。"@zh .
+plan:CandidateAlignment rdfs:label "候选对齐"@zh ; rdfs:comment "目标设计与当前工程实体之间的候选对应。"@zh .
+plan:SemanticGraphDiff rdfs:label "语义图差异"@zh ; rdfs:comment "当前图与目标设计之间的版本化比较。"@zh .
+plan:GraphDifference rdfs:label "图差异项"@zh ; rdfs:comment "语义图比较产生的一项差异。"@zh .
+plan:AddEntityDifference rdfs:label "新增实体差异"@zh ; rdfs:comment "目标图需要新增实体的差异。"@zh .
+plan:ModifyEntityDifference rdfs:label "修改实体差异"@zh ; rdfs:comment "现有实体需要修改的差异。"@zh .
+plan:RemoveEntityDifference rdfs:label "删除实体差异"@zh ; rdfs:comment "现有实体需要移除的差异。"@zh .
+plan:AddRelationDifference rdfs:label "新增关系差异"@zh ; rdfs:comment "目标图需要新增关系的差异。"@zh .
+plan:RemoveRelationDifference rdfs:label "删除关系差异"@zh ; rdfs:comment "现有关系需要移除的差异。"@zh .
+plan:ConstraintDifference rdfs:label "约束差异"@zh ; rdfs:comment "目标与当前约束不一致的差异。"@zh .
+plan:StateTransitionDifference rdfs:label "状态迁移差异"@zh ; rdfs:comment "目标与当前状态迁移语义不一致的差异。"@zh .
+plan:VerificationDifference rdfs:label "验证差异"@zh ; rdfs:comment "目标验证责任与当前验证资产之间的差异。"@zh .
+plan:DeliveryDifference rdfs:label "交付差异"@zh ; rdfs:comment "目标交付要求与当前交付结构之间的差异。"@zh .
+plan:DesignChangeSet rdfs:label "设计变更集合"@zh ; rdfs:comment "由需求和设计差异形成的一组变更提案。"@zh .
+plan:ProposedChange rdfs:label "变更提案"@zh ; rdfs:comment "尚待审批或执行的工程变化要求。"@zh .
+plan:ProposedNodeAddition rdfs:label "节点新增提案"@zh ; rdfs:comment "要求新增工程节点的提案。"@zh .
+plan:ProposedNodeModification rdfs:label "节点修改提案"@zh ; rdfs:comment "要求修改工程节点的提案。"@zh .
+plan:ProposedNodeRemoval rdfs:label "节点删除提案"@zh ; rdfs:comment "要求移除工程节点的提案。"@zh .
+plan:ProposedRelationAddition rdfs:label "关系新增提案"@zh ; rdfs:comment "要求新增工程关联的提案。"@zh .
+plan:ProposedRelationRemoval rdfs:label "关系删除提案"@zh ; rdfs:comment "要求移除工程关联的提案。"@zh .
+plan:ProposedContractChange rdfs:label "契约变更提案"@zh ; rdfs:comment "要求调整技术契约的提案。"@zh .
+plan:ProposedConstraintChange rdfs:label "约束变更提案"@zh ; rdfs:comment "要求调整约束的提案。"@zh .
+plan:ProposedBehaviorChange rdfs:label "行为变更提案"@zh ; rdfs:comment "已有规划体系中的行为修改要求，不扩展为业务运行能力。"@zh .
+plan:ProposedConfigurationChange rdfs:label "配置变更提案"@zh ; rdfs:comment "要求调整配置的提案。"@zh .
+plan:ProposedTestChange rdfs:label "测试变更提案"@zh ; rdfs:comment "要求新增或修改测试的提案。"@zh .
+plan:ProposedDataMigration rdfs:label "数据迁移提案"@zh ; rdfs:comment "要求迁移存量数据的提案，不代表获得执行授权。"@zh .
+plan:ProposedDeploymentChange rdfs:label "部署变更提案"@zh ; rdfs:comment "要求调整部署的提案，不代表部署已执行。"@zh .
+plan:ImplementationSuggestion rdfs:label "实现建议"@zh ; rdfs:comment "供执行与评审参考的技术建议，不等同于批准计划。"@zh .
+plan:ImplementationTask rdfs:label "规划实现任务"@zh ; rdfs:comment "既有规划引擎的实现任务，不自动等价于 dev 义务任务。"@zh .
+plan:VerificationObligation rdfs:label "规划验证义务"@zh ; rdfs:comment "既有规划引擎中待履行的验证要求。"@zh .
+plan:MigrationAction rdfs:label "迁移操作描述"@zh ; rdfs:comment "规划中的数据或结构迁移操作描述。"@zh .
+plan:DeliveryAction rdfs:label "交付操作描述"@zh ; rdfs:comment "规划中的交付操作描述。"@zh .
+plan:PlanningRule rdfs:label "规划规则"@zh ; rdfs:comment "由设计差异形成提案或任务的规则定义。"@zh .
+plan:ReconciliationRun rdfs:label "实现对账执行"@zh ; rdfs:comment "比较规划要求与实际实现的执行记录。"@zh .
+plan:ReconciliationResult rdfs:label "实现对账结果"@zh ; rdfs:comment "针对提案的实现对应判断，不自动等同于 dev 满足性。"@zh .
+plan:ImplementedAsDesigned rdfs:label "按设计实现"@zh ; rdfs:comment "对账认定实际实现与对应设计要求一致。"@zh .
+plan:AlternativeImplementation rdfs:label "替代实现"@zh ; rdfs:comment "发现不同于原设计但可能满足目的的实现方式。"@zh .
+plan:PartiallyImplemented rdfs:label "部分实现"@zh ; rdfs:comment "对账发现仅部分实现要求被覆盖。"@zh .
+plan:MissingImplementation rdfs:label "缺失实现"@zh ; rdfs:comment "对账未发现对应要求的实现。"@zh .
+plan:UnexpectedImplementation rdfs:label "未预期实现"@zh ; rdfs:comment "发现计划范围之外的实现变化。"@zh .
+plan:CannotVerify rdfs:label "无法验证实现"@zh ; rdfs:comment "当前证据或分析能力不足以形成确定对账结果。"@zh .

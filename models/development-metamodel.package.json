@@ -1,0 +1,29 @@
+{
+  "id": "https://example.org/code-ontology/development",
+  "version": "2.0.0",
+  "versionIri": "https://example.org/code-ontology/development/2.0.0",
+  "status": "RepositoryBaseline",
+  "description": "本体驱动开发元模型资产清单；2.0.0 收紧身份、引用与模型上下文约束，不新增行为体系。不是运行时自动安装或发布记录。路径相对于仓库根目录。",
+  "ontologyFiles": [
+    "ontology/code-ontology.ttl",
+    "ontology/business-code-linkage.ttl",
+    "ontology/engineering-semantics.ttl",
+    "ontology/requirement-change-planning.ttl",
+    "ontology/ontology-driven-development.ttl"
+  ],
+  "shapeFiles": [
+    "shapes/business-code-linkage-shapes.ttl",
+    "shapes/engineering-semantics-shapes.ttl",
+    "shapes/requirement-change-planning-shapes.ttl",
+    "shapes/ontology-driven-development-shapes.ttl"
+  ],
+  "examples": [
+    "examples/development-task-priority.ttl",
+    "examples/development-code-ontology.ttl"
+  ],
+  "queryDirectory": "queries/development",
+  "documentation": "docs/36-ontology-driven-development-metamodel.md",
+  "dependencyPolicy": "Existing unversioned ontology dependencies are pinned by repository commit; consumers must record that commit and content hashes before operational execution.",
+  "validation": "python -m code_ontology_platform validate",
+  "runtimeIntegration": "Read-only repository catalogue API and frontend metamodel center consume these files. Explicitly bound engineering JSON drafts project to RDF for SHACL validation before analysis, generation and precommit. The existing eng template generator remains supported; one explicit dev TransformationRule adapter generates a Python enum/default dataclass from a governed approved Template task. Other dev rules remain unsupported. See docs/37-metamodel-center-runtime.md."
+}

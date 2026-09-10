@@ -1,0 +1,17 @@
+.self-development { display: grid; gap: 20px; font-size: 16px; }
+.self-development .panel { min-width: 0; }
+.self-development fieldset { border: 0; margin: 20px 0; padding: 0; display: grid; gap: 16px; }
+.self-development label { display: grid; gap: 8px; margin: 12px 0; }
+.self-development select, .self-development input, .self-development textarea { width: 100%; max-width: 100%; min-width: 0; font: inherit; }
+.self-development textarea { min-height: 90px; }
+.self-development pre { max-height: 440px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.self-development code { overflow-wrap: anywhere; font-size: 14px; }
+.self-development details { margin: 16px 0; }
+.self-development summary { cursor: pointer; padding: 8px 0; }
+.self-development dd { margin: 4px 0 16px; }
+.self-development p { line-height: 1.8; }
+.self-chain { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; margin: 24px 0; }
+.self-chain span { border: 1px solid #52647b; padding: 16px; border-radius: 8px; line-height: 1.7; }
+.self-chain small { display: block; font-size: 14px; padding: 12px 0; opacity: .8; }
+@media(max-width: 850px) { .self-chain { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width: 480px) { .self-chain { grid-template-columns: 1fr; } }

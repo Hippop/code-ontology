@@ -10,6 +10,7 @@ import shlex
 import shutil
 import socket
 import subprocess
+import sys
 import tempfile
 import time
 from collections import Counter
@@ -180,10 +181,29 @@ def run_required_tests(
     executions = []
     for command in commands:
         arguments = validate_test_command(command)
+        run_args = list(arguments)
+        if sys.platform == "win32":
+            candidate = path / run_args[0]
+            cmd_file = path / f"{run_args[0]}.cmd"
+            bat_file = path / f"{run_args[0]}.bat"
+            if cmd_file.is_file():
+                run_args[0] = str(cmd_file.resolve())
+            elif bat_file.is_file():
+                run_args[0] = str(bat_file.resolve())
+            elif not candidate.is_file():
+                for ext in (".cmd", ".bat", ".exe"):
+                    if (path / f"{run_args[0]}{ext}").is_file():
+                        run_args[0] = str((path / f"{run_args[0]}{ext}").resolve())
+                        break
+            elif candidate.suffix in ("", ".sh"):
+                git_sh = Path(os.environ.get("ProgramFiles", "C:\\Program Files")) / "Git" / "bin" / "sh.exe"
+                sh_exe = str(git_sh) if git_sh.is_file() else shutil.which("sh")
+                if sh_exe:
+                    run_args = [sh_exe, run_args[0]] + run_args[1:]
         started = time.monotonic()
         try:
             completed = subprocess.run(
-                arguments,
+                run_args,
                 cwd=path,
                 capture_output=True,
                 text=True,

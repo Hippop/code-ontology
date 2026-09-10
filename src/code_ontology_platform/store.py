@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -7,7 +8,7 @@ import re
 import sqlite3
 import tempfile
 import uuid
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -203,17 +204,73 @@ class SQLiteStore:
             "contentHash": document["contentHash"],
         }
 
-    def _connect(self) -> sqlite3.Connection:
+    def metamodel_drafts(self, draft_id: str | None = None) -> list[dict[str, Any]]:
+        with self._connect() as connection:
+            if draft_id is not None:
+                rows = connection.execute(
+                    "SELECT document_json FROM metamodel_drafts WHERE draft_id = ? ORDER BY revision DESC", (draft_id,)
+                ).fetchall()
+            else:
+                rows = connection.execute("""
+                    SELECT d.document_json FROM metamodel_drafts d
+                    WHERE d.revision = (SELECT MAX(r.revision) FROM metamodel_drafts r WHERE r.draft_id = d.draft_id)
+                    ORDER BY d.draft_id
+                """).fetchall()
+        return [json.loads(row[0]) for row in rows]
+
+    def save_metamodel_draft(self, document: dict[str, Any], expected_revision: int) -> dict[str, Any]:
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            latest = connection.execute(
+                "SELECT MAX(revision) FROM metamodel_drafts WHERE draft_id = ?", (document["draftId"],)
+            ).fetchone()[0] or 0
+            if latest != expected_revision:
+                raise PlatformError(409, "DRAFT_REVISION_CONFLICT", "草稿已被更新，请重新加载后合并修改")
+            saved = {**document, "revision": latest + 1, "savedAt": utc_now()}
+            connection.execute("INSERT INTO metamodel_drafts VALUES (?, ?, ?)",
+                               (saved["draftId"], saved["revision"], canonical_json(saved)))
+        return saved
+
+    def put_development_record(self, record_id: str, kind: str, document: dict[str, Any]) -> None:
+        with self._connect() as connection:
+            connection.execute("INSERT INTO development_records VALUES (?, ?, ?)",
+                               (record_id, kind, canonical_json(document)))
+
+    def development_records(self, kind: str, record_id: str | None = None) -> list[dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT document_json FROM development_records WHERE kind = ? AND (? IS NULL OR record_id = ?) ORDER BY rowid DESC",
+                (kind, record_id, record_id),
+            ).fetchall()
+        return [json.loads(row[0]) for row in rows]
+
+    @contextlib.contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
         connection = sqlite3.connect(self.database, timeout=10)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA busy_timeout = 10000")
-        return connection
+        try:
+            with connection:
+                yield connection
+        finally:
+            connection.close()
 
     def initialize(self) -> None:
         with self._connect() as connection:
             connection.executescript(
                 """
+                CREATE TABLE IF NOT EXISTS development_records (
+                    record_id TEXT PRIMARY KEY,
+                    kind TEXT NOT NULL,
+                    document_json TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS metamodel_drafts (
+                    draft_id TEXT NOT NULL,
+                    revision INTEGER NOT NULL,
+                    document_json TEXT NOT NULL,
+                    PRIMARY KEY (draft_id, revision)
+                );
                 CREATE TABLE IF NOT EXISTS requirement_contexts (
                     requirement_id TEXT NOT NULL,
                     design_revision_id TEXT NOT NULL,
@@ -628,12 +685,17 @@ class SQLiteStore:
             ).fetchone()
         if not row:
             return None
+        metadata = json.loads(row["metadata_json"])
+        graph_storage = metadata.get("graphStoragePath") or str(
+            Path(row["path"]) / ".code-ontology"
+        )
         return {
             "repositoryId": row["repository_id"],
             "name": row["name"],
             "path": row["path"],
             "defaultBranch": row["default_branch"],
-            "metadata": json.loads(row["metadata_json"]),
+            "graphStoragePath": graph_storage,
+            "metadata": metadata,
             "createdAt": row["created_at"],
             "updatedAt": row["updated_at"],
         }
@@ -650,18 +712,25 @@ class SQLiteStore:
                 """,
                 (limit,),
             ).fetchall()
-        return [
-            {
-                "repositoryId": row["repository_id"],
-                "name": row["name"],
-                "path": row["path"],
-                "defaultBranch": row["default_branch"],
-                "metadata": json.loads(row["metadata_json"]),
-                "createdAt": row["created_at"],
-                "updatedAt": row["updated_at"],
-            }
-            for row in rows
-        ]
+        result = []
+        for row in rows:
+            metadata = json.loads(row["metadata_json"])
+            graph_storage = metadata.get("graphStoragePath") or str(
+                Path(row["path"]) / ".code-ontology"
+            )
+            result.append(
+                {
+                    "repositoryId": row["repository_id"],
+                    "name": row["name"],
+                    "path": row["path"],
+                    "defaultBranch": row["default_branch"],
+                    "graphStoragePath": graph_storage,
+                    "metadata": metadata,
+                    "createdAt": row["created_at"],
+                    "updatedAt": row["updated_at"],
+                }
+            )
+        return result
 
     def put_repository_snapshot(self, snapshot: Mapping[str, Any]) -> dict[str, Any]:
         now = utc_now()

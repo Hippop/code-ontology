@@ -75,6 +75,11 @@ biz:StateTransition a owl:Class ;
 biz:AcceptanceCriterion a owl:Class ;
     rdfs:subClassOf biz:BusinessEntity .
 
+biz:Requirement a owl:Class ;
+    rdfs:subClassOf biz:BusinessEntity ;
+    rdfs:label "业务需求"@zh ;
+    rdfs:comment "业务规划所描述的需求，具有业务 canonicalId；不自动等同于具有工程所有权约束的 eng:EngineeringRequirement 或 dev:Requirement。"@zh .
+
 biz:ServiceLevelObjective a owl:Class ;
     rdfs:subClassOf biz:BusinessEntity .
 
@@ -352,3 +357,31 @@ biz:validTo a owl:DatatypeProperty ;
 
 biz:lastVerifiedCommit a owl:DatatypeProperty ;
     rdfs:range xsd:string .
+
+# Human-readable class definitions; identity and inheritance above remain authoritative.
+biz:BusinessEntity rdfs:label "业务实体"@zh ; rdfs:comment "具有稳定业务标识的语义对象；不等同于代码符号或数据库记录。"@zh .
+biz:BusinessDomain rdfs:label "业务领域"@zh ; rdfs:comment "组织业务能力、业务对象和规则的语义范围。"@zh .
+biz:BusinessCapability rdfs:label "业务能力"@zh ; rdfs:comment "业务持续提供的能力；与 code:BusinessCapability 保持独立身份。"@zh .
+biz:Actor rdfs:label "业务参与者"@zh ; rdfs:comment "在业务用例中承担角色的人或外部系统。"@zh .
+biz:UseCase rdfs:label "业务用例"@zh ; rdfs:comment "参与者为达成业务目标而使用系统的场景，关联能力与流程。"@zh .
+biz:BusinessProcess rdfs:label "业务流程"@zh ; rdfs:comment "组织一组业务步骤及入口、出口的过程定义。"@zh .
+biz:BusinessProcessStep rdfs:label "业务步骤"@zh ; rdfs:comment "可独立关联规则和实现切片的业务过程单元，不是代码调用。"@zh .
+biz:BusinessObject rdfs:label "业务对象"@zh ; rdfs:comment "业务领域中独立表达的对象概念，可具有多个技术表示。"@zh .
+biz:BusinessAttribute rdfs:label "业务属性"@zh ; rdfs:comment "业务对象的语义属性；API 字段、语言字段和数据库列是其不同技术表示。"@zh .
+biz:BusinessRule rdfs:label "业务规则"@zh ; rdfs:comment "业务允许、禁止或必须满足的规则，不由代码类型自动证明。"@zh .
+biz:ValidationRule rdfs:label "业务校验规则"@zh ; rdfs:comment "约束业务输入或对象有效性的规则。"@zh .
+biz:AuthorizationRule rdfs:label "业务授权规则"@zh ; rdfs:comment "描述参与者在业务范围内允许执行的操作，不自动实现权限控制。"@zh .
+biz:StateTransitionRule rdfs:label "状态迁移规则"@zh ; rdfs:comment "约束业务对象从一种状态迁移到另一种状态的规则。"@zh .
+biz:ConsistencyRule rdfs:label "业务一致性规则"@zh ; rdfs:comment "要求多个业务数据或对象之间保持一致的规则。"@zh .
+biz:RoutingRule rdfs:label "业务路由规则"@zh ; rdfs:comment "决定业务处理路径或目标的规则。"@zh .
+biz:CompensationRule rdfs:label "业务补偿规则"@zh ; rdfs:comment "描述失败后补偿要求的规则，不代表补偿已执行。"@zh .
+biz:BusinessEvent rdfs:label "业务事件"@zh ; rdfs:comment "具有业务意义的发生事实或事件语义，不等于消息主题。"@zh .
+biz:BusinessState rdfs:label "业务状态"@zh ; rdfs:comment "业务对象在指定流程中可处于的状态。"@zh .
+biz:StateTransition rdfs:label "业务状态迁移"@zh ; rdfs:comment "具有明确源状态与目标状态的迁移定义，可关联事件、步骤和守卫规则。"@zh .
+biz:AcceptanceCriterion rdfs:label "业务验收条件"@zh ; rdfs:comment "业务侧的验收判据，与 code/dev 验收类型通过明确映射关联。"@zh .
+biz:ServiceLevelObjective rdfs:label "服务水平目标"@zh ; rdfs:comment "业务或服务在声明范围内应达到的质量目标。"@zh .
+biz:ImplementationSlice rdfs:label "业务实现切片"@zh ; rdfs:comment "一个主要业务步骤的技术入口与支持对象集合。"@zh .
+biz:BusinessMapping rdfs:label "业务技术映射"@zh ; rdfs:comment "关联业务实体与技术实体的映射记录，保留置信度和证据。"@zh .
+biz:CandidateMapping rdfs:label "候选业务映射"@zh ; rdfs:comment "尚待确认的业务技术对应关系，不代表已验证实现。"@zh .
+biz:ConfirmedMapping rdfs:label "已确认业务映射"@zh ; rdfs:comment "记录最近验证提交的业务技术映射，不直接推出验收满足。"@zh .
+biz:BrokenMapping rdfs:label "失效业务映射"@zh ; rdfs:comment "原关联依据不再成立、需要复核或修复的映射。"@zh .

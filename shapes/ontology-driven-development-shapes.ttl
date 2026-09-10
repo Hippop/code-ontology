@@ -1,0 +1,407 @@
+@prefix dev: <https://example.org/code-ontology/development#> .
+@prefix eng: <https://example.org/code-ontology/engineering#> .
+@prefix biz: <https://example.org/code-ontology/business#> .
+@prefix code: <https://example.org/code-ontology#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Portable reusable property shapes; SPARQL constraints declare their own prefixes.
+dev:OneStatus a sh:PropertyShape ; sh:path dev:status ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string .
+dev:OneModel a sh:PropertyShape ; sh:path dev:inModel ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:ModelRevision .
+dev:OneTargetModel a sh:PropertyShape ; sh:path dev:targetModel ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:ModelRevision .
+dev:OneSnapshot a sh:PropertyShape ; sh:path dev:evaluatesSnapshot ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:CodeSnapshot .
+dev:OneEvaluatedModel a sh:PropertyShape ; sh:path dev:evaluatesModel ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:ModelRevision .
+dev:OneScope a sh:PropertyShape ; sh:path dev:scope ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:minLength 1 .
+dev:OneStatement a sh:PropertyShape ; sh:path dev:statement ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:minLength 1 .
+dev:OneRationale a sh:PropertyShape ; sh:path dev:rationale ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:minLength 1 .
+dev:OneHash a sh:PropertyShape ; sh:path dev:contentHash ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:pattern "^[0-9a-f]{64}$" .
+dev:OneActor a sh:PropertyShape ; sh:path dev:actor ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:minLength 1 .
+dev:SemanticTarget a sh:NodeShape ; sh:or ( [ sh:class dev:Requirement ] [ sh:class dev:ContractClause ] [ sh:class dev:AcceptanceCriterion ] ) .
+dev:VerifiableTarget a sh:NodeShape ; sh:or ( [ sh:class dev:ContractClause ] [ sh:class dev:AcceptanceCriterion ] ) .
+dev:RelativePath a sh:PropertyShape ; sh:path dev:targetPath ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ;
+    sh:pattern "^[^/\\\\:]+(/[^/\\\\:]+)*$" ;
+    sh:not [ sh:pattern "(^|/)\\.\\.(/|$)" ] ;
+    sh:message "DEV_PATH: 必须使用仓库内相对路径，不允许反斜杠、盘符或 ..。" .
+
+dev:EntityShape a sh:NodeShape ; sh:targetClass dev:Entity ; sh:nodeKind sh:IRI ;
+    sh:property [ sh:path rdfs:label ; sh:minCount 1 ; sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ] .
+dev:VersionedAssetShape a sh:NodeShape ; sh:targetClass dev:VersionedAsset ;
+    sh:property [ sh:path dev:version ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ] ;
+    sh:property [ sh:path dev:source ; sh:minCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ] .
+dev:PackageShape a sh:NodeShape ; sh:targetClass dev:MetamodelPackage ;
+    sh:property dev:OneStatus ;
+    sh:property [ sh:path dev:status ; sh:in ( "Draft" "Published" "Deprecated" ) ] ;
+    sh:property [ sh:path dev:definesTerm ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:or ( [ sh:class owl:Class ] [ sh:class owl:ObjectProperty ] [ sh:class owl:DatatypeProperty ] ) ] ;
+    sh:property [ sh:path dev:dependsOnPackage ; sh:class dev:MetamodelPackage ] ;
+    sh:sparql [ sh:message "DEV_PACKAGE_CYCLE: 包依赖不能成环。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:dependsOnPackage+ $this }
+    """ ] .
+dev:DomainExtensionShape a sh:NodeShape ; sh:targetClass dev:DomainExtension ;
+    sh:property [ sh:path dev:dependsOnPackage ; sh:minCount 1 ; sh:class dev:MetamodelPackage ] .
+dev:ProfileShape a sh:NodeShape ; sh:targetClass dev:ProjectProfile ;
+    sh:property [ sh:path dev:forProject ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:Project ] ;
+    sh:property [ sh:path dev:usesPackage ; sh:minCount 1 ; sh:class dev:MetamodelPackage ] ;
+    sh:property [ sh:path dev:usesConstraints ; sh:minCount 1 ; sh:class dev:ConstraintSet ] ;
+    sh:property [ sh:path dev:usesRules ; sh:minCount 1 ; sh:class dev:RuleSet ] ;
+    sh:property [ sh:path dev:usesTechnology ; sh:minCount 1 ; sh:class dev:TechnologyProfile ] ;
+    sh:sparql [ sh:message "DEV_PACKAGE_NOT_PUBLISHED: 项目仅绑定已发布包及其已发布依赖。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE {
+          $this dev:usesPackage/dev:dependsOnPackage* ?package .
+          FILTER NOT EXISTS { ?package dev:status "Published" }
+        }
+    """ ] .
+dev:ModelShape a sh:NodeShape ; sh:targetClass dev:ModelRevision ;
+    sh:property [ sh:path dev:usesProfile ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:ProjectProfile ] ;
+    sh:property dev:OneScope .
+dev:SnapshotShape a sh:NodeShape ; sh:targetClass dev:CodeSnapshot ;
+    sh:property dev:OneHash, dev:OneScope ;
+    sh:property [ sh:path dev:forProject ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:Project ] ;
+    sh:property [ sh:path dev:repository ; sh:minCount 1 ; sh:maxCount 1 ; sh:class code:Repository ] ;
+    sh:property [ sh:path dev:commit ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ] .
+dev:GraphRevisionShape a sh:NodeShape ; sh:targetClass dev:GraphRevision ;
+    sh:property [ sh:path dev:graphRole ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "Knowledge" "Change" "Impact" ) ] ;
+    sh:property [ sh:path dev:graphSpace ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "Current" "Business" "Desired" "Proposed" "Approved" "Actual" "Impact" ) ] ;
+    sh:property dev:OneModel ;
+    sh:property [ sh:path dev:containsEntity ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:sparql [ sh:message "DEV_FACT_GRAPH: Current/Actual 图必须绑定快照及事实采集执行。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:graphSpace ?space . FILTER(?space IN ("Current", "Actual"))
+          FILTER NOT EXISTS { $this dev:inSnapshot ?s ; dev:observedBy ?run .
+            ?run a dev:ObservationRun ; dev:evaluatesSnapshot ?s ; dev:status "Succeeded" . }
+        }
+    """ ] .
+dev:MigrationShape a sh:NodeShape ; sh:targetClass dev:MigrationPlan ; sh:property dev:OneRationale ;
+    sh:property [ sh:path dev:fromPackage ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:MetamodelPackage ; sh:disjoint dev:toPackage ] ;
+    sh:property [ sh:path dev:toPackage ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:MetamodelPackage ] ;
+    sh:property [ sh:path dev:affectsProfile ; sh:minCount 1 ; sh:class dev:ProjectProfile ] .
+
+dev:RequirementShape a sh:NodeShape ; sh:targetClass dev:Requirement ;
+    sh:property dev:OneModel, dev:OneStatement, dev:OneScope ;
+    sh:property [ sh:path [ sh:inversePath dev:motivates ] ; sh:minCount 1 ; sh:class dev:BusinessGoal ] ;
+    sh:property [ sh:path dev:hasAcceptanceCriterion ; sh:minCount 1 ; sh:class dev:AcceptanceCriterion ] ;
+    sh:property [ sh:path eng:constrainedBy ; sh:minCount 1 ; sh:class dev:SemanticContract ] ;
+    sh:property [ sh:path dev:refines ; sh:class dev:Requirement ] ;
+    sh:sparql [ sh:message "DEV_REQUIREMENT_CYCLE: 需求细化不能成环。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:refines+ $this }
+    """ ] .
+dev:BusinessDefinitionShape a sh:NodeShape ;
+    sh:targetClass dev:BusinessGoal, dev:BusinessConcept, dev:BusinessAttribute, dev:BusinessRule ;
+    sh:property dev:OneModel, dev:OneStatement .
+dev:CriterionShape a sh:NodeShape ; sh:targetClass dev:AcceptanceCriterion ;
+    sh:property dev:OneModel, dev:OneStatement, dev:OneScope ;
+    sh:property [ sh:path [ sh:inversePath dev:hasAcceptanceCriterion ] ; sh:minCount 1 ; sh:class dev:Requirement ] .
+dev:ContractShape a sh:NodeShape ; sh:targetClass dev:SemanticContract ;
+    sh:property dev:OneModel ;
+    sh:property [ sh:path dev:hasClause ; sh:minCount 1 ; sh:class dev:ContractClause ] .
+dev:ClauseShape a sh:NodeShape ; sh:targetClass dev:ContractClause ;
+    sh:property dev:OneModel, dev:OneStatement ;
+    sh:property [ sh:path [ sh:inversePath dev:hasClause ] ; sh:minCount 1 ; sh:class dev:SemanticContract ] ;
+    sh:property [ sh:path dev:constrains ; sh:minCount 1 ; sh:nodeKind sh:IRI ;
+        sh:or ( [ sh:class dev:BusinessConcept ] [ sh:class dev:BusinessAttribute ] [ sh:class dev:Requirement ] ) ;
+        sh:message "MM_REFERENCE_RESOLVED: 条款必须约束已建模的业务概念、属性或需求。" ] ;
+    sh:not [ sh:class dev:Evidence ] .
+dev:BehaviorShape a sh:NodeShape ; sh:targetClass dev:BehaviorClause ;
+    sh:property [ sh:path dev:precondition ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:postcondition ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:failureBehavior ; sh:minCount 1 ; sh:datatype xsd:string ] .
+dev:ValueShape a sh:NodeShape ; sh:targetClass dev:ValueConstraint ;
+    sh:property [ sh:path dev:valueDatatype ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ;
+        sh:in ( xsd:string xsd:boolean xsd:integer xsd:decimal xsd:float xsd:double xsd:date xsd:dateTime xsd:anyURI ) ;
+        sh:message "MM_DATATYPE_REGISTERED: 值类型必须来自当前版本明确支持的 XSD 词表。" ] ;
+    sh:property [ sh:path dev:defaultValue ; sh:maxCount 1 ; sh:nodeKind sh:Literal ] ;
+    sh:property [ sh:path dev:allowedValue ; sh:nodeKind sh:Literal ] ;
+    sh:sparql [ sh:message "DEV_DEFAULT_OUTSIDE_ENUM: 缺省值必须属于显式枚举。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:defaultValue ?v ; dev:allowedValue ?any .
+          FILTER NOT EXISTS { $this dev:allowedValue ?v }
+        }
+    """ ] .
+dev:DesignShape a sh:NodeShape ; sh:targetClass dev:DesignElement ; sh:property dev:OneModel ;
+    sh:property [ sh:path dev:addresses ; sh:minCount 1 ; sh:node dev:SemanticTarget ] ;
+    sh:property [ sh:path dev:decidedBy ; sh:minCount 1 ; sh:class dev:DesignDecision ] ;
+    sh:not [ sh:class dev:CodeArtifact ] .
+dev:RepresentationShape a sh:NodeShape ; sh:targetClass dev:TechnicalRepresentation ;
+    sh:property [ sh:path dev:represents ; sh:minCount 1 ; sh:or ( [ sh:class dev:BusinessConcept ] [ sh:class dev:BusinessAttribute ] ) ] .
+dev:DecisionShape a sh:NodeShape ; sh:targetClass dev:DesignDecision ; sh:property dev:OneModel, dev:OneRationale ;
+    sh:property [ sh:path dev:question ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:alternative ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:chosenOption ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ;
+    sh:sparql [ sh:message "DEV_DECISION_CHOICE: 选定方案必须在候选中。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:chosenOption ?choice . FILTER NOT EXISTS { $this dev:alternative ?choice } }
+    """ ] .
+dev:MappingShape a sh:NodeShape ; sh:targetClass dev:RealizationMapping ; sh:property dev:OneModel, dev:OneStatus, dev:OneRationale ;
+    sh:property [ sh:path dev:status ; sh:in ( "Declared" "Observed" "Stale" "Rejected" ) ] ;
+    sh:property [ sh:path dev:mappingSource ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ;
+        sh:or ( [ sh:class dev:Requirement ] [ sh:class dev:ContractClause ] [ sh:class dev:AcceptanceCriterion ]
+            [ sh:class dev:BusinessConcept ] [ sh:class dev:BusinessAttribute ] [ sh:class dev:BusinessRule ] ) ;
+        sh:message "MM_REFERENCE_RESOLVED: 映射源必须是已建模的业务语义、需求、条款或验收条件。" ] ;
+    sh:property [ sh:path dev:mappingTarget ; sh:minCount 1 ; sh:maxCount 1 ; sh:or ( [ sh:class dev:DesignElement ] [ sh:class dev:CodeArtifact ] ) ] ;
+    sh:property [ sh:path dev:mappingRole ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "Represents" "Implements" "Enforces" "Verifies" ) ] ;
+    sh:sparql [ sh:message "DEV_OBSERVED_MAPPING: 已观察映射必须指向同快照实际产物并有成功的采集记录。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:status "Observed" . FILTER NOT EXISTS {
+          $this dev:mappingTarget ?artifact ; dev:observedBy ?run ; dev:inSnapshot ?s .
+          ?artifact a dev:CodeArtifact ; dev:inSnapshot ?s .
+          ?run a dev:ObservationRun ; dev:status "Succeeded" ; dev:evaluatesSnapshot ?s .
+        } }
+    """ ] .
+dev:DeltaShape a sh:NodeShape ; sh:targetClass dev:SemanticDelta ; sh:property dev:OneTargetModel, dev:OneStatement ;
+    sh:property [ sh:path dev:baseline ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:CodeSnapshot ] ;
+    sh:property [ sh:path dev:changeKind ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "Add" "Modify" "Remove" "Reuse" "ConstraintChange" ) ] ;
+    sh:property [ sh:path dev:createsObligation ; sh:minCount 1 ; sh:class dev:Obligation ] .
+dev:ObligationShape a sh:NodeShape ; sh:targetClass dev:Obligation ; sh:property dev:OneStatus, dev:OneStatement ;
+    sh:property [ sh:path dev:status ; sh:in ( "Open" "InProgress" "Closed" "Waived" ) ] ;
+    sh:property [ sh:path dev:causedBy ; sh:minCount 1 ; sh:class dev:SemanticDelta ] ;
+    sh:property [ sh:path dev:addresses ; sh:minCount 1 ; sh:maxCount 1 ; sh:node dev:VerifiableTarget ] ;
+    sh:sparql [ sh:message "DEV_OBLIGATION_CLOSURE: Closed 必须有同目标满足性判断，Waived 必须有批准和理由。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE {
+          { $this dev:status "Closed" ; dev:addresses ?target . FILTER NOT EXISTS {
+              $this dev:closedBy ?a . ?a a dev:SatisfactionAssessment ; dev:status "Satisfied" ; dev:assesses ?target . } }
+          UNION { $this dev:status "Waived" . FILTER NOT EXISTS {
+              $this dev:approvedBy ?approval ; dev:rationale ?why .
+              ?approval dev:approvalSubject $this ; dev:status "Approved" . } }
+        }
+    """ ] .
+dev:PlanShape a sh:NodeShape ; sh:targetClass dev:ChangePlan ; sh:property dev:OneTargetModel, dev:OneStatus, dev:OneHash ;
+    sh:property [ sh:path dev:status ; sh:in ( "Draft" "Approved" "Superseded" ) ] ;
+    sh:property [ sh:path dev:baseline ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:CodeSnapshot ] ;
+    sh:property [ sh:path dev:hasObligation ; sh:minCount 1 ; sh:class dev:Obligation ] ;
+    sh:property [ sh:path dev:hasTask ; sh:minCount 1 ; sh:class dev:ImplementationTask ] ;
+    sh:sparql [ sh:message "DEV_PLAN_APPROVAL: Approved 计划必须有绑定同一内容摘要的批准。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:status "Approved" ; dev:contentHash ?h . FILTER NOT EXISTS {
+          $this dev:approvedBy ?a . ?a a dev:Approval ; dev:approvalSubject $this ; dev:status "Approved" ; dev:contentHash ?h .
+        } }
+    """ ] ;
+    sh:sparql [ sh:message "DEV_TASK_SCOPE: 计划内任务只能承担该计划义务且每项义务须有任务。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE {
+          { $this dev:hasTask/dev:fulfills ?o . FILTER NOT EXISTS { $this dev:hasObligation ?o } }
+          UNION { $this dev:hasObligation ?o . FILTER NOT EXISTS { $this dev:hasTask/dev:fulfills ?o } }
+        }
+    """ ] .
+dev:ApprovalShape a sh:NodeShape ; sh:targetClass dev:Approval ; sh:property dev:OneActor, dev:OneRationale, dev:OneStatus, dev:OneHash ;
+    sh:property [ sh:path dev:status ; sh:in ( "Approved" "Rejected" ) ] ;
+    sh:property [ sh:path dev:approvalSubject ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] .
+dev:TechnologyShape a sh:NodeShape ; sh:targetClass dev:TechnologyProfile ;
+    sh:property [ sh:path dev:language ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:framework ; sh:minCount 1 ; sh:datatype xsd:string ] .
+dev:RuleSetShape a sh:NodeShape ; sh:targetClass dev:RuleSet ;
+    sh:property [ sh:path dev:includesRule ; sh:minCount 1 ; sh:or ( [ sh:class dev:TransformationRule ] [ sh:class dev:ImpactRule ] ) ] .
+dev:TransformationShape a sh:NodeShape ; sh:targetClass dev:TransformationRule ;
+    sh:property [ sh:path dev:inputPattern ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:outputPattern ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:precondition ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:unsupportedCase ; sh:minCount 1 ; sh:datatype xsd:string ] .
+dev:GenerationSpecShape a sh:NodeShape ; sh:targetClass dev:GenerationSpecification ; sh:property dev:RelativePath ;
+    sh:property [ sh:path dev:appliesRule ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:TransformationRule ] ;
+    sh:property [ sh:path dev:inputDesign ; sh:minCount 1 ; sh:class dev:DesignElement ] ;
+    sh:property [ sh:path dev:usesTechnology ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:TechnologyProfile ] ;
+    sh:property [ sh:path dev:preserves ; sh:minCount 1 ; sh:class dev:ContractClause ] .
+dev:TaskShape a sh:NodeShape ; sh:targetClass dev:ImplementationTask ;
+    sh:property [ sh:path dev:fulfills ; sh:minCount 1 ; sh:class dev:Obligation ] ;
+    sh:property [ sh:path dev:mode ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "Template" "Agent" "Manual" "Reuse" ) ] ;
+    sh:property [ sh:path dev:dependsOnTask ; sh:class dev:ImplementationTask ] ;
+    sh:sparql [ sh:message "DEV_TASK_CYCLE: 任务依赖不能成环。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:dependsOnTask+ $this }
+    """ ] .
+
+dev:RunShape a sh:NodeShape ; sh:targetClass dev:ExecutionRun ; sh:property dev:OneActor, dev:OneStatus ;
+    sh:property [ sh:path dev:status ; sh:in ( "Running" "Succeeded" "Failed" "Cancelled" ) ] ;
+    sh:property [ sh:path dev:scenario ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "Operational" "Illustrative" ) ] ;
+    sh:property [ sh:path dev:executorVersion ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:inputHash ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:pattern "^[0-9a-f]{64}$" ] ;
+    sh:property [ sh:path dev:startedAt ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:dateTime ; sh:lessThanOrEquals dev:endedAt ] ;
+    sh:property [ sh:path dev:endedAt ; sh:maxCount 1 ; sh:datatype xsd:dateTime ] ;
+    sh:sparql [ sh:message "DEV_RUN_END: 终态执行必须记录结束时间。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:status ?s . FILTER(?s != "Running") FILTER NOT EXISTS { $this dev:endedAt ?end } }
+    """ ] .
+dev:GenerationRunShape a sh:NodeShape ; sh:targetClass dev:GenerationRun ;
+    sh:property [ sh:path dev:underPlan ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:ChangePlan ] ;
+    sh:property [ sh:path dev:executesTask ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:ImplementationTask ] ;
+    sh:property [ sh:path dev:usesSpecification ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:GenerationSpecification ] ;
+    sh:sparql [ sh:message "DEV_GENERATION_AUTHORITY: 生成执行需要已批准计划，且任务属于该计划。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:underPlan ?p ; dev:executesTask ?task .
+          FILTER NOT EXISTS { ?p dev:status "Approved" ; dev:hasTask ?task }
+        }
+    """ ] ;
+    sh:sparql [ sh:message "DEV_GENERATION_OUTPUT: 成功生成须产生目标路径代码产物。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:status "Succeeded" ; dev:usesSpecification/dev:targetPath ?path .
+          FILTER NOT EXISTS { $this dev:produces ?a . ?a a dev:CodeArtifact ; dev:targetPath ?path }
+        }
+    """ ] .
+dev:ObservationShape a sh:NodeShape ; sh:targetClass dev:ObservationRun ; sh:property dev:OneSnapshot, dev:OneScope .
+dev:ArtifactShape a sh:NodeShape ; sh:targetClass dev:CodeArtifact ; sh:property dev:RelativePath, dev:OneHash ;
+    sh:property [ sh:path dev:inSnapshot ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:CodeSnapshot ] ;
+    sh:not [ sh:class dev:DesignElement ] .
+dev:VerificationSpecShape a sh:NodeShape ; sh:targetClass dev:VerificationSpecification ; sh:property dev:OneScope ;
+    sh:property [ sh:path dev:verifies ; sh:minCount 1 ; sh:node dev:VerifiableTarget ] ;
+    sh:property [ sh:path dev:procedure ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:expectedResult ; sh:minCount 1 ; sh:datatype xsd:string ] .
+dev:VerificationRunShape a sh:NodeShape ; sh:targetClass dev:VerificationRun ; sh:property dev:OneSnapshot, dev:OneEvaluatedModel ;
+    sh:property [ sh:path dev:usesSpecification ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:VerificationSpecification ] ;
+    sh:sparql [ sh:message "DEV_VERIFICATION_REPORT: 成功或失败的验证执行都必须保存证据。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:status ?s . FILTER(?s IN ("Succeeded", "Failed"))
+          FILTER NOT EXISTS { $this dev:produces ?e . ?e a dev:Evidence ; dev:generatedBy $this }
+        }
+    """ ] .
+dev:EvidenceShape a sh:NodeShape ; sh:targetClass dev:Evidence ; sh:property dev:OneSnapshot, dev:OneEvaluatedModel, dev:OneScope, dev:OneHash ;
+    sh:property [ sh:path dev:generatedBy ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:VerificationRun ] ;
+    sh:property [ sh:path dev:reportUri ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:anyURI ] ;
+    sh:sparql [ sh:message "DEV_EVIDENCE_VERSION: 证据模型、快照必须与来源执行一致。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:generatedBy ?run ; dev:evaluatesSnapshot ?s ; dev:evaluatesModel ?m .
+          FILTER NOT EXISTS { ?run dev:evaluatesSnapshot ?s ; dev:evaluatesModel ?m ; dev:produces $this }
+        }
+    """ ] .
+dev:AssessmentShape a sh:NodeShape ; sh:targetClass dev:SatisfactionAssessment ; sh:property dev:OneSnapshot, dev:OneEvaluatedModel, dev:OneScope, dev:OneStatus, dev:OneActor, dev:OneRationale ;
+    sh:property [ sh:path dev:status ; sh:in ( "NotAssessed" "Satisfied" "PartiallySatisfied" "NotSatisfied" "InsufficientEvidence" ) ] ;
+    sh:property [ sh:path dev:assesses ; sh:minCount 1 ; sh:maxCount 1 ; sh:node dev:VerifiableTarget ] ;
+    sh:property [ sh:path dev:supportedBy ; sh:class dev:Evidence ] ;
+    sh:sparql [ sh:message "DEV_ASSESSMENT_EVIDENCE: 确定性判断需要证据；Satisfied 需要真实成功执行。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE {
+          { $this dev:status ?status . FILTER(?status IN ("Satisfied", "PartiallySatisfied", "NotSatisfied"))
+            FILTER NOT EXISTS { $this dev:supportedBy ?e } }
+          UNION { $this dev:status "Satisfied" ; dev:supportedBy/dev:generatedBy ?run .
+            FILTER NOT EXISTS { ?run dev:status "Succeeded" ; dev:scenario "Operational" } }
+        }
+    """ ] ;
+    sh:sparql [ sh:message "DEV_ASSESSMENT_SCOPE: 证据须同模型同快照同范围，验证规范须覆盖判断目标。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:supportedBy ?e ; dev:evaluatesSnapshot ?s ; dev:evaluatesModel ?m ; dev:assesses ?t ; dev:scope ?scope .
+          FILTER NOT EXISTS { ?e dev:evaluatesSnapshot ?s ; dev:evaluatesModel ?m ; dev:scope ?scope ; dev:generatedBy/dev:usesSpecification/dev:verifies ?t }
+        }
+    """ ] .
+dev:ImpactRuleShape a sh:NodeShape ; sh:targetClass dev:ImpactRule ;
+    sh:property [ sh:path dev:inputPattern ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:precondition ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:stopCondition ; sh:minCount 1 ; sh:datatype xsd:string ] .
+dev:ImpactShape a sh:NodeShape ; sh:targetClass dev:ImpactAssessment ; sh:property dev:OneStatus, dev:OneRationale ;
+    sh:property [ sh:path dev:status ; sh:in ( "Candidate" "Confirmed" "Contained" "Rejected" "Unresolved" ) ] ;
+    sh:property [ sh:path dev:causedBy ; sh:minCount 1 ; sh:class dev:SemanticDelta ] ;
+    sh:property [ sh:path dev:affectedEntity ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path dev:triggeredRule ; sh:minCount 1 ; sh:class dev:ImpactRule ] ;
+    sh:property [ sh:path dev:impactPath ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path dev:supportedBy ; sh:minCount 1 ; sh:class dev:Evidence ] .
+dev:ReleaseShape a sh:NodeShape ; sh:targetClass dev:ReleaseAssessment ; sh:property dev:OneSnapshot, dev:OneEvaluatedModel, dev:OneScope, dev:OneStatus, dev:OneActor, dev:OneRationale ;
+    sh:property [ sh:path dev:status ; sh:in ( "Ready" "Blocked" ) ] ;
+    sh:property [ sh:path dev:underPlan ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dev:ChangePlan ] ;
+    sh:property [ sh:path dev:includesAssessment ; sh:class dev:SatisfactionAssessment ] ;
+    sh:sparql [ sh:message "DEV_RELEASE_CLOSURE: Ready 要求批准计划、关闭或批准免除的义务及同版本满足性判断。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:status "Ready" ; dev:underPlan ?p ; dev:evaluatesSnapshot ?s ; dev:evaluatesModel ?m .
+          { FILTER NOT EXISTS { ?p dev:status "Approved" ; dev:targetModel ?m } }
+          UNION { ?p dev:hasObligation ?o . FILTER NOT EXISTS { ?o dev:status "Closed" } FILTER NOT EXISTS { ?o dev:status "Waived" } }
+          UNION { ?p dev:hasObligation ?o . ?o dev:status "Closed" ; dev:addresses ?target ; dev:closedBy ?a .
+            FILTER NOT EXISTS { $this dev:includesAssessment ?a . ?a dev:status "Satisfied" ; dev:assesses ?target ; dev:evaluatesSnapshot ?s ; dev:evaluatesModel ?m } }
+          UNION { ?req dev:inModel ?m ; dev:hasAcceptanceCriterion ?ac . FILTER NOT EXISTS {
+            $this dev:includesAssessment ?a . ?a dev:assesses ?ac ; dev:status "Satisfied" ; dev:evaluatesSnapshot ?s ; dev:evaluatesModel ?m } }
+        }
+    """ ] .
+
+# Cross-project and cross-model joins must be explicit; they cannot silently drift.
+dev:ContextConsistencyShape a sh:NodeShape ;
+    sh:targetSubjectsOf dev:evaluatesModel, dev:targetModel ;
+    sh:sparql [ sh:message "DEV_PROJECT_CONTEXT: 目标模型与基线/评估快照必须属于同一项目。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE {
+          $this (dev:evaluatesModel|dev:targetModel)/dev:usesProfile/dev:forProject ?p .
+          $this (dev:evaluatesSnapshot|dev:baseline)/dev:forProject ?q . FILTER(?p != ?q)
+        }
+    """ ] .
+dev:ModelLinkConsistencyShape a sh:NodeShape ; sh:targetSubjectsOf dev:inModel ;
+    sh:sparql [ sh:message "DEV_MODEL_LINK: 需求、条款、设计及映射不得静默连接不同模型修订。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        PREFIX eng: <https://example.org/code-ontology/engineering#>
+        SELECT $this WHERE { $this dev:inModel ?m ; ?p ?target .
+          FILTER(?p IN (dev:motivates, dev:refines, dev:hasAttribute, dev:hasAcceptanceCriterion, eng:constrainedBy, dev:hasClause, dev:constrains, dev:addresses, dev:represents, dev:decidedBy, dev:mappingSource, dev:mappingTarget))
+          ?target dev:inModel ?other . FILTER(?m != ?other)
+        }
+    """ ] .
+
+# Scope identity to a model revision. Reuse across revisions remains valid.
+dev:BusinessIdentityShape a sh:NodeShape ; sh:targetClass biz:BusinessEntity ;
+    sh:sparql [ sh:message "MM_CANONICAL_ID_UNIQUE: 同一模型修订内业务 canonicalId 必须唯一。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        PREFIX biz: <https://example.org/code-ontology/business#>
+        SELECT $this WHERE {
+          $this dev:inModel ?model ; biz:canonicalId ?id .
+          ?other a biz:BusinessEntity ; dev:inModel ?model ; biz:canonicalId ?id .
+          FILTER($this != ?other)
+        }
+    """ ] .
+
+dev:PlanObligationContextShape a sh:NodeShape ; sh:targetClass dev:ChangePlan ;
+    sh:sparql [ sh:message "MM_OBLIGATION_CONTEXT: 计划义务的差异来源、基线和语义目标须与计划上下文一致。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE {
+          $this dev:targetModel ?model ; dev:baseline ?baseline ; dev:hasObligation ?obligation .
+          { ?obligation dev:addresses ?target . FILTER NOT EXISTS { ?target dev:inModel ?model } }
+          UNION { ?obligation dev:causedBy ?delta . FILTER NOT EXISTS {
+            ?delta dev:targetModel ?model ; dev:baseline ?baseline ; dev:createsObligation ?obligation .
+          } }
+        }
+    """ ] .
+
+dev:GenerationContextShape a sh:NodeShape ; sh:targetClass dev:GenerationRun ;
+    sh:sparql [ sh:message "DEV_GENERATION_CONTEXT: 生成输入、规则和技术栈必须来自计划绑定配置，任务规范必须一致。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:underPlan/dev:targetModel ?m ; dev:executesTask ?task ; dev:usesSpecification ?spec .
+          { FILTER NOT EXISTS { ?task dev:usesSpecification ?spec } }
+          UNION { ?spec dev:inputDesign ?d . FILTER NOT EXISTS { ?d dev:inModel ?m } }
+          UNION { ?spec dev:preserves ?clause . FILTER NOT EXISTS { ?clause dev:inModel ?m } }
+          UNION { ?spec dev:appliesRule ?rule . FILTER NOT EXISTS { ?m dev:usesProfile/dev:usesRules/dev:includesRule ?rule } }
+          UNION { ?spec dev:usesTechnology ?tech . FILTER NOT EXISTS { ?m dev:usesProfile/dev:usesTechnology ?tech } }
+          UNION { $this dev:produces ?artifact . ?artifact a dev:CodeArtifact ; dev:inSnapshot/dev:forProject ?p .
+            FILTER NOT EXISTS { ?m dev:usesProfile/dev:forProject ?p } }
+        }
+    """ ] .
+dev:JudgmentTargetShape a sh:NodeShape ; sh:targetClass dev:SatisfactionAssessment ;
+    sh:sparql [ sh:message "DEV_JUDGMENT_MODEL: 判断对象必须属于评估模型。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:assesses ?t ; dev:evaluatesModel ?m . FILTER NOT EXISTS { ?t dev:inModel ?m } }
+    """ ] .
+dev:ValueDatatypeShape a sh:NodeShape ; sh:targetClass dev:ValueConstraint ;
+    sh:sparql [ sh:message "DEV_VALUE_DATATYPE: 枚举及缺省值必须使用声明的数据类型。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:valueDatatype ?type ; (dev:allowedValue|dev:defaultValue) ?value . FILTER(datatype(?value) != ?type) }
+    """ ] .
+
+dev:FactGraphBoundaryShape a sh:NodeShape ; sh:targetClass dev:GraphRevision ;
+    sh:property [ sh:path dev:inSnapshot ; sh:maxCount 1 ; sh:class dev:CodeSnapshot ] ;
+    sh:property [ sh:path dev:observedBy ; sh:maxCount 1 ; sh:class dev:ObservationRun ] ;
+    sh:sparql [ sh:message "DEV_FACT_DESIGN_SEPARATION: Current/Actual 不能收录目标设计或其他快照的产物。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:graphSpace ?space . FILTER(?space IN ("Current", "Actual"))
+          { $this dev:containsEntity ?entity . ?entity a dev:DesignElement }
+          UNION { $this dev:inSnapshot ?s ; dev:containsEntity ?entity . ?entity a dev:CodeArtifact ; dev:inSnapshot ?other . FILTER(?other != ?s) }
+        }
+    """ ] .
+dev:PreservationVerificationShape a sh:NodeShape ; sh:targetClass dev:GenerationSpecification ;
+    sh:sparql [ sh:message "DEV_PRESERVATION_VERIFICATION: 每项保留条款都必须有验证规范。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:preserves ?clause .
+          FILTER NOT EXISTS { ?verification a dev:VerificationSpecification ; dev:verifies ?clause }
+        }
+    """ ] .
+dev:ReleaseEvidenceConsistencyShape a sh:NodeShape ; sh:targetClass dev:ReleaseAssessment ;
+    sh:sparql [ sh:message "DEV_RELEASE_ASSESSMENTS: Ready 引用的每项判断须同模型同快照且满足。" ; sh:select """
+        PREFIX dev: <https://example.org/code-ontology/development#>
+        SELECT $this WHERE { $this dev:status "Ready" ; dev:evaluatesModel ?m ; dev:evaluatesSnapshot ?s ; dev:includesAssessment ?a .
+          FILTER NOT EXISTS { ?a dev:status "Satisfied" ; dev:evaluatesModel ?m ; dev:evaluatesSnapshot ?s }
+        }
+    """ ] .

@@ -1,0 +1,16 @@
+# Q1: reusable class/property catalogue. Load ontology/*.ttl and shapes/*.ttl.
+PREFIX dev: <https://example.org/code-ontology/development#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX sh: <http://www.w3.org/ns/shacl#>
+SELECT DISTINCT ?term ?kind ?label ?parent ?shape ?layer WHERE {
+  VALUES ?kind { owl:Class owl:ObjectProperty owl:DatatypeProperty }
+  ?term a ?kind .
+  FILTER(STRSTARTS(STR(?term), "https://example.org/code-ontology"))
+  OPTIONAL { ?term rdfs:label ?label }
+  OPTIONAL { ?term rdfs:subClassOf ?parent }
+  OPTIONAL { ?term rdfs:subClassOf* ?ancestor . ?shape sh:targetClass ?ancestor }
+  OPTIONAL { ?term rdfs:subClassOf* ?anchor . ?anchor dev:semanticLayer ?layer }
+}
+ORDER BY ?kind ?term ?parent
