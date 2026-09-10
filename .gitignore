@@ -17,3 +17,4 @@ data/platform-development-runs/
 output/playwright/
 .playwright-cli/
 .code-ontology/
+business-ontology-builder/
