@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    name: Backend (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            python: '3.11'
+          - os: ubuntu-24.04
+            python: '3.12'
+          - os: windows-2022
+            python: '3.12'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Preserve repository bytes for graph baselines
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.12.10'
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked dependencies
+        run: uv sync --locked
+      - name: Run regression tests
+        run: |
+          mkdir -p .ci-logs
+          uv run --locked python scripts/run_ci_tests.py 2>&1 | tee .ci-logs/backend.log
+      - name: Preserve failed test log
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: backend-${{ matrix.os }}-py${{ matrix.python }}
+          path: .ci-logs/backend.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  web:
+    name: Web build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install locked dependencies
+        working-directory: web
+        run: npm ci
+      - name: Typecheck and build
+        working-directory: web
+        run: npm run build
+
+  website:
+    name: Website checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.12.10'
+          python-version: '3.12'
+          enable-cache: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Check website links and content
+        run: uv run --no-project --python 3.12 python scripts/check_website.py
+      - name: Check JavaScript syntax
+        run: node --check website/app.js
+
+  required:
+    name: CI required
+    if: always()
+    needs: [backend, web, website]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      BACKEND_RESULT: ${{ needs.backend.result }}
+      WEB_RESULT: ${{ needs.web.result }}
+      WEBSITE_RESULT: ${{ needs.website.result }}
+    steps:
+      - name: Require every check to succeed
+        shell: bash
+        run: |
+          printf 'Backend: %s\nWeb: %s\nWebsite: %s\n' "$BACKEND_RESULT" "$WEB_RESULT" "$WEBSITE_RESULT"
+          test "$BACKEND_RESULT" = success
+          test "$WEB_RESULT" = success
+          test "$WEBSITE_RESULT" = success
