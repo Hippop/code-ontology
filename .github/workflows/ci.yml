@@ -18,6 +18,9 @@ jobs:
     name: Backend (${{ matrix.os }}, Python ${{ matrix.python }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
     strategy:
       fail-fast: false
       matrix:
@@ -32,6 +35,8 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: Preserve repository bytes for graph baselines
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false

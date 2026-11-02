@@ -46,6 +46,9 @@ compilation, browser interaction or production readiness.
   application dependencies follow the committed lock files.
 - Backend jobs time out after 20 minutes. Failed test logs are uploaded for seven
   days; GitHub job logs also retain setup and installation failures.
+- Backend Python processes use UTF-8, including MCP subprocesses. Git automatic
+  line-ending conversion is disabled before checkout: byte-based graph evidence
+  must be compared against the exact committed fixture bytes on every runner.
 - New commits cancel older CI runs for the same PR. Main branch runs are not
   automatically cancelled.
 - Configure `CI required` as the required status check after observing a complete
